@@ -62,7 +62,7 @@
         var d; try { d = JSON.parse(t); } catch (e) { throw new Error('Apps Script belum mendukung input dari website. Tempel Code.gs terbaru lalu Deploy versi baru (lihat README).'); }
         if (!d.ok) { var er = new Error(d.error || 'Gagal.'); er.login = !!d.login; throw er; }
         return d;
-      }, function () { throw new Error('Tidak bisa terhubung ke Google. Periksa koneksi internet lalu coba lagi.'); });
+      }, function () { throw new Error('Tidak bisa terhubung ke Apps Script. Bila Apps Script belum diperbarui ke versi 3, tempel Code.gs terbaru lalu Deploy versi baru. Bila sudah, periksa koneksi internet lalu coba lagi.'); });
   }
 
   /* ---------- buka / tutup ---------- */
