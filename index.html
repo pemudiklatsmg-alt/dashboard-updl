@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard Kinerja UPDL Semarang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="sheet" id="app">
+  <header class="top">
+    <div>
+      <h1 id="judul">Dashboard Kinerja UPDL Semarang<span class="dot">.</span></h1>
+      <div class="sub"><span id="srcBadge" class="badge snap">Memuat data…</span><span id="srcInfo"></span></div>
+    </div>
+    <div class="controls">
+      <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
+      <select id="bulanSel" class="sel" aria-label="Pilih bulan"></select>
+      <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ Muat ulang</button>
+      <a class="btn primary" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener">✎ Update Data di Google Sheets</a>
+    </div>
+  </header>
+
+  <div id="warn" hidden></div>
+
+  <section class="kpis" id="kpis" aria-label="Ringkasan utama"></section>
+
+  <section class="row2">
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Capaian Kinerja per Bulan</h2><div class="desc">Total skor Kontrak Manajemen setelah pengurang kepatuhan. Klik batang untuk memilih bulan.</div></div>
+      </div>
+      <div class="chart" id="monthChart"></div>
+    </div>
+    <div class="minis" id="minis" aria-label="Evaluasi pembelajaran"></div>
+  </section>
+
+  <section class="cols">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-h">
+          <div><h2>Indikator Kinerja</h2><div class="desc">Pencapaian per indikator Konman. Klik untuk melihat target, realisasi, dan keterangan.</div></div>
+          <select class="sel" id="bulanSel2" aria-label="Pilih bulan indikator"></select>
+        </div>
+        <div class="ind" id="indList"></div>
+        <div class="legend"><span><i style="background:var(--good)"></i>≥ 100% tercapai</span><span><i style="background:var(--warn)"></i>95–99%</span><span><i style="background:var(--bad)"></i>&lt; 95%</span><span><i style="background:var(--ink-2);width:2px"></i>garis = 100%</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek.</div></div>
+          <select class="sel" id="bulanSel3" aria-label="Pilih bulan kepatuhan"></select>
+        </div>
+        <div class="kep" id="kepList"></div>
+        <div class="note" id="kepNote"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-h">
+          <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status temuan &amp; masukan</div></div>
+          <div class="score-box num" id="tlPct">–</div>
+        </div>
+        <div id="tlBody"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <div><h2>Maturity Level Proses Bisnis</h2><div class="desc" id="mlDesc">Skor maturity per key element, skala 0–5. Garis putus-putus = target dari Konman.</div></div>
+          <div class="score-box num" id="mlTotal" title="Rata-rata seluruh key element">–</div>
+        </div>
+        <div class="panel-h" style="margin-bottom:6px">
+          <div class="seg" role="group" aria-label="Sumber skor"><button type="button" data-ml="ver" aria-pressed="true">Verifikasi</button><button type="button" data-ml="sa" aria-pressed="false">Self Assessment</button></div>
+          <span class="desc" id="mlInfo"></span>
+        </div>
+        <div class="chips" id="mlChips"></div>
+        <div class="ml" id="mlList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang. Klik nomor untuk menyorot.</div></div>
+          <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
+        </div>
+        <div class="risk" id="riskBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Tautan Penting</h2></div>
+    <div class="links" id="links"></div>
+  </section>
+
+  <div class="foot-note" id="footNote"></div>
+</main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-c" id="modalC"></div></div>
+
+<script src="config.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/dashboard.js"></script>
+</body>
+</html>
