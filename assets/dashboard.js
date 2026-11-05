@@ -287,12 +287,17 @@
   /* ---------- maturity (sheet SMG) ---------- */
   function renderMl() {
     var M = (S.data.maturity || []).map(function (r) { return { no: String(r[0]), ke: r[1], sa: D.num(r[2]), ver: D.num(r[3]) }; });
-    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; $('mlGauge').innerHTML = ''; return; }
+    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; $('mlSum').innerHTML = ''; return; }
     var it = find(/Pengelolaan Proses Bisnis/i), Bn = B(), tgt = null;
     if (it) { tgt = konmanAda(Bn) ? D.num(it.target[Bn].v) : null; if (tgt === null) tgt = D.num(S.bulan <= 6 ? it.target1 : it.target2); }
     var vals = M.map(function (x) { return S.mlMode === 'ver' ? (x.ver !== null ? x.ver : x.sa) : x.sa; });
     var avg = vals.reduce(function (a, b) { return a + (b || 0); }, 0) / vals.length;
-    $('mlGauge').innerHTML = semi(avg / 5, tgt !== null ? tgt / 5 : null, D.fmt(avg, 2), tgt !== null && avg < tgt ? 'bad' : 'good', 'Rata-rata maturity ' + D.fmt(avg, 2) + ' dari 5' + (tgt !== null ? ', target ' + D.fmt(tgt, 2) : ''));
+    var capai = tgt === null ? null : avg >= tgt, warna = capai === false ? 'bad' : 'good';
+    $('mlSum').innerHTML = '<div class="ml-sum-h"><div><b class="ml-avg num">' + D.fmt(avg, 2) + '</b><span class="ml-dari">rata-rata dari 5 · ' + (S.mlMode === 'ver' ? 'verifikasi' : 'self assessment') + '</span></div>' +
+      (tgt !== null ? '<span class="pill ' + warna + '">Target ' + D.fmt(tgt, 2) + ' · ' + (capai ? 'Tercapai' : 'Di bawah target') + '</span>' : '<span class="pill idle">Target Konman belum ada</span>') + '</div>' +
+      '<div class="ml-big" role="img" aria-label="Rata-rata maturity ' + D.fmt(avg, 2) + ' dari 5' + (tgt !== null ? ', target ' + D.fmt(tgt, 2) : '') + '"><i style="width:' + Math.min(100, avg / 5 * 100) + '%;background:var(--' + warna + ')"></i>' +
+      (tgt !== null ? '<b style="left:' + (tgt / 5 * 100) + '%" title="Target ' + D.fmt(tgt, 2) + '"></b>' : '') + '</div>' +
+      '<div class="ml-scale" aria-hidden="true">' + [0, 1, 2, 3, 4, 5].map(function (n) { return '<span style="left:' + (n * 20) + '%">' + n + '</span>'; }).join('') + '</div>';
     $('mlInfo').textContent = (tgt !== null ? 'Target ' + D.fmt(tgt, 2) + ' (Konman)' : 'Target Konman belum ada') + ' · ' + M.length + ' key element';
     var kl = ['Semua'];
     M.forEach(function (x) { var k = KLAUSUL[x.no.charAt(0)]; if (k && kl.indexOf(k) < 0) kl.push(k); });
