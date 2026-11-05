@@ -46,10 +46,10 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 - Akun diatur lewat menu **Dashboard → Atur akun input web** di spreadsheet. Password disimpan sebagai hash di Script Properties, tidak di spreadsheet dan tidak di kode website. Mengganti password membuat semua sesi login berakhir. Sesi login berlaku 6 jam; 10 kali salah password mengunci login selama 15 menit.
 
 ## Export Excel
-Tombol **⬇ Export Excel** membuat file .xlsx dari data yang sedang tampil (periode = Tahun & Bulan di header). Setiap pilihan isi laporan menjadi satu sheet.
+Tombol **⬇ Export Excel** membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
 
 ## Font
-Website memakai SF Pro, SF Compact, SF Mono, dan New York. Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di Windows dan Android memakai padanan terdekat (Segoe UI/Roboto, Georgia, Consolas).
+Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.
 
 ## Apps Script
 Kode ada di [`apps-script/Code.gs`](apps-script/Code.gs), terpasang di spreadsheet gabungan (Ekstensi → Apps Script). Setelah mengganti kode: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. URL `/exec` tetap sama, jadi `config.js` tidak perlu diubah.

@@ -27,12 +27,13 @@
   --risk-5: #e5625e;
   --risk-ink: #18233f;
   --shadow: 0 1px 0 rgba(24, 35, 63, .04);
-  /* Keluarga font Apple. Tampil asli di Mac/iPhone/iPad; perangkat lain memakai padanan terdekat. */
-  --f-serif: "New York", "New York Medium", ui-serif, "Iowan Old Style", Charter, Georgia, serif;               /* judul */
-  --f-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;  /* angka besar */
-  --f-body: "SF Pro Text", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;        /* teks */
-  --f-compact: "SF Compact Text", "SF Compact", "SF Pro Text", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; /* label kecil */
-  --f-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;           /* kode & angka tabel */
+  /* Satu keluarga font: SF Pro (seperti apple.com). Display untuk ukuran besar, Text untuk teks.
+     Tampil asli di perangkat Apple; perangkat lain memakai Helvetica/Arial/Segoe UI. */
+  --f-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+  --f-body: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+  --f-serif: var(--f-display);
+  --f-compact: var(--f-body);
+  --f-mono: var(--f-body);
   --r: 10px;
   color-scheme: light;
 }
@@ -70,7 +71,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 
 /* Header */
 .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.top h1 { font-family: var(--f-serif); font-weight: 700; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.01em; margin: 0; line-height: 1.1; text-wrap: balance; }
+.top h1 { font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.01em; margin: 0; line-height: 1.1; text-wrap: balance; }
 .top h1 .dot { color: var(--accent); }
 .sub { color: var(--ink-3); font-size: 12.5px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; letter-spacing: .02em; }
@@ -114,7 +115,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 
 .panel { border: 1px solid var(--accent); border-radius: var(--r); padding: 14px 16px; min-width: 0; background: var(--sheet); }
 .panel-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.panel h2 { margin: 0; font-family: var(--f-serif); font-weight: 600; font-size: 18px; letter-spacing: -.005em; }
+.panel h2 { margin: 0; font-family: var(--f-display); font-weight: 600; letter-spacing: -.01em; font-size: 18px; letter-spacing: -.005em; }
 .panel .desc { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
 .score-box { border: 1.5px solid var(--frame); border-radius: 6px; padding: 4px 10px; font-family: var(--f-display); font-weight: 700; font-size: 18px; }
 
@@ -215,7 +216,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .modal { position: fixed; inset: 0; background: rgba(10, 14, 26, .5); display: flex; align-items: flex-start; justify-content: center; padding: max(24px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 24px max(12px, env(safe-area-inset-left, 0px)); z-index: 50; overflow: auto; }
 .modal[hidden], [hidden] { display: none !important; }
 .modal-c { background: var(--sheet); border: 1px solid var(--frame); border-radius: 12px; width: min(820px, 100%); padding: 18px 20px; display: grid; gap: 12px; }
-.modal-c h3 { margin: 0; font-family: var(--f-serif); font-size: 20px; font-weight: 600; }
+.modal-c h3 { margin: 0; font-family: var(--f-display); letter-spacing: -.01em; font-size: 20px; font-weight: 600; }
 .modal-h { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 14px; font-size: 12px; }
 .meta div span { display: block; color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
@@ -258,7 +259,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 
 /* ---------- Font per peran ---------- */
 .card h3, .hint, .pill, .tag, .chip, .seg button, .legend, .note, .desc, .foot, .chart .ax, .chart .bl, .rmap, .meta div span, .tbl th, .sub-h, .follow, .mx-l { font-family: var(--f-compact); }
-.tbl td.r, .rlist td:first-child, .fname, .kode { font-family: var(--f-mono); font-size: .95em; }
+.tbl td.r, .rlist td:first-child, .fname, .kode { font-variant-numeric: tabular-nums; }
 .card .val, .ring-t, .semi-t, .kep-box .v, .tl-sum b { font-family: var(--f-display); }
 
 /* ---------- Grafik lingkaran ---------- */
