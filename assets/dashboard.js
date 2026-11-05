@@ -285,15 +285,24 @@
   }
 
   /* ---------- maturity (sheet SMG) ---------- */
+  /* Tempat bar ringkasan maturity; dibuat sendiri bila halaman yang tersimpan di browser masih versi lama */
+  function wadahMl() {
+    var el = $('mlSum'); if (el) return el;
+    var g = $('mlGauge'); if (g) g.remove();
+    el = document.createElement('div'); el.className = 'ml-sum'; el.id = 'mlSum';
+    var seg = document.querySelector('[data-ml]'), row = seg && seg.closest('.panel-h');
+    if (row) row.parentNode.insertBefore(el, row); else $('mlList').parentNode.insertBefore(el, $('mlList'));
+    return el;
+  }
   function renderMl() {
     var M = (S.data.maturity || []).map(function (r) { return { no: String(r[0]), ke: r[1], sa: D.num(r[2]), ver: D.num(r[3]) }; });
-    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; $('mlSum').innerHTML = ''; return; }
+    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; wadahMl().innerHTML = ''; return; }
     var it = find(/Pengelolaan Proses Bisnis/i), Bn = B(), tgt = null;
     if (it) { tgt = konmanAda(Bn) ? D.num(it.target[Bn].v) : null; if (tgt === null) tgt = D.num(S.bulan <= 6 ? it.target1 : it.target2); }
     var vals = M.map(function (x) { return S.mlMode === 'ver' ? (x.ver !== null ? x.ver : x.sa) : x.sa; });
     var avg = vals.reduce(function (a, b) { return a + (b || 0); }, 0) / vals.length;
     var capai = tgt === null ? null : avg >= tgt, warna = capai === false ? 'bad' : 'good';
-    $('mlSum').innerHTML = '<div class="ml-sum-h"><div><b class="ml-avg num">' + D.fmt(avg, 2) + '</b><span class="ml-dari">rata-rata dari 5 · ' + (S.mlMode === 'ver' ? 'verifikasi' : 'self assessment') + '</span></div>' +
+    wadahMl().innerHTML = '<div class="ml-sum-h"><div><b class="ml-avg num">' + D.fmt(avg, 2) + '</b><span class="ml-dari">rata-rata dari 5 · ' + (S.mlMode === 'ver' ? 'verifikasi' : 'self assessment') + '</span></div>' +
       (tgt !== null ? '<span class="pill ' + warna + '">Target ' + D.fmt(tgt, 2) + ' · ' + (capai ? 'Tercapai' : 'Di bawah target') + '</span>' : '<span class="pill idle">Target Konman belum ada</span>') + '</div>' +
       '<div class="ml-big" role="img" aria-label="Rata-rata maturity ' + D.fmt(avg, 2) + ' dari 5' + (tgt !== null ? ', target ' + D.fmt(tgt, 2) : '') + '"><i style="width:' + Math.min(100, avg / 5 * 100) + '%;background:var(--' + warna + ')"></i>' +
       (tgt !== null ? '<b style="left:' + (tgt / 5 * 100) + '%" title="Target ' + D.fmt(tgt, 2) + '"></b>' : '') + '</div>' +
@@ -429,7 +438,22 @@
     renderAll();
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
-  function renderAll() { renderKpis(); renderMinis(); renderChart(); renderInd(); renderKep(); renderTL(); renderMl(); renderRisk(); renderLinks(); }
+  /* Satu bagian yang gagal tidak menghentikan bagian lain */
+  function renderAll() {
+    var gagal = [];
+    [['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk], ['Tautan', renderLinks]].forEach(function (x) {
+      try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
+    });
+    var w = $('warn'), id = 'warnRender', ada = $(id);
+    if (ada) ada.remove();
+    if (!gagal.length && !w.textContent.trim()) w.hidden = true;
+    if (gagal.length) {
+      var d = document.createElement('div'); d.id = id;
+      d.innerHTML = 'Bagian ' + gagal.map(esc).join(', ') + ' tidak bisa ditampilkan. Tekan <b>Muat ulang</b> di browser (Ctrl+Shift+R / Cmd+Shift+R) untuk memuat versi terbaru website.';
+      w.hidden = false; w.className = 'warnbox'; w.appendChild(d);
+    }
+  }
 
   function tahunTersedia(d) {
     var ys = {};
