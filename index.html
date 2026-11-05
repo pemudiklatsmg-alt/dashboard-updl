@@ -4,9 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -20,7 +17,9 @@
       <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
       <select id="bulanSel" class="sel" aria-label="Pilih bulan"></select>
       <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ Muat ulang</button>
-      <a class="btn primary" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener">✎ Update Data di Google Sheets</a>
+      <button class="btn" id="exportBtn" type="button" title="Unduh laporan periode terpilih dalam format Excel">⬇ Export Excel</button>
+      <button class="btn primary" id="inputBtn" type="button" title="Isi data dari website (perlu login)">＋ Input Data</button>
+      <a class="btn ghost" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener" title="Buka spreadsheet Data Dashboard UPDL Semarang">✎ Google Sheets</a>
     </div>
   </header>
 
@@ -38,53 +37,53 @@
     <div class="minis" id="minis" aria-label="Evaluasi pembelajaran"></div>
   </section>
 
-  <section class="cols">
-    <div class="stack">
-      <div class="panel">
-        <div class="panel-h">
-          <div><h2>Indikator Kinerja</h2><div class="desc">Pencapaian per indikator Konman. Klik untuk melihat target, realisasi, dan keterangan.</div></div>
-          <select class="sel" id="bulanSel2" aria-label="Pilih bulan indikator"></select>
-        </div>
-        <div class="ind" id="indList"></div>
-        <div class="legend"><span><i style="background:var(--good)"></i>≥ 100% tercapai</span><span><i style="background:var(--warn)"></i>95–99%</span><span><i style="background:var(--bad)"></i>&lt; 95%</span><span><i style="background:var(--ink-2);width:2px"></i>garis = 100%</span></div>
+  <!-- Baris berpasangan: tinggi kedua kartu selalu sama -->
+  <section class="pair" aria-label="Indikator kinerja dan maturity">
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Indikator Kinerja</h2><div class="desc">Pencapaian per indikator Konman. Klik untuk melihat target, realisasi, dan keterangan.</div></div>
+        <span class="follow" title="Mengikuti Tahun dan Bulan di bagian atas"><span class="per"></span></span>
       </div>
-      <div class="panel">
-        <div class="panel-h">
-          <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek.</div></div>
-          <select class="sel" id="bulanSel3" aria-label="Pilih bulan kepatuhan"></select>
-        </div>
-        <div class="kep" id="kepList"></div>
-        <div class="note" id="kepNote"></div>
-      </div>
+      <div class="ind" id="indList"></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>≥ 100% tercapai</span><span><i style="background:var(--warn)"></i>95–99%</span><span><i style="background:var(--bad)"></i>&lt; 95%</span><span><i style="background:var(--ink-2);width:2px"></i>garis = 100%</span></div>
     </div>
-    <div class="stack">
-      <div class="panel">
-        <div class="panel-h">
-          <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status temuan &amp; masukan</div></div>
-          <div class="score-box num" id="tlPct">–</div>
-        </div>
-        <div id="tlBody"></div>
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Maturity Level Proses Bisnis</h2><div class="desc" id="mlDesc">Skor per key element, skala 0–5 (sheet SMG). Garis putus-putus = target dari Konman.</div></div>
+        <div id="mlGauge" class="mini-gauge"></div>
       </div>
-      <div class="panel">
-        <div class="panel-h">
-          <div><h2>Maturity Level Proses Bisnis</h2><div class="desc" id="mlDesc">Skor maturity per key element, skala 0–5. Garis putus-putus = target dari Konman.</div></div>
-          <div class="score-box num" id="mlTotal" title="Rata-rata seluruh key element">–</div>
-        </div>
-        <div class="panel-h" style="margin-bottom:6px">
-          <div class="seg" role="group" aria-label="Sumber skor"><button type="button" data-ml="ver" aria-pressed="true">Verifikasi</button><button type="button" data-ml="sa" aria-pressed="false">Self Assessment</button></div>
-          <span class="desc" id="mlInfo"></span>
-        </div>
-        <div class="chips" id="mlChips"></div>
-        <div class="ml" id="mlList"></div>
+      <div class="panel-h" style="margin-bottom:6px">
+        <div class="seg" role="group" aria-label="Sumber skor"><button type="button" data-ml="ver" aria-pressed="true">Verifikasi</button><button type="button" data-ml="sa" aria-pressed="false">Self Assessment</button></div>
+        <span class="desc" id="mlInfo"></span>
       </div>
-      <div class="panel">
-        <div class="panel-h">
-          <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang. Klik nomor untuk menyorot.</div></div>
-          <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
-        </div>
-        <div class="risk" id="riskBody"></div>
-      </div>
+      <div class="chips" id="mlChips"></div>
+      <div class="ml fill" id="mlList"></div>
     </div>
+  </section>
+
+  <section class="pair" aria-label="Kepatuhan dan tindak lanjut">
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek. Lingkaran penuh = patuh.</div></div>
+        <span class="follow" title="Mengikuti Tahun dan Bulan di bagian atas"><span class="per"></span></span>
+      </div>
+      <div class="kep" id="kepList"></div>
+      <div class="note" id="kepNote"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status temuan &amp; masukan</div></div>
+      </div>
+      <div id="tlBody" class="tl-body"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h">
+      <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang. Klik nomor untuk menyorot.</div></div>
+      <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
+    </div>
+    <div class="risk" id="riskBody"></div>
   </section>
 
   <section class="panel">
@@ -97,8 +96,52 @@
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-c" id="modalC"></div></div>
 
+<!-- Login input data -->
+<div class="modal" id="loginModal" hidden role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <form class="modal-c small" id="loginForm" novalidate>
+    <div class="modal-h"><h3 id="loginTitle">Masuk untuk input data</h3><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
+    <p class="desc">Hanya petugas yang punya akun yang bisa menambah atau mengubah data. Melihat dashboard tidak perlu login.</p>
+    <div class="field"><label for="uName">Username</label><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+    <div class="field"><label for="uPass">Password</label><input class="inp" id="uPass" type="password" autocomplete="current-password"></div>
+    <div class="errmsg" id="loginErr" hidden></div>
+    <button class="btn primary big" type="submit" id="loginBtn">Masuk</button>
+    <p class="desc">Lupa password? Admin bisa membuat password baru lewat menu <b>Dashboard → Atur akun input web</b> di spreadsheet.</p>
+  </form>
+</div>
+
+<!-- Jendela input data -->
+<div class="modal" id="inputModal" hidden role="dialog" aria-modal="true" aria-labelledby="inputTitle">
+  <div class="modal-c wide in-box">
+    <div class="modal-h in-head">
+      <div><h3 id="inputTitle">Input Data</h3><div class="desc">Masuk sebagai <b id="whoami">–</b> · data langsung tersimpan ke Google Sheets</div></div>
+      <div class="row-gap"><button class="btn" type="button" id="logoutBtn">Keluar</button><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
+    </div>
+    <div class="in-wrap">
+      <nav class="in-menu" id="inMenu" aria-label="Jenis data"></nav>
+      <div class="in-form" id="inForm"></div>
+    </div>
+    <div class="in-guide" id="inGuide"></div>
+  </div>
+</div>
+
+<!-- Export -->
+<div class="modal" id="exportModal" hidden role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="modal-c">
+    <div class="modal-h"><h3 id="exportTitle">Export Laporan ke Excel</h3><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
+    <div class="dest">Periode mengikuti pilihan di atas: <b class="per"></b> (angka kumulatif s.d. bulan ini). Ganti Tahun atau Bulan di header untuk periode lain.</div>
+    <div class="field"><label>Isi laporan (satu sheet per pilihan)</label><div class="chk" id="expChk"></div></div>
+    <div class="field"><label>Nama file</label><div class="fname" id="expName"></div></div>
+    <div class="errmsg" id="expErr" hidden></div>
+    <div class="actions"><button class="btn" type="button" data-tutup>Batal</button><button class="btn primary" type="button" id="expGo">⬇ Unduh Excel</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
 <script src="config.js"></script>
 <script src="assets/common.js"></script>
 <script src="assets/dashboard.js"></script>
+<script src="assets/input.js"></script>
+<script src="assets/export.js"></script>
 </body>
 </html>

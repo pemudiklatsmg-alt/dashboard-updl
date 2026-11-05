@@ -190,7 +190,7 @@
   }
 
   /* ---------------- LOAD ---------------- */
-  var CACHE_KEY = 'dash-cache-v2';
+  var CACHE_KEY = 'dash-cache-v3';
   function loadData(opts) {
     opts = opts || {};
     var cfg = window.DASH_CONFIG || {};
@@ -200,7 +200,7 @@
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (d) {
         if (d && d.error) throw new Error(d.error);
-        if (!d.meta || d.meta.versi !== 2) throw new Error('Apps Script masih versi lama. Tempel Code.gs versi 2 lalu buat versi deployment baru.');
+        if (!d.meta || !(d.meta.versi >= 2)) throw new Error('Apps Script masih versi lama. Tempel Code.gs terbaru lalu buat versi deployment baru.');
         try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {}
         return d;
       })

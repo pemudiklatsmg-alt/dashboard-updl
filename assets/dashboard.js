@@ -81,11 +81,47 @@
       '<line x1="' + t1[0].toFixed(1) + '" y1="' + t1[1].toFixed(1) + '" x2="' + t2[0].toFixed(1) + '" y2="' + t2[1].toFixed(1) + '" stroke="var(--ink)" stroke-width="2"/>' +
       '<text x="' + cx + '" y="' + (cy - 8) + '" text-anchor="middle" font-family="var(--f-display)" font-weight="700" font-size="24" fill="var(--ink)">' + (v === null ? '–' : D.fmt(v * 100, 1) + '%') + '</text></svg>';
   }
+  /* Lingkaran progres: f = 0..1 (null = tanpa data) */
+  function ring(f, c, txt, label) {
+    var R = 26, C = 2 * Math.PI * R, v = f === null || f === undefined || !isFinite(f) ? null : Math.max(0, Math.min(1, f));
+    return '<svg class="ring" viewBox="0 0 64 64" role="img" aria-label="' + esc(label || txt) + '">' +
+      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="7"/>' +
+      (v ? '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(c) + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (C * v).toFixed(2) + ' ' + C.toFixed(2) + '" transform="rotate(-90 32 32)"/>' : '') +
+      '<text x="32" y="36" text-anchor="middle" class="ring-t">' + esc(txt) + '</text></svg>';
+  }
+  /* Donat beberapa segmen: seg = [{n, c, t}] */
+  function donut(seg, txt, sub) {
+    var R = 26, C = 2 * Math.PI * R, tot = seg.reduce(function (a, x) { return a + x.n; }, 0), off = 0, gap = seg.filter(function (x) { return x.n; }).length > 1 ? 1.6 : 0;
+    var h = '<svg class="ring donut" viewBox="0 0 64 64" role="img" aria-label="' + esc(seg.map(function (x) { return x.t + ' ' + x.n; }).join(', ')) + '">' +
+      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="8"/>';
+    if (tot) seg.forEach(function (x) {
+      if (!x.n) return; var len = C * x.n / tot;
+      h += '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(x.c) + '" stroke-width="8" stroke-dasharray="' + Math.max(len - gap, 0.6).toFixed(2) + ' ' + C.toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 32 32)"><title>' + esc(x.t) + ': ' + x.n + '</title></circle>';
+      off += len;
+    });
+    return h + '<text x="32" y="' + (sub ? 34 : 36.5) + '" text-anchor="middle" class="ring-t big">' + esc(txt) + '</text>' + (sub ? '<text x="32" y="43" text-anchor="middle" class="ring-s">' + esc(sub) + '</text>' : '') + '</svg>';
+  }
+  /* Setengah lingkaran kecil: f dan tick = 0..1 */
+  function semi(f, tick, txt, c, label) {
+    var R = 44, cx = 56, cy = 52;
+    function pt(t) { var a = Math.PI * (1 - t); return [cx + R * Math.cos(a), cy - R * Math.sin(a)]; }
+    var v = f === null || !isFinite(f) ? null : Math.max(0, Math.min(1, f)), e = v ? pt(v) : null;
+    var h = '<svg class="semi" viewBox="0 0 112 62" role="img" aria-label="' + esc(label || txt) + '">' +
+      '<path d="M12 52 A44 44 0 0 1 100 52" fill="none" stroke="var(--track)" stroke-width="9" stroke-linecap="round"/>' +
+      (v ? '<path d="M12 52 A44 44 0 0 1 ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1) + '" fill="none" stroke="' + cv(c) + '" stroke-width="9" stroke-linecap="round"/>' : '');
+    if (tick !== null && tick !== undefined && isFinite(tick)) {
+      var a = Math.PI * (1 - Math.max(0, Math.min(1, tick)));
+      h += '<line x1="' + (cx + 36 * Math.cos(a)).toFixed(1) + '" y1="' + (cy - 36 * Math.sin(a)).toFixed(1) + '" x2="' + (cx + 53 * Math.cos(a)).toFixed(1) + '" y2="' + (cy - 53 * Math.sin(a)).toFixed(1) + '" stroke="var(--ink)" stroke-width="2"/>';
+    }
+    return h + '<text x="' + cx + '" y="' + (cy - 4) + '" text-anchor="middle" class="semi-t">' + esc(txt) + '</text></svg>';
+  }
   function card(o) {
+    var body = o.html || (o.ring ? '<div class="cv"><div class="val num">' + o.val + '</div>' + o.ring + '</div>' : '<div class="val num">' + o.val + '</div>');
     return '<div class="card' + (o.click ? ' click' : '') + '"' + (o.click ? ' tabindex="0" role="button" data-act="' + o.click + '"' : '') + '>' +
       '<h3>' + o.title + (o.tag || '') + '</h3>' + (o.hint ? '<div class="hint">' + o.hint + '</div>' : '') +
-      (o.html || '<div class="val num">' + o.val + '</div>') + '<div class="foot ' + (o.cls || 'idle') + '">' + (o.foot || '') + '</div></div>';
+      body + '<div class="foot ' + (o.cls || 'idle') + '">' + (o.foot || '') + '</div></div>';
   }
+  function pctTxt(f) { return f === null || f === undefined || !isFinite(f) ? '–' : D.fmt(f * 100, 0) + '%'; }
 
   function renderKpis() {
     var bl = namaBulan(S.bulan), Bn = B(), h = '';
@@ -95,12 +131,14 @@
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set());
     var pctP = r.rencanaPeserta ? r.peserta / r.rencanaPeserta : null;
     h += card({ title: 'Total Peserta', hint: 'Rendiklat s.d. ' + bl, val: r.kelas ? D.fmt(r.peserta, 0) : '–',
+      ring: ring(pctP, r.pakaiRencana || r.tanpaPeserta ? 'warn' : status(pctP).c, pctTxt(pctP), 'Peserta ' + pctTxt(pctP) + ' dari rencana peserta'),
       tag: r.pakaiRencana ? tag('perkiraan', 'warn') : (r.dikoreksi ? tag('dikoreksi') : ''),
       foot: !r.kelas ? 'Belum ada kelas selesai' : (r.pakaiRencana ? r.pakaiRencana + ' kelas memakai rencana peserta' : (r.tanpaPeserta ? r.tanpaPeserta + ' kelas tanpa realisasi' : D.pct(pctP) + ' dari rencana peserta')),
       cls: r.pakaiRencana || r.tanpaPeserta ? 'warn' : status(pctP).c, click: 'kelas' });
 
     var pctK = r.terjadwal ? r.kelas / r.terjadwal : null;
     h += card({ title: 'Total Kelas', hint: 'Rendiklat, status Selesai s.d. ' + bl, val: r.kelas ? D.fmt(r.kelas, 0) : '–',
+      ring: ring(pctK, status(pctK).c, pctTxt(pctK), 'Kelas selesai ' + pctTxt(pctK) + ' dari terjadwal'),
       foot: r.terjadwal ? D.pct(pctK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' kelas terjadwal · +' + r.kelasBulan + ' di ' + bl : 'Belum ada data Rendiklat', cls: status(pctK).c, click: 'kelas' });
 
     var H = hop(S.tahun, S.bulan), itH = find(/Tingkat Pelaksanaan Pembelajaran/i), tgt = itH && konmanAda(Bn) ? D.num(itH.target[Bn].v) : null;
@@ -108,13 +146,16 @@
     h += card({ title: 'Hari Orang Pelatihan', hint: 'Rendiklat ÷ jumlah pegawai',
       tag: H.disesuaikan ? tag('disesuaikan') : (r.pakaiRencana ? tag('perkiraan', 'warn') : ''),
       val: H.nilai !== null ? D.fmt(H.nilai, 3) : '–',
+      ring: ring(hc, status(hc).c, pctTxt(hc), 'HOP ' + pctTxt(hc) + ' dari target'),
       foot: H.pegawai === null && H.adj.timpa === null ? 'Jumlah pegawai ' + bl + ' belum diisi' : (tgt ? D.pct(hc) + ' dari target ' + D.fmt(tgt, 3) : 'Target Konman belum ada'),
       cls: H.pegawai === null && H.adj.timpa === null ? 'warn' : status(hc).c, click: 'hop' });
 
     var L1 = D.rataTertimbang(D.rekapSampai(S.data.l1, 'Tanggal Selesai', S.tahun, S.bulan), 'Nilai Kepuasan (1-5)', 'Jumlah Responden');
     var t1 = set().targetL1;
     var k1 = !L1 ? { c: 'idle', t: 'Belum diisi' } : t1 ? status(L1.nilai / t1) : (L1.nilai >= 4.5 ? { c: 'good', t: 'Sangat Baik' } : L1.nilai >= 4 ? { c: 'good', t: 'Baik' } : L1.nilai >= 3 ? { c: 'warn', t: 'Cukup' } : { c: 'bad', t: 'Kurang' });
+    var f1 = L1 ? (t1 ? L1.nilai / t1 : L1.nilai / 5) : null;
     h += card({ title: 'Kepuasan Peserta', hint: 'Evaluasi Level 1 · s.d. ' + bl, val: L1 ? D.fmt(L1.nilai, 2) + ' <small>/ 5</small>' : '–',
+      ring: ring(f1, k1.c, pctTxt(f1), t1 ? 'Kepuasan ' + pctTxt(f1) + ' dari target' : 'Kepuasan ' + pctTxt(f1) + ' dari skala 5'),
       foot: L1 ? k1.t + ' · ' + L1.n + ' pelatihan' : 'Belum diisi', cls: k1.c, click: 'rekap:l1' });
     $('kpis').innerHTML = h;
   }
@@ -126,15 +167,18 @@
       var a = o.agg ? o.agg(rows) : D.rataTertimbang(rows, o.kolNilai, o.kolBobot);
       var st = !a ? { c: 'idle', t: 'Belum diisi' } : o.target ? status(a.nilai / o.target) : { c: 'idle', t: a.n + ' data' };
       var foot = !a ? 'Belum diisi' : (o.target ? (a.nilai / o.target >= 0.9999 ? 'Mencapai target ' : 'Dari target ') + D.fmt(o.target, o.dTarget === undefined ? 2 : o.dTarget) : a.n + ' data s.d. ' + bl);
-      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', foot: foot, cls: st.c, click: 'rekap:' + o.data + (o.key ? ':' + o.key : '') });
+      var fr = !a ? null : o.target ? a.nilai / o.target : a.nilai / o.skala;
+      var rc = !a ? 'idle' : o.target ? st.c : (fr >= 0.8 ? 'good' : fr >= 0.6 ? 'warn' : 'bad');
+      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', foot: foot, cls: st.c, click: 'rekap:' + o.data + (o.key ? ':' + o.key : ''),
+        ring: ring(fr, rc, pctTxt(fr), o.title + ' ' + pctTxt(fr) + (o.target ? ' dari target' : ' dari skala maksimum')) });
     }
     function konTarget(re) { var it = find(re); return it && konmanAda(Bn) ? D.num(it.target[Bn].v) : null; }
-    h += evalCard({ title: 'Peningkatan KSA', hint: 'Evaluasi Level 2 · Formatif', data: 'l2', key: 'ksa', kolTgl: 'Tanggal Selesai', kolNilai: 'KSA Formatif (0-100)', kolBobot: 'Jumlah Peserta', target: p.targetKSA, fmtV: function (v) { return D.fmt(v, 1) + ' <small>/ 100</small>'; } });
-    h += evalCard({ title: 'Dampak pada Perilaku', hint: 'Evaluasi Level 3', data: 'l3', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Perubahan Perilaku/i), fmtV: function (v) { return D.fmt(v, 2); } });
-    h += evalCard({ title: 'ROTI', hint: 'Return on Training Investment', data: 'roti', kolTgl: 'Tanggal', kolNilai: 'Nilai ROTI (%)', fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
-    h += evalCard({ title: 'Confidence & Commitment', hint: 'Evaluasi Level 2 · Sumatif', data: 'l2', key: 'cc', kolTgl: 'Tanggal Selesai', kolNilai: 'C&C Sumatif (1-4)', kolBobot: 'Jumlah Peserta', target: p.targetCC, fmtV: function (v) { return D.fmt(v, 2) + ' <small>/ 4</small>'; } });
-    h += evalCard({ title: 'Dampak pada Kinerja', hint: 'Evaluasi Level 4', data: 'l4', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Pada Kinerja/i), fmtV: function (v) { return D.fmt(v, 2); } });
-    h += evalCard({ title: 'Sertifikat Terbit', hint: 'Terbit ÷ peserta lulus', data: 'sertifikat', kolTgl: 'Tanggal', target: p.targetSertifikat, dTarget: 0,
+    h += evalCard({ title: 'Peningkatan KSA', hint: 'Evaluasi Level 2 · Formatif', data: 'l2', key: 'ksa', kolTgl: 'Tanggal Selesai', kolNilai: 'KSA Formatif (0-100)', kolBobot: 'Jumlah Peserta', target: p.targetKSA, skala: 100, fmtV: function (v) { return D.fmt(v, 1) + ' <small>/ 100</small>'; } });
+    h += evalCard({ title: 'Dampak pada Perilaku', hint: 'Evaluasi Level 3', data: 'l3', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Perubahan Perilaku/i), skala: 100, fmtV: function (v) { return D.fmt(v, 2); } });
+    h += evalCard({ title: 'ROTI', hint: 'Return on Training Investment', data: 'roti', kolTgl: 'Tanggal', kolNilai: 'Nilai ROTI (%)', skala: 100, fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
+    h += evalCard({ title: 'Confidence & Commitment', hint: 'Evaluasi Level 2 · Sumatif', data: 'l2', key: 'cc', kolTgl: 'Tanggal Selesai', kolNilai: 'C&C Sumatif (1-4)', kolBobot: 'Jumlah Peserta', target: p.targetCC, skala: 4, fmtV: function (v) { return D.fmt(v, 2) + ' <small>/ 4</small>'; } });
+    h += evalCard({ title: 'Dampak pada Kinerja', hint: 'Evaluasi Level 4', data: 'l4', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Pada Kinerja/i), skala: 100, fmtV: function (v) { return D.fmt(v, 2); } });
+    h += evalCard({ title: 'Sertifikat Terbit', hint: 'Terbit ÷ peserta lulus', data: 'sertifikat', kolTgl: 'Tanggal', target: p.targetSertifikat, dTarget: 0, skala: 100,
       agg: function (rows) { var l = 0, t = 0, n = 0; rows.forEach(function (r) { var a = D.num(r['Peserta Lulus']), b = D.num(r['Sertifikat Terbit']); if (a) { l += a; t += b || 0; n++; } }); return n ? { nilai: t / l * 100, n: n } : null; },
       fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
     $('minis').innerHTML = h;
@@ -205,8 +249,10 @@
     var h = aspek.map(function (a) {
       var n = kepVal(a.row, Bn), st = n === null ? { c: 'idle', t: 'Belum diisi' } : n === 0 ? { c: 'good', t: 'Patuh' } : { c: 'bad', t: 'Ada pengurang' };
       if (n !== null) { tot += Math.abs(n); isi++; }
-      return '<div class="kep-box" title="' + esc(a.row['Keterangan'] || '') + '"><h4>' + esc(a.nama) + '</h4><span class="pill ' + st.c + '">' + st.t + '</span>' +
-        '<div class="v num ' + st.c + '">' + (n === null ? '–' : (n === 0 ? '0' : '−' + D.fmt(Math.abs(n), 2))) + '<small style="font-size:11px;color:var(--ink-3);font-weight:500"> / maks ' + (a.maks || '–') + '</small></div></div>';
+      var fr = n === null ? null : a.maks ? Math.max(0, (a.maks - Math.abs(n)) / a.maks) : (n === 0 ? 1 : 0);
+      return '<div class="kep-box" title="' + esc(a.row['Keterangan'] || '') + '"><h4>' + esc(a.nama) + '</h4>' +
+        '<div class="kep-b">' + ring(fr, st.c, n === null ? '–' : (n === 0 ? '0' : '−' + D.fmt(Math.abs(n), 2)), a.nama + ': ' + st.t) +
+        '<div><span class="pill ' + st.c + '">' + st.t + '</span><div class="mx-l">maks ' + (a.maks || '–') + '</div></div></div></div>';
     }).join('');
     $('kepList').innerHTML = h || '<div class="empty">Belum ada aspek kepatuhan untuk tahun ' + S.tahun + '.</div>';
     $('kepNote').innerHTML = isi ? 'Total pengurang ' + namaBulan(S.bulan) + ': <b>' + D.fmt(tot, 2) + '</b> (sudah dikurangkan dari Capaian Kinerja).' : 'Nilai kepatuhan ' + namaBulan(S.bulan) + ' belum diisi. Isi di ' + sheetLink('Google Sheets', 'Kepatuhan') + ' (0 = patuh).';
@@ -214,15 +260,23 @@
 
   /* ---------- tindak lanjut ---------- */
   function tlRows() { return D.rows(S.data.tindaklanjut).filter(function (r) { return String(r['Temuan / Masukan'] || '').trim(); }); }
+  function tlStatus(r) { var s = String(r['Status'] || 'Belum Dimulai').trim(); return { 'Selesai': 1, 'Berjalan': 1, 'Belum Dimulai': 1 }[s] ? s : 'Belum Dimulai'; }
   function renderTL() {
     var R = tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 };
-    R.forEach(function (r) { var s = String(r['Status'] || 'Belum Dimulai').trim(); if (c[s] === undefined) s = 'Belum Dimulai'; c[s]++; });
+    R.forEach(function (r) { c[tlStatus(r)]++; });
     var n = R.length;
-    $('tlDesc').textContent = 'Status ' + n + ' temuan & masukan'; $('tlPct').textContent = n ? D.fmt(c['Selesai'] / n * 100, 0) + '%' : '–';
-    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada temuan atau masukan. Isi di ' + sheetLink('Google Sheets', 'Tindak Lanjut Evaluasi') + '.</div>'; return; }
+    $('tlDesc').textContent = n + ' temuan & masukan';
+    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada temuan atau masukan. Tambahkan lewat tombol Input Data atau di ' + sheetLink('Google Sheets', 'Tindak Lanjut Evaluasi') + '.</div>'; return; }
     var seg = [['Selesai', 'good'], ['Berjalan', 'warn'], ['Belum Dimulai', 'bad']];
-    $('tlBody').innerHTML = '<div class="stackbar">' + seg.map(function (s) { return c[s[0]] ? '<span style="flex:' + c[s[0]] + ';background:' + cv(s[1]) + '" title="' + s[0] + ': ' + c[s[0]] + '"></span>' : ''; }).join('') + '</div>' +
-      '<div class="tl-leg">' + seg.map(function (s) { return '<span><i class="sw" style="background:' + cv(s[1]) + '"></i>' + s[0] + ' <b>' + c[s[0]] + '</b></span>'; }).join('') + '<button class="btn" style="margin-left:auto;padding:2px 10px" data-act="tl">Lihat daftar</button></div>';
+    var cls = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
+    var buka = R.filter(function (r) { return tlStatus(r) !== 'Selesai'; });
+    $('tlBody').innerHTML = '<div class="tl-top">' + donut(seg.map(function (s) { return { n: c[s[0]], c: s[1], t: s[0] }; }), D.fmt(c['Selesai'] / n * 100, 0) + '%', 'selesai') +
+      '<div class="tl-sum">' + seg.map(function (s) { return '<div><b class="num ' + s[1] + '">' + c[s[0]] + '</b><span>' + s[0] + '</span></div>'; }).join('') + '</div></div>' +
+      '<div class="sub-h">Belum selesai (' + buka.length + ')</div>' +
+      '<div class="fill tl-list">' + (buka.length ? buka.map(function (r) {
+        var s = tlStatus(r); return '<div class="tl-item"><div><div class="tl-t">' + esc(r['Temuan / Masukan']) + '</div><div class="tl-m">' + esc([r['PIC'], r['Sumber'], r['Target Selesai'] ? 'target ' + r['Target Selesai'] : ''].filter(Boolean).join(' · ')) + '</div></div><span class="pill ' + cls[s] + '">' + s + '</span></div>';
+      }).join('') : '<div class="empty">Semua temuan sudah selesai.</div>') + '</div>' +
+      '<button class="btn" style="align-self:flex-start" data-act="tl">Lihat daftar lengkap →</button>';
   }
   function openTL() {
     var cls = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
@@ -233,12 +287,12 @@
   /* ---------- maturity (sheet SMG) ---------- */
   function renderMl() {
     var M = (S.data.maturity || []).map(function (r) { return { no: String(r[0]), ke: r[1], sa: D.num(r[2]), ver: D.num(r[3]) }; });
-    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; $('mlTotal').textContent = '–'; return; }
+    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; $('mlGauge').innerHTML = ''; return; }
     var it = find(/Pengelolaan Proses Bisnis/i), Bn = B(), tgt = null;
     if (it) { tgt = konmanAda(Bn) ? D.num(it.target[Bn].v) : null; if (tgt === null) tgt = D.num(S.bulan <= 6 ? it.target1 : it.target2); }
     var vals = M.map(function (x) { return S.mlMode === 'ver' ? (x.ver !== null ? x.ver : x.sa) : x.sa; });
     var avg = vals.reduce(function (a, b) { return a + (b || 0); }, 0) / vals.length;
-    $('mlTotal').textContent = D.fmt(avg, 2);
+    $('mlGauge').innerHTML = semi(avg / 5, tgt !== null ? tgt / 5 : null, D.fmt(avg, 2), tgt !== null && avg < tgt ? 'bad' : 'good', 'Rata-rata maturity ' + D.fmt(avg, 2) + ' dari 5' + (tgt !== null ? ', target ' + D.fmt(tgt, 2) : ''));
     $('mlInfo').textContent = (tgt !== null ? 'Target ' + D.fmt(tgt, 2) + ' (Konman)' : 'Target Konman belum ada') + ' · ' + M.length + ' key element';
     var kl = ['Semua'];
     M.forEach(function (x) { var k = KLAUSUL[x.no.charAt(0)]; if (k && kl.indexOf(k) < 0) kl.push(k); });
@@ -278,10 +332,14 @@
     });
     for (var d = 1; d <= 5; d++) g += '<div class="xl" style="grid-row:6;grid-column:' + (d + 2) + '"><b>' + d + '</b><br>' + DAM[d - 1] + '</div>';
     g += '<div class="xt" style="grid-row:7">Tingkat Dampak</div></div>';
-    var tbl = '<div class="rlist"><div class="h"><span>Daftar Risiko · ' + col + '</span><span>' + list.length + '</span></div>' + (list.length ?
+    var urut = ['Rendah', 'Moderat', 'Tinggi', 'Sangat Tinggi', 'Ekstrem'], cnt = {};
+    list.forEach(function (x) { if (x.p) cnt[x.p.level] = (cnt[x.p.level] || 0) + 1; });
+    var segR = urut.filter(function (l) { return cnt[l]; }).map(function (l) { return { n: cnt[l], c: 'risk-' + LV[l], t: l }; });
+    var ringkas = list.length ? '<div class="rsum">' + donut(segR, String(list.length), 'risiko') + '<div class="rsum-l">' + segR.map(function (x) { return '<span><i class="sw" style="background:var(--' + x.c + ')"></i>' + x.t + ' <b class="num">' + x.n + '</b></span>'; }).join('') + '</div></div>' : '';
+    var tbl = '<div class="rside">' + ringkas + '<div class="rlist"><div class="h"><span>Daftar Risiko · ' + col + '</span><span>' + list.length + '</span></div>' + (list.length ?
       '<div style="max-height:300px;overflow:auto"><table><thead><tr><th>No</th><th>Risiko</th><th>Level</th></tr></thead><tbody>' + list.map(function (x) {
         return '<tr data-r="' + esc(x.no) + '"' + (S.riskOn === x.no ? ' class="on"' : '') + ' title="' + esc(x.id) + '"><td>' + esc(x.no) + '</td><td>' + esc(x.des) + '</td><td class="lvl">' + (x.p ? '<i class="sw" style="background:var(--risk-' + LV[x.p.level] + ')"></i>' + esc(x.p.level) + ' (' + x.p.k + x.p.d + ')' : '–') + '</td></tr>';
-      }).join('') + '</tbody></table></div>' : '<div class="empty" style="border:0">File Profil Risiko belum terbaca.</div>') + '</div>';
+      }).join('') + '</tbody></table></div>' : '<div class="empty" style="border:0">File Profil Risiko belum terbaca.</div>') + '</div></div>';
     $('riskBody').innerHTML = g + tbl;
   }
 
@@ -361,8 +419,10 @@
   function setPeriode(y, m) {
     S.tahun = y; S.bulan = m;
     $('tahunSel').value = String(y);
-    ['bulanSel', 'bulanSel2', 'bulanSel3'].forEach(function (id) { $(id).value = String(m); });
+    $('bulanSel').value = String(m);
+    Array.prototype.forEach.call(document.querySelectorAll('.per'), function (e) { e.textContent = namaBulan(m) + ' ' + y; });
     renderAll();
+    document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   function renderAll() { renderKpis(); renderMinis(); renderChart(); renderInd(); renderKep(); renderTL(); renderMl(); renderRisk(); renderLinks(); }
 
@@ -394,11 +454,11 @@
     var badge = $('srcBadge');
     if (m.source === 'live' && !m.stale) { badge.className = 'badge live'; badge.textContent = 'Terhubung ke Google Sheets'; }
     else if (m.stale) { badge.className = 'badge err'; badge.textContent = 'Data tersimpan (gagal memuat ulang)'; }
-    else { badge.className = 'badge snap'; badge.textContent = 'Data contoh (snapshot)'; }
+    else { badge.className = 'badge snap'; badge.textContent = 'Data belum terhubung'; }
     var t = m.generatedAt ? new Date(m.generatedAt) : null;
     $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (t ? 'diambil ' + t.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
     var w = [];
-    if (m.source !== 'live') w.push('Dashboard menampilkan <b>data contoh</b> (salinan 5 Nov 2026). ' + esc(m.reason || ''));
+    if (m.source !== 'live') w.push(esc(m.reason || 'Data tidak terhubung ke Google Sheets.'));
     if (m.stale) w.push('Gagal memuat data terbaru: ' + esc(m.stale));
     (data.warnings || []).forEach(function (x) { w.push(esc(x)); });
     $('warn').hidden = !w.length; $('warn').className = 'warnbox'; $('warn').innerHTML = w.join('<br>');
@@ -406,7 +466,7 @@
     var years = tahunTersedia(data);
     $('tahunSel').innerHTML = years.map(function (y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
     var opts = D.BULAN.map(function (b, i) { return '<option value="' + (i + 1) + '">' + D.cap(b) + '</option>'; }).join('');
-    ['bulanSel', 'bulanSel2', 'bulanSel3'].forEach(function (id) { $(id).innerHTML = opts; });
+    $('bulanSel').innerHTML = opts;
     if (!S.tahun || years.indexOf(S.tahun) < 0) { S.tahun = years[years.length - 1]; S.bulan = bulanBawaan(S.tahun); }
     if (!S.riskView) S.riskView = /inheren/i.test(data.risiko && data.risiko.tampilan) ? 'inheren' : /residu/i.test(data.risiko && data.risiko.tampilan) ? 'residual' : 'target';
     setPeriode(S.tahun, S.bulan);
@@ -424,8 +484,9 @@
 
   /* ---------- events ---------- */
   $('tahunSel').addEventListener('change', function (e) { var y = +e.target.value; setPeriode(y, S.cache.konman[y] ? bulanBawaan(y) : S.bulan); });
-  ['bulanSel', 'bulanSel2', 'bulanSel3'].forEach(function (id) { $(id).addEventListener('change', function (e) { setPeriode(S.tahun, +e.target.value); }); });
-  $('refreshBtn').addEventListener('click', function () { try { sessionStorage.clear(); } catch (e) {} load(); });
+  $('bulanSel').addEventListener('change', function (e) { setPeriode(S.tahun, +e.target.value); });
+  function muatUlang() { try { sessionStorage.removeItem('dash-cache-v3'); } catch (e) {} return load(); }
+  $('refreshBtn').addEventListener('click', muatUlang);
   document.addEventListener('click', function (e) {
     var t = e.target; if (!t.closest) return;
     var ind = t.closest('[data-ind]'); if (ind) return openInd(ind.getAttribute('data-ind'));
@@ -444,12 +505,21 @@
     if (t.closest('[data-close]') || t === $('modal')) return closeModal();
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !$('modal').hidden) closeModal();
+    if (e.key === 'Escape' && !$('modal').hidden) return closeModal();
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.card.click')) { e.preventDefault(); e.target.click(); }
   });
 
+  /* dipakai input.js dan export.js */
+  window.DashApp = {
+    S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
+    kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
+    tlRows: tlRows, tlStatus: tlStatus, reload: muatUlang, toast: toast
+  };
+  function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
+
   load();
   setInterval(function () {
-    if (S.data && S.data.meta && S.data.meta.source === 'live' && document.visibilityState === 'visible' && $('modal').hidden) { try { sessionStorage.clear(); } catch (e) {} load(); }
+    var bebas = Array.prototype.every.call(document.querySelectorAll('.modal'), function (m) { return m.hidden; });
+    if (S.data && S.data.meta && S.data.meta.source === 'live' && document.visibilityState === 'visible' && bebas) { muatUlang(); }
   }, 5 * 60 * 1000);
 })();

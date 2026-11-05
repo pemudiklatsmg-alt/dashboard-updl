@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 2 (hanya MEMBACA data)
+ *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 3 (membaca + input web)
  *  Dipasang pada spreadsheet "Data Dashboard UPDL Semarang".
  * --------------------------------------------------------------------------
  *  Sumber yang dibaca:
@@ -12,13 +12,19 @@
  *   - Profil Risiko    : sheet "4. Peta Risiko" (versi Google Sheets)
  *
  *  Menu di spreadsheet: Dashboard > Tarik daftar kelas tanpa realisasi
+ *                      Dashboard > Atur akun input web
+ *
+ *  Input dari website (doPost) hanya menulis ke tab yang sudah ada, dengan
+ *  kolom yang sama. Tidak ada tab atau kolom baru. Password disimpan sebagai
+ *  hash di Script Properties (tidak di spreadsheet, tidak di kode website).
  *
  *  Setelah mengganti kode ini: Deploy > Manage deployments > ✏️ >
  *  Version: New version > Deploy. URL /exec tetap sama.
  * ==========================================================================
  */
 
-var VERSI = 2;
+var VERSI = 3;
+var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
   PENGATURAN: 'Pengaturan',
@@ -47,6 +53,8 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('Dashboard')
     .addItem('Tarik daftar kelas tanpa realisasi', 'tarikKelasTanpaRealisasi')
     .addItem('Cek koneksi sumber data', 'cekKoneksi')
+    .addSeparator()
+    .addItem('Atur akun input web', 'aturAkunWeb')
     .addToUi();
 }
 
@@ -110,6 +118,7 @@ function buildData_() {
     meta: {
       versi: VERSI, source: 'live', generatedAt: new Date().toISOString(),
       unit: cfg.UNIT, judul: cfg.JUDUL,
+      inputWeb: !!PropertiesService.getScriptProperties().getProperty('WEB_PASS_HASH'),
       pengaturan: {
         kecualikanSL: ya_(cfg.HOP_KECUALIKAN_SELF_LEARNING),
         hitungHariSebelumTahun: cfg.HOP_HITUNG_HARI_SEBELUM_TAHUN === undefined ? true : ya_(cfg.HOP_HITUNG_HARI_SEBELUM_TAHUN),
@@ -240,6 +249,260 @@ function bacaRisiko_(cfg) {
     rows.push([r[cNo], id, des, inh, res, tgt]);
   }
   return { tampilan: tampilan, rows: [['No', 'ID Risk', 'Deskripsi Risiko', 'Inheren', 'Residual', 'Target']].concat(rows) };
+}
+
+/* ======================================================================== */
+/*  INPUT DARI WEBSITE                                                       */
+/* ======================================================================== */
+/**
+ * Satu akun bersama untuk input data lewat website.
+ * Jalankan dari menu Dashboard > Atur akun input web. Mengganti password
+ * membuat semua orang yang sedang login harus masuk lagi.
+ */
+function aturAkunWeb() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var r1 = ui.prompt('Atur akun input web (1 dari 2)', 'Username untuk login di website.\nContoh: updlsmg', ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return;
+  var u = r1.getResponseText().trim();
+  if (!u || /\s/.test(u)) { ui.alert('Username tidak boleh kosong atau berisi spasi. Akun belum diubah.'); return; }
+  var r2 = ui.prompt('Atur akun input web (2 dari 2)', 'Password, minimal 8 karakter.\nCatat di tempat aman; password tidak bisa dilihat lagi, hanya bisa diganti.', ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() !== ui.Button.OK) return;
+  var pw = r2.getResponseText();
+  if (pw.length < 8) { ui.alert('Password minimal 8 karakter. Akun belum diubah.'); return; }
+  var salt = Utilities.getUuid();
+  p.setProperties({ WEB_USER: u, WEB_SALT: salt, WEB_PASS_HASH: hash_(salt, pw), WEB_VER: String(Number(p.getProperty('WEB_VER') || 0) + 1) });
+  ui.alert('Akun tersimpan.\n\nUsername: ' + u + '\n\nBagikan username dan password ini hanya kepada petugas yang mengisi data.');
+}
+
+function doPost(e) {
+  try {
+    var req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (req.aksi === 'login') return json_(login_(req));
+    var user = cekToken_(req.token);
+    if (req.aksi === 'cek') return json_({ ok: true, user: user });
+    if (req.aksi === 'keluar') { CacheService.getScriptCache().remove('tok_' + req.token); return json_({ ok: true }); }
+    if (req.aksi === 'simpan') {
+      var lock = LockService.getScriptLock();
+      lock.waitLock(20000);
+      try { var hasil = simpan_(String(req.jenis || ''), req.data || {}, user); SpreadsheetApp.flush(); return json_(hasil); }
+      finally { lock.releaseLock(); }
+    }
+    throw new Error('Aksi tidak dikenal.');
+  } catch (err) {
+    var m = String(err && err.message || err);
+    return json_({ ok: false, login: m.indexOf('LOGIN:') === 0, error: m.replace(/^LOGIN:\s*/, '') });
+  }
+}
+
+function login_(req) {
+  var p = PropertiesService.getScriptProperties();
+  var u = p.getProperty('WEB_USER'), h = p.getProperty('WEB_PASS_HASH'), salt = p.getProperty('WEB_SALT');
+  if (!u || !h) throw new Error('Akun input web belum diatur. Di spreadsheet, pilih menu Dashboard → Atur akun input web.');
+  var c = CacheService.getScriptCache(), gagal = Number(c.get('login_gagal') || 0);
+  if (gagal >= 10) throw new Error('Terlalu banyak percobaan gagal. Coba lagi 15 menit lagi.');
+  Utilities.sleep(300);
+  if (String(req.username || '').trim().toLowerCase() !== u.toLowerCase() || hash_(salt, String(req.password || '')) !== h) {
+    c.put('login_gagal', String(gagal + 1), 900);
+    throw new Error('Username atau password salah.');
+  }
+  var t = Utilities.getUuid();
+  c.put('tok_' + t, u + '|' + (p.getProperty('WEB_VER') || '0'), 21600); // 6 jam
+  return { ok: true, token: t, user: u, berlakuDetik: 21600 };
+}
+
+function cekToken_(t) {
+  var v = t ? CacheService.getScriptCache().get('tok_' + t) : null;
+  if (!v) throw new Error('LOGIN: Sesi sudah berakhir. Silakan masuk lagi.');
+  var i = v.lastIndexOf('|'), ver = PropertiesService.getScriptProperties().getProperty('WEB_VER') || '0';
+  if (v.slice(i + 1) !== ver) throw new Error('LOGIN: Akun sudah diganti. Silakan masuk lagi.');
+  return v.slice(0, i);
+}
+
+function hash_(salt, s) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + '|' + s, Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+}
+
+/* Kolom per jenis isian (nama kolom = judul kolom di baris 1 tab) */
+var FORM_TAMBAH = {
+  l1: { tab: TAB.L1, kolom: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Jumlah Responden', 'int', 1, 1], ['Nilai Kepuasan (1-5)', 'angka', 1, 1, 5], ['Keterangan', 'ket']] },
+  l2: { tab: TAB.L2, kolom: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Jumlah Peserta', 'int', 1, 1], ['KSA Formatif (0-100)', 'angka', 0, 0, 100], ['C&C Sumatif (1-4)', 'angka', 0, 1, 4], ['Keterangan', 'ket']], salahSatu: ['KSA Formatif (0-100)', 'C&C Sumatif (1-4)'] },
+  l3: { tab: TAB.L3, kolom: [['Tanggal Evaluasi', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Unit', 'teks', 0], ['Skor (0-100)', 'angka', 1, 0, 100], ['Keterangan', 'ket']] },
+  l4: { tab: TAB.L4, kolom: [['Tanggal Evaluasi', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Unit', 'teks', 0], ['Skor (0-100)', 'angka', 1, 0, 100], ['Keterangan', 'ket']] },
+  roti: { tab: TAB.ROTI, kolom: [['Tanggal', 'tgl', 1], ['Judul / Program', 'teks', 1], ['Unit', 'teks', 0], ['Nilai ROTI (%)', 'angka', 1], ['Keterangan', 'ket']] },
+  sertifikat: { tab: TAB.SERTIFIKAT, kolom: [['Tanggal', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Peserta Lulus', 'int', 1, 0], ['Sertifikat Terbit', 'int', 1, 0], ['Keterangan', 'ket']] },
+  hop: { tab: TAB.PENYESUAIAN, kolom: [['Tahun', 'int', 1, 2000, 2100], ['Bulan', 'bulan', 1], ['Penyesuaian Orang-Hari (+/-)', 'angka', 0], ['HOP Final (timpa)', 'angka', 0, 0], ['Alasan', 'teks', 1], ['Diisi Oleh', 'user']], salahSatu: ['Penyesuaian Orang-Hari (+/-)', 'HOP Final (timpa)'] },
+  tl: { tab: TAB.TINDAKLANJUT, kolom: [['Tanggal', 'tgl', 1], ['Temuan / Masukan', 'teks', 1], ['Sumber', 'teks', 1], ['PIC', 'teks', 1], ['Status', 'status', 1], ['Target Selesai', 'tgl', 0], ['Keterangan', 'ket']] }
+};
+var STATUS_TL = ['Belum Dimulai', 'Berjalan', 'Selesai'];
+
+function simpan_(jenis, d, user) {
+  if (FORM_TAMBAH[jenis] && !(jenis === 'tl' && d.mode === 'ubah')) return tambahBaris_(jenis, d, user);
+  if (jenis === 'tl') return ubahTindakLanjut_(d, user);
+  if (jenis === 'pegawai') return simpanPegawai_(d, user);
+  if (jenis === 'konman') return simpanKonman_(d, user);
+  if (jenis === 'kepatuhan') return simpanKepatuhan_(d, user);
+  if (jenis === 'koreksi') return simpanKoreksi_(d, user);
+  throw new Error('Jenis data tidak dikenal: ' + jenis);
+}
+
+function tambahBaris_(jenis, d, user) {
+  var f = FORM_TAMBAH[jenis], sh = tab_(f.tab), head = judulKolom_(sh), nilai = {};
+  f.kolom.forEach(function (k) { nilai[k[0]] = nilaiKolom_(k, d[k[0]], user); });
+  if (f.salahSatu && f.salahSatu.every(function (k) { return nilai[k] === ''; })) throw new Error('Isi minimal salah satu: ' + f.salahSatu.join(' atau ') + '.');
+  if (jenis === 'sertifikat' && nilai['Sertifikat Terbit'] > nilai['Peserta Lulus']) throw new Error('Sertifikat Terbit tidak boleh lebih besar dari Peserta Lulus.');
+  if (jenis === 'tl') {
+    var cNo = head.indexOf('No'), maks = 0;
+    if (cNo >= 0 && sh.getLastRow() > 1) sh.getRange(2, cNo + 1, sh.getLastRow() - 1, 1).getValues().forEach(function (r) { var n = Number(r[0]); if (n > maks) maks = n; });
+    if (cNo >= 0) nilai['No'] = maks + 1;
+  }
+  var r = barisBaru_(sh);
+  Object.keys(nilai).forEach(function (k) {
+    var c = head.indexOf(k);
+    if (c < 0) throw new Error('Kolom "' + k + '" tidak ditemukan di tab ' + f.tab + '.');
+  });
+  Object.keys(nilai).forEach(function (k) { if (nilai[k] !== '') sh.getRange(r, head.indexOf(k) + 1).setValue(nilai[k]); });
+  return { ok: true, tab: f.tab, baris: r, pesan: 'Ditambahkan di tab ' + f.tab + ', baris ' + r + '.' };
+}
+
+function ubahTindakLanjut_(d, user) {
+  var sh = tab_(TAB.TINDAKLANJUT), head = judulKolom_(sh), cNo = head.indexOf('No'), cSt = head.indexOf('Status'), cKet = head.indexOf('Keterangan');
+  var st = nilaiKolom_(['Status', 'status', 1], d['Status'], user);
+  var v = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), head.length).getValues();
+  for (var i = 0; i < v.length; i++) {
+    if (String(v[i][cNo]).trim() === String(d.no).trim() && String(v[i][cNo]).trim() !== '') {
+      sh.getRange(i + 2, cSt + 1).setValue(st);
+      if (cKet >= 0) sh.getRange(i + 2, cKet + 1).setValue(ket_(d['Keterangan'] !== undefined && String(d['Keterangan']).trim() !== '' ? d['Keterangan'] : v[i][cKet], user));
+      return { ok: true, tab: TAB.TINDAKLANJUT, baris: i + 2, pesan: 'Status temuan No ' + d.no + ' diubah menjadi ' + st + '.' };
+    }
+  }
+  throw new Error('Temuan No ' + d.no + ' tidak ditemukan. Mungkin sudah dihapus atau diubah nomornya di spreadsheet.');
+}
+
+function simpanPegawai_(d, user) {
+  var sh = tab_(TAB.PEGAWAI), head = judulKolom_(sh);
+  var th = nilaiKolom_(['Tahun', 'int', 1, 2000, 2100], d['Tahun']), bl = nilaiKolom_(['Bulan', 'bulan', 1], d['Bulan']);
+  var jml = nilaiKolom_(['Jumlah Pegawai', 'int', 1, 1], d['Jumlah Pegawai']);
+  var cT = head.indexOf('Tahun'), cB = head.indexOf('Bulan'), cJ = head.indexOf('Jumlah Pegawai'), cK = head.indexOf('Keterangan');
+  var v = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, head.length).getValues() : [], r = -1, lama = '';
+  for (var i = 0; i < v.length; i++) if (String(v[i][cT]).trim() === String(th) && String(v[i][cB]).trim().toUpperCase() === bl.toUpperCase()) { r = i + 2; lama = v[i][cK]; break; }
+  var baru = r < 0;
+  if (baru) { r = barisBaru_(sh); sh.getRange(r, cT + 1).setValue(th); sh.getRange(r, cB + 1).setValue(bl); }
+  sh.getRange(r, cJ + 1).setValue(jml);
+  if (cK >= 0) sh.getRange(r, cK + 1).setValue(ket_(String(d['Keterangan'] || '').trim() || (/^Belum diisi$/i.test(String(lama).trim()) ? '' : lama), user));
+  return { ok: true, tab: TAB.PEGAWAI, baris: r, pesan: 'Jumlah pegawai ' + bl + ' ' + th + ' ' + (baru ? 'ditambahkan' : 'diperbarui') + '.' };
+}
+
+function simpanKonman_(d, user) {
+  var cfg = getConfig_(), nama = String(cfg.KONMAN_TAB_AWALAN || 'Konman ') + d.tahun, sh = tab_(nama);
+  var B = BULAN_[Number(d.bulan) - 1]; if (!B) throw new Error('Bulan tidak valid.');
+  var h1 = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (x) { return String(x).trim().toUpperCase(); });
+  var cR = h1.indexOf('REALISASI ' + B), cK = h1.indexOf('KET ' + B);
+  if (cR < 0) throw new Error('Kolom REALISASI ' + B + ' tidak ditemukan di tab ' + nama + '.');
+  var ditulis = 0, lewat = [];
+  (d.baris || []).forEach(function (x) {
+    var r = Number(x.baris);
+    if (!(r >= 3 && r <= sh.getLastRow())) { lewat.push(x.nama + ' (baris tidak valid)'); return; }
+    var nm = String(sh.getRange(r, 2).getValue()).replace(/^[a-z]\.\s*/, '').trim().toUpperCase();
+    if (nm !== String(x.nama).replace(/^[a-z]\.\s*/, '').trim().toUpperCase()) { lewat.push(x.nama + ' (urutan baris di spreadsheet berubah, muat ulang dashboard)'); return; }
+    var cell = sh.getRange(r, cR + 1);
+    if (cell.getFormula()) { lewat.push(x.nama + ' (realisasi berisi rumus)'); return; }
+    var t = String(x.realisasi === undefined || x.realisasi === null ? '' : x.realisasi).trim();
+    if (t === '') cell.clearContent();
+    else { var n = parseAngka_(t); if (n === null) { lewat.push(x.nama + ' (realisasi bukan angka: ' + t + ')'); return; } cell.setValue(n); }
+    if (cK >= 0) { var kc = sh.getRange(r, cK + 1); if (!kc.getFormula()) kc.setValue(ket_(x.ket === undefined ? kc.getValue() : x.ket, user)); }
+    ditulis++;
+  });
+  if (!ditulis && lewat.length) throw new Error('Tidak ada yang tersimpan: ' + lewat.join('; '));
+  return { ok: true, tab: nama, pesan: ditulis + ' indikator tersimpan untuk ' + B.charAt(0) + B.slice(1).toLowerCase() + ' ' + d.tahun + '.' + (lewat.length ? ' Dilewati: ' + lewat.join('; ') + '.' : ''), dilewati: lewat };
+}
+
+function simpanKepatuhan_(d, user) {
+  var sh = tab_(TAB.KEPATUHAN), head = judulKolom_(sh);
+  var B = BULAN_[Number(d.bulan) - 1]; if (!B) throw new Error('Bulan tidak valid.');
+  var cT = head.indexOf('Tahun'), cA = head.indexOf('Aspek Kepatuhan'), cM = head.indexOf('Maks Pengurang'), cK = head.indexOf('Keterangan');
+  var cB = -1; head.forEach(function (h, i) { if (String(h).trim().toUpperCase() === B) cB = i; });
+  if (cB < 0) throw new Error('Kolom bulan ' + B + ' tidak ditemukan di tab Kepatuhan.');
+  var v = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), head.length).getValues(), ditulis = 0, lewat = [];
+  (d.aspek || []).forEach(function (x) {
+    for (var i = 0; i < v.length; i++) {
+      if (String(v[i][cT]).trim() === String(d.tahun) && String(v[i][cA]).trim() === String(x.nama).trim()) {
+        var t = String(x.nilai === undefined ? '' : x.nilai).trim(), cell = sh.getRange(i + 2, cB + 1);
+        if (cell.getFormula()) { lewat.push(x.nama + ' (berisi rumus)'); return; }
+        if (t === '') { cell.clearContent(); ditulis++; return; }
+        var n = parseAngka_(t), maks = parseAngka_(String(v[i][cM]));
+        if (n === null || n < 0) { lewat.push(x.nama + ' (bukan angka ≥ 0)'); return; }
+        if (maks !== null && n > maks) { lewat.push(x.nama + ' (melebihi maks ' + maks + ')'); return; }
+        cell.setValue(n);
+        if (cK >= 0 && n !== Number(v[i][cB])) sh.getRange(i + 2, cK + 1).setValue(ket_(v[i][cK], user));
+        ditulis++; return;
+      }
+    }
+    lewat.push(x.nama + ' (aspek tidak ditemukan)');
+  });
+  if (!ditulis && lewat.length) throw new Error('Tidak ada yang tersimpan: ' + lewat.join('; '));
+  return { ok: true, tab: TAB.KEPATUHAN, pesan: 'Kepatuhan ' + B.charAt(0) + B.slice(1).toLowerCase() + ' ' + d.tahun + ' tersimpan (' + ditulis + ' aspek).' + (lewat.length ? ' Dilewati: ' + lewat.join('; ') + '.' : '') };
+}
+
+function simpanKoreksi_(d, user) {
+  var sh = tab_(TAB.KOREKSI), head = judulKolom_(sh);
+  var v = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), 3).getValues();
+  for (var i = 0; i < v.length; i++) {
+    if (kunci_(v[i][0], v[i][1], v[i][2]) === String(d.kunci)) {
+      var r = i + 2, isi = {
+        'Realisasi Peserta (koreksi)': nilaiKolom_(['Realisasi Peserta (koreksi)', 'int', 0, 0], d['Realisasi Peserta (koreksi)']),
+        'Hari Kerja (koreksi)': nilaiKolom_(['Hari Kerja (koreksi)', 'int', 0, 0, 400], d['Hari Kerja (koreksi)']),
+        'Ikut HOP?': /^tidak$/i.test(String(d['Ikut HOP?'] || '').trim()) ? 'Tidak' : 'Ya',
+        'Alasan': nilaiKolom_(['Alasan', 'teks', 1], d['Alasan']),
+        'Diisi Oleh': user + ' (web)'
+      };
+      if (isi['Realisasi Peserta (koreksi)'] === '' && isi['Hari Kerja (koreksi)'] === '' && isi['Ikut HOP?'] === 'Ya') throw new Error('Isi Realisasi Peserta atau Hari Kerja, atau pilih Ikut HOP = Tidak.');
+      Object.keys(isi).forEach(function (k) { var c = head.indexOf(k); if (c >= 0 && isi[k] !== '') sh.getRange(r, c + 1).setValue(isi[k]); });
+      return { ok: true, tab: TAB.KOREKSI, baris: r, pesan: 'Koreksi kelas tersimpan di baris ' + r + '.' };
+    }
+  }
+  throw new Error('Kelas tidak ditemukan di tab Koreksi Rendiklat. Jalankan menu Dashboard → Tarik daftar kelas tanpa realisasi, lalu muat ulang dashboard.');
+}
+
+/* ---------- util input ---------- */
+function tab_(nama) { var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nama); if (!sh) throw new Error('Tab "' + nama + '" tidak ditemukan.'); return sh; }
+function judulKolom_(sh) { return sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (x) { return String(x).trim(); }); }
+/* baris kosong pertama setelah data terakhir di kolom A (aman untuk kolom berisi ARRAYFORMULA) */
+function barisBaru_(sh) {
+  var n = sh.getLastRow(); if (n < 2) return 2;
+  var a = sh.getRange(1, 1, n, 1).getValues();
+  for (var i = a.length - 1; i >= 0; i--) if (String(a[i][0]).trim() !== '') return i + 2;
+  return 2;
+}
+function parseAngka_(t) {
+  var s = String(t).trim().replace(/\s/g, ''); if (!s) return null;
+  var pct = /%$/.test(s); s = s.replace('%', '');
+  if (s.indexOf('.') >= 0 && s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else s = s.replace(',', '.');
+  if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
+  var n = Number(s); return pct ? n / 100 : n;
+}
+function catatanWeb_(user) { return '(input web: ' + user + ', ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy') + ')'; }
+function ket_(teks, user) {
+  var t = String(teks === undefined || teks === null ? '' : teks).replace(/\s*\(input web:[^)]*\)/g, '').trim();
+  return (t ? t + ' ' : '') + catatanWeb_(user);
+}
+function nilaiKolom_(k, v, user) {
+  var nama = k[0], jenis = k[1], wajib = k[2], min = k[3], max = k[4];
+  if (jenis === 'user') return user;
+  if (jenis === 'ket') return ket_(v, user);
+  var t = String(v === undefined || v === null ? '' : v).trim();
+  if (t === '') { if (wajib) throw new Error('Kolom "' + nama + '" wajib diisi.'); return ''; }
+  if (t.length > 1000) throw new Error('Isian "' + nama + '" terlalu panjang.');
+  if (jenis === 'teks') return /^[=+@]/.test(t) ? "'" + t : t;   // cegah teks terbaca sebagai rumus
+  if (jenis === 'status') { var s = STATUS_TL.filter(function (x) { return x.toUpperCase() === t.toUpperCase(); })[0]; if (!s) throw new Error('Status tidak dikenal: ' + t); return s; }
+  if (jenis === 'bulan') { var b = BULAN_.indexOf(t.toUpperCase()); if (b < 0) throw new Error('Bulan tidak dikenal: ' + t); return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase(); }
+  if (jenis === 'tgl') { var m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) throw new Error('Tanggal "' + nama + '" tidak valid.'); return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])); }
+  var n = parseAngka_(t);
+  if (n === null) throw new Error('"' + nama + '" harus berupa angka.');
+  if (jenis === 'int' && Math.round(n) !== n) throw new Error('"' + nama + '" harus bilangan bulat.');
+  if (min !== undefined && n < min) throw new Error('"' + nama + '" minimal ' + min + '.');
+  if (max !== undefined && n > max) throw new Error('"' + nama + '" maksimal ' + max + '.');
+  return n;
 }
 
 /* ======================================================================== */
