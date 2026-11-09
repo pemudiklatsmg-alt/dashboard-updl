@@ -44,7 +44,7 @@ var TAB = {
   INSTRUKTUR: 'Data - Instruktur EL1',
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
-  SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya'
+  SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi'
 };
 /* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
 var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
@@ -168,6 +168,10 @@ function buildData_() {
   // Struktur organisasi (tanpa NIP)
   try { out.org = bacaOrg_(ss); out.org.periode = String(cfg.PERIODE_DATA_PEGAWAI || ''); }
   catch (e) { out.warnings.push(e.message); out.org = null; }
+
+  // Pengembangan pegawai (IDP, tanpa NIP) dan inovasi
+  try { out.idp = bacaIdp_(ss); } catch (e) { out.warnings.push(e.message); out.idp = null; }
+  out.inovasi = readTab_(ss, TAB.INOVASI, out);
 
   // Rendiklat per tahun
   out.rendiklat = {};
@@ -678,6 +682,17 @@ function bacaOrg_(ss) {
     pegawai: p.rows.filter(function (r) { return teks_(r[cN]) && teks_(r[cJ]); }).map(function (r) { return [teks_(r[cN]), teks_(r[cJ]), teks_(r[cA]), cL >= 0 ? teks_(r[cL]) : '']; }),
     alihDaya: a.rows.filter(function (r) { return teks_(r[dN]); }).map(function (r) { return [teks_(r[dN]), dP >= 0 ? teks_(r[dP]) : '', teks_(r[dB]), dL >= 0 ? teks_(r[dL]) : '']; })
   };
+}
+
+/* IDP: satu baris per pegawai -> [nama, unit, jenjang, pemetaan, rencana P/C/T, realisasi P, tgl P, realisasi C, tgl C, realisasi T, tgl T, link] */
+function bacaIdp_(ss) {
+  var t = bacaMentah_(ss, TAB.IDP), h = t.head;
+  var c = ['Nama Lengkap', 'Unit/Bidang', 'Jenjang - Main Grp Text', 'Pemetaan IDP', 'Rencana IDP Pembelajaran', 'Rencana IDP Coaching/Mentoring', 'Rencana IDP Penugasan',
+    'Realisasi IDP Pembelajaran', 'Tgl Pembelajaran', 'Realisasi IDP Coaching/Mentoring', 'Tgl Coaching/Mentoring', 'Realisasi IDP Penugasan', 'Tgl Penugasan', 'Link Upload Eviden'].map(function (n) { return kol_(h, n); });
+  if (t.rows.length && c[0] < 0) throw new Error('Tab "' + TAB.IDP + '": kolom Nama Lengkap tidak ditemukan.');
+  return t.rows.filter(function (r) { return teks_(r[c[0]]); }).map(function (r) {
+    return c.map(function (i) { if (i < 0) return ''; var v = r[i]; return v instanceof Date ? keIso_(v) : teks_(v); });
+  });
 }
 
 /* ======================================================================== */

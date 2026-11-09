@@ -551,3 +551,27 @@ body:not(.peran-admin) .adm { display: none !important; }
 .modal-c.xwide { width: min(1180px, 100%); }
 .modal-h .row-gap { flex-wrap: wrap; justify-content: flex-end; }
 @media (max-width: 640px) { .modal-h:has(.row-gap) { flex-wrap: wrap; } .modal-h .row-gap { width: 100%; justify-content: space-between; } }
+
+/* ================= Tahap 2: IDP & Inovasi ================= */
+.dev-body { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.mini-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mini-sum div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: grid; gap: 1px; min-width: 0; align-content: start; }
+.mini-sum b { font-family: var(--f-display); font-size: 22px; font-weight: 600; line-height: 1.1; }
+.mini-sum span { font-size: 11px; color: var(--ink-3); }
+.kon { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--idle-bg); color: var(--ink-3); white-space: nowrap; }
+.kon:empty { display: none; }
+.kon.good { background: var(--good-bg); color: var(--good); } .kon.warn { background: var(--warn-bg); color: var(--warn); } .kon.bad { background: var(--bad-bg); color: var(--bad); }
+.dev-body .bars .r { grid-template-columns: minmax(110px, 38%) minmax(0, 1fr) 50px; }
+.tbl2 { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tbl2 th, .tbl2 td { padding: 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.tbl2 th { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+.tbl2 td.r, .tbl2 th.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pbar { display: flex; gap: 8px; align-items: center; } .pbar span { flex: 1; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; min-width: 50px; } .pbar i { display: block; height: 100%; background: var(--good); }
+.chips2 { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips2 span { font-size: 11.5px; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.chips2 .good { background: var(--good-bg); border-color: transparent; } .chips2 .warn { background: var(--warn-bg); border-color: transparent; } .chips2 .bad { background: var(--bad-bg); border-color: transparent; }
+.pk { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.pk.u { background: var(--idle-bg); color: var(--bar); }
+.ok { color: var(--good); font-weight: 700; } .no { color: var(--ink-3); }
+.dev-body .btn { align-self: flex-start; margin-top: auto; }
+@media (max-width: 640px) { .mini-sum { grid-template-columns: 1fr 1fr; } }

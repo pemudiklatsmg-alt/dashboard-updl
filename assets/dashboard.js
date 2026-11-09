@@ -408,6 +408,131 @@
     if (on) { var box = $('rkRows'); if (on.offsetTop < box.scrollTop || on.offsetTop > box.scrollTop + box.clientHeight - 30) box.scrollTop = on.offsetTop - 40; }
   }
 
+  /* ---------- pengembangan pegawai (IDP) ---------- */
+  var JALUR = [['Pembelajaran', 4, 7, 8], ['Coaching / Mentoring', 5, 9, 10], ['Penugasan', 6, 11, 12]];   // [nama, kolom rencana, realisasi, tanggal]
+  var KEL_IDP = [
+    ['4a', 'MAK, MA, MM, MD', /\b(MAK|MA|MM|MD)\b|MANAJ/i, /jenjang jabatan MAK/i],
+    ['4b', 'Sr Specialist, Specialist, Profesi Khusus', /SPECIALIST|SPESIALIS|PROFESI/i, /Senior Specialist/i],
+    ['4c', 'Generalist Tertentu & Generalist', /GENERALIS/i, /Generalist Tertentu/i],
+    ['4d', 'Future Talent', /FUTURE/i, /Future Talent/i],
+    ['4e', 'Suksesor Direksi BUMN', /SUKSESOR|DIREKSI/i, /suksesor Direksi/i]
+  ];
+  function idpRows() {
+    return (S.data.idp || []).map(function (r) {
+      var j = JALUR.map(function (x) { return { ren: !!String(r[x[1]] || '').trim(), real: !!String(r[x[2]] || '').trim(), tg: r[x[3]] }; });
+      var ada = j.filter(function (x) { return x.ren; }), sel = ada.length && ada.every(function (x) { return x.real; });
+      var kel = KEL_IDP.filter(function (k) { return k[2].test(r[3]); })[0] || KEL_IDP.filter(function (k) { return k[2].test(r[2]); })[0];
+      return { r: r, j: j, ada: ada.length, selesai: !!sel, kel: kel ? kel[0] : '–' };
+    });
+  }
+  function kelKonman(k) {
+    var it = find(k[3]), Bn = B(); if (!it || !konmanAda(Bn) || !D.hasData(it, Bn)) return null;
+    return D.capaianItem(it, Bn);
+  }
+  function renderIdp() {
+    var L = idpRows(), el = $('idpBody');
+    if (!S.data.idp) { el.innerHTML = '<div class="empty">Data IDP belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - IDP</b> ada.</div>'; return; }
+    if (!L.length) { el.innerHTML = '<div class="empty">Tab Data - IDP masih kosong. Tempel data di ' + sheetLink('Google Sheets', 'Data - IDP') + '.</div>'; return; }
+    var sel = L.filter(function (x) { return x.selesai; }).length, tanpa = L.filter(function (x) { return !x.ada; }).length;
+    var jal = JALUR.map(function (x, i) { var ren = L.filter(function (p) { return p.j[i].ren; }), done = ren.filter(function (p) { return p.j[i].real; }).length; return [x[0], done, ren.length]; });
+    var lain = L.filter(function (p) { return p.kel === '–'; }).length;
+    el.innerHTML = '<div class="mini-sum"><div><b class="num">' + L.length + '</b><span>pegawai punya IDP</span></div><div><b class="num good">' + sel + '</b><span>selesai semua jalur</span></div><div><b class="num ' + (L.length - sel ? 'warn' : '') + '">' + (L.length - sel) + '</b><span>belum lengkap' + (tanpa ? ' (' + tanpa + ' tanpa rencana)' : '') + '</span></div></div>' +
+      '<div class="sub-h">Per jalur (10-20-70)</div><div class="bars">' + jal.map(function (x) { return '<div class="r"><span>' + x[0] + '</span><span class="t"><i style="width:' + (x[2] ? x[1] / x[2] * 100 : 0) + '%;background:var(--good)"></i></span><span class="num">' + x[1] + '/' + x[2] + '</span></div>'; }).join('') + '</div>' +
+      '<div class="sub-h">Per kelompok jenjang (indikator Konman 4a–4e)</div><div class="tbl-wrap"><table class="tbl2"><thead><tr><th>Kelompok</th><th class="r">Pegawai</th><th>Selesai</th><th class="r">Konman ' + D.BLN3[S.bulan - 1] + '</th></tr></thead><tbody>' +
+      KEL_IDP.map(function (k) {
+        var g = L.filter(function (p) { return p.kel === k[0]; }), d = g.filter(function (p) { return p.selesai; }).length, kv = kelKonman(k), st = status(kv);
+        return '<tr><td>' + k[0] + ' · ' + esc(k[1]) + '</td><td class="r">' + g.length + '</td><td>' + (g.length ? '<div class="pbar"><span><i style="width:' + (d / g.length * 100) + '%"></i></span><b class="num">' + d + '</b></div>' : '<span class="desc">tidak ada peserta</span>') + '</td>' +
+          '<td class="r ' + st.c + '"><b>' + (kv === null ? '–' : D.fmt(kv * 100, 0) + '%') + '</b></td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (lain ? '<div class="warnbox">' + lain + ' pegawai belum masuk kelompok mana pun. Periksa isi kolom Pemetaan IDP (mis. GENERALIST, SPECIALIST, FUTURE TALENT).</div>' : '') +
+      '<button class="btn" type="button" data-act="idp">Lihat per pegawai →</button>';
+  }
+  function openIdp() {
+    var L = idpRows();
+    openModal('<div class="modal-h"><div><h3>IDP per pegawai</h3><div class="desc">✓ = sudah ada realisasi · – = belum · kosong = tidak direncanakan · ' + L.length + ' pegawai</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tools"><input class="inp" id="idQ" type="search" placeholder="Cari nama" aria-label="Cari nama"><select class="inp" id="idK" aria-label="Kelompok" style="max-width:220px"><option value="">Semua kelompok</option>' + KEL_IDP.map(function (k) { return '<option value="' + k[0] + '">' + k[0] + ' · ' + esc(k[1]) + '</option>'; }).join('') + '<option value="–">Belum berkelompok</option></select>' +
+      '<select class="inp" id="idS" aria-label="Status" style="max-width:180px"><option value="">Semua status</option><option value="b">Belum lengkap</option><option value="s">Selesai</option></select></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pegawai</th><th>Kelompok</th>' + JALUR.map(function (x) { return '<th>' + x[0] + '</th>'; }).join('') + '<th>Eviden</th></tr></thead><tbody id="idT"></tbody></table></div><div class="note" id="idN"></div>');
+    function sel(p, i) {
+      var x = p.j[i], r = p.r; if (!x.ren) return '<td class="desc"></td>';
+      return '<td title="' + esc('Rencana: ' + r[JALUR[i][1]] + (x.real ? '\nRealisasi: ' + r[JALUR[i][2]] : '')) + '">' + (x.real ? '<span class="ok">✓</span> <span class="desc">' + esc(String(x.tg || '').slice(0, 24)) + '</span>' : '<span class="no">– belum</span>') + '</td>';
+    }
+    function fill() {
+      var q = $('idQ').value.toLowerCase(), k = $('idK').value, st = $('idS').value;
+      var F = L.filter(function (p) { return (!q || String(p.r[0]).toLowerCase().indexOf(q) >= 0) && (!k || p.kel === k) && (!st || (st === 's') === p.selesai); });
+      $('idT').innerHTML = F.map(function (p) {
+        var link = String(p.r[13] || '').trim();
+        return '<tr><td><b>' + esc(judulNama(p.r[0])) + '</b><div class="desc">' + esc(p.r[2] || p.r[1] || '') + '</div></td><td>' + esc(p.kel) + '</td>' + sel(p, 0) + sel(p, 1) + sel(p, 2) +
+          '<td>' + (/^https?:\/\//i.test(link) ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">buka ↗</a>' : '<span class="desc">' + esc(link || '–') + '</span>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="desc">Tidak ada yang cocok.</td></tr>';
+      $('idN').textContent = F.length + ' dari ' + L.length + ' pegawai · arahkan kursor ke sel untuk melihat rencana dan realisasi';
+    }
+    ['idQ', 'idK', 'idS'].forEach(function (id) { $(id).addEventListener(id === 'idQ' ? 'input' : 'change', fill); }); fill();
+  }
+
+  /* ---------- pengembangan inovasi ---------- */
+  var TAHAP = ['1. Ide', '2. Perencanaan', '3. Uji Coba', '4. Implementasi', '5. Replikasi / Standardisasi'];
+  function inoRows() {
+    var hari = new Date(); hari.setHours(0, 0, 0, 0);
+    return D.rows(S.data.inovasi).filter(function (r) { return String(r['Judul Inovasi'] || '').trim(); }).map(function (r) {
+      var th = String(r['Tahun'] || '').trim(), mulai = D.tgl(r['Tgl Mulai']);
+      if (!th && mulai) th = String(mulai.getFullYear());
+      var tp = parseInt(String(r['Tahap'] || ''), 10), st = String(r['Status'] || '').trim(), tgt = D.tgl(r['Target Selesai']), sls = D.tgl(r['Realisasi Selesai']);
+      var w;   // status ketepatan waktu
+      if (/dihentikan/i.test(st)) w = ['Dihentikan', ''];
+      else if (/selesai/i.test(st)) w = tgt && sls && sls > tgt ? ['Selesai terlambat', 'warn'] : ['Selesai tepat waktu', 'good'];
+      else if (tgt && tgt < hari) w = ['Lewat target, belum selesai', 'bad'];
+      else if (/tertunda/i.test(st)) w = ['Tertunda', 'warn'];
+      else if (/belum/i.test(st)) w = ['Belum dimulai', ''];
+      else w = ['Berjalan', ''];
+      return { r: r, tahun: th, kinerja: /kinerja/i.test(r['Kategori']), tahap: tp >= 1 && tp <= 5 ? tp : 0, w: w, nilai: D.num(r['Nilai Manfaat (Rp/tahun)']), tgt: tgt };
+    }).filter(function (x) { return x.tahun === String(S.tahun); });
+  }
+  function rupiah(n) {
+    if (!n) return 'Rp 0';
+    return n >= 1e9 ? 'Rp ' + D.fmt(n / 1e9, 2) + ' M' : n >= 1e6 ? 'Rp ' + D.fmt(n / 1e6, 1) + ' jt' : 'Rp ' + D.fmt(n, 0);
+  }
+  function renderIno() {
+    var el = $('inoBody'), it = find(/Pengembangan Inovasi/i), Bn = B(), kv = it && konmanAda(Bn) && D.hasData(it, Bn) ? D.capaianItem(it, Bn) : null, kst = status(kv);
+    $('inoKon').className = 'kon ' + (kv === null ? '' : kst.c); $('inoKon').textContent = 'Konman no. 9 · ' + namaBulan(S.bulan) + ': ' + (kv === null ? '–' : D.fmt(kv * 100, 0) + '%');
+    $('inoDesc').textContent = 'Tab Data - Inovasi · tahun ' + S.tahun;
+    if (!S.data.inovasi || !S.data.inovasi.length) { el.innerHTML = '<div class="empty">Data inovasi belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - Inovasi</b> ada.</div>'; return; }
+    var L = inoRows();
+    if (!L.length) { el.innerHTML = '<div class="empty">Belum ada inovasi tahun ' + S.tahun + '. Isi di ' + sheetLink('Google Sheets', 'Data - Inovasi') + ' (kolom Tahun = ' + S.tahun + ').</div>'; return; }
+    var nk = L.filter(function (x) { return x.kinerja; }).length, impl = L.filter(function (x) { return x.tahap >= 4; }).length, tot = L.reduce(function (s, x) { return s + (x.nilai || 0); }, 0), mx = L.length;
+    var wk = {}; L.forEach(function (x) { wk[x.w[0]] = wk[x.w[0]] || [0, x.w[1]]; wk[x.w[0]][0]++; });
+    var urutW = ['Selesai tepat waktu', 'Selesai terlambat', 'Berjalan', 'Lewat target, belum selesai', 'Tertunda', 'Belum dimulai', 'Dihentikan'];
+    el.innerHTML = '<div class="mini-sum"><div><b class="num">' + L.length + '</b><span>inovasi · <span class="pk">' + nk + ' Kinerja</span> <span class="pk u">' + (L.length - nk) + ' UPDL</span></span></div>' +
+      '<div><b class="num good">' + impl + '</b><span>sudah implementasi / replikasi</span></div><div><b class="num">' + rupiah(tot) + '</b><span>nilai manfaat per tahun</span></div></div>' +
+      '<div class="sub-h">Per tahap</div><div class="bars">' + TAHAP.map(function (t, i) {
+        var a = L.filter(function (x) { return x.tahap === i + 1 && x.kinerja; }).length, b = L.filter(function (x) { return x.tahap === i + 1 && !x.kinerja; }).length;
+        return '<div class="r" title="' + esc(t + ': ' + a + ' Kinerja, ' + b + ' UPDL') + '"><span>' + t + '</span><span class="t">' + (a ? '<i style="width:' + (a / mx * 100) + '%;background:var(--accent)"></i>' : '') + (b ? '<i style="width:' + (b / mx * 100) + '%;background:var(--bar)"></i>' : '') + '</span><span class="num">' + (a + b) + '</span></div>';
+      }).join('') + (L.some(function (x) { return !x.tahap; }) ? '<div class="note">' + L.filter(function (x) { return !x.tahap; }).length + ' inovasi belum diisi kolom Tahap.</div>' : '') + '</div>' +
+      '<div class="legend" style="margin-top:0"><span><i style="background:var(--accent)"></i>Kinerja (Konman)</span><span><i style="background:var(--bar)"></i>UPDL</span></div>' +
+      '<div class="sub-h">Status &amp; ketepatan waktu</div><div class="chips2">' + urutW.filter(function (k) { return wk[k]; }).map(function (k) { return '<span class="' + wk[k][1] + '">' + k + ' ' + wk[k][0] + '</span>'; }).join('') + '</div>' +
+      '<button class="btn" type="button" data-act="ino">Lihat daftar inovasi →</button>';
+  }
+  function openIno() {
+    var L = inoRows(), tot = L.reduce(function (s, x) { return s + (x.nilai || 0); }, 0), nk = L.filter(function (x) { return x.kinerja; }).length, f = '';
+    openModal('<div class="modal-h"><div><h3>Daftar Inovasi · ' + S.tahun + '</h3><div class="desc">' + L.length + ' inovasi · nilai manfaat ' + rupiah(tot) + '/tahun · klik baris untuk rincian</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tabs" role="tablist"><button type="button" data-if="" aria-selected="true">Semua (' + L.length + ')</button><button type="button" data-if="k" aria-selected="false">Kinerja (' + nk + ')</button><button type="button" data-if="u" aria-selected="false">UPDL (' + (L.length - nk) + ')</button></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Inovasi</th><th>Kategori</th><th>PIC</th><th>Tahap</th><th class="r">Progres</th><th>Target</th><th>Status</th><th class="r">Manfaat/thn</th></tr></thead><tbody id="inT"></tbody></table></div>');
+    function fill() {
+      $('inT').innerHTML = L.filter(function (x) { return !f || (f === 'k') === x.kinerja; }).map(function (x, i) {
+        var r = x.r, pr = D.num(r['Progres (%)']), t = x.tgt;
+        return '<tr class="klik" tabindex="0" data-in="' + L.indexOf(x) + '"><td><b>' + esc(r['Judul Inovasi']) + '</b><div class="desc">' + esc([r['Ketua Tim'] ? 'Ketua: ' + r['Ketua Tim'] : '', r['Jenis Inovasi']].filter(Boolean).join(' · ')) + '</div></td>' +
+          '<td><span class="pk' + (x.kinerja ? '' : ' u') + '">' + (x.kinerja ? 'Kinerja' : 'UPDL') + '</span></td><td>' + esc(r['Bidang / PIC']) + '</td><td>' + esc(x.tahap ? TAHAP[x.tahap - 1] : '–') + '</td>' +
+          '<td class="r">' + (pr === null ? '–' : D.fmt(pr, 0) + '%') + '</td><td>' + (t ? ('0' + t.getDate()).slice(-2) + '/' + ('0' + (t.getMonth() + 1)).slice(-2) : '–') + '</td><td class="' + x.w[1] + '">' + x.w[0] + '</td><td class="r">' + (x.nilai ? rupiah(x.nilai) : '–') + '</td></tr>' +
+          '<tr class="det" data-dn="' + L.indexOf(x) + '" hidden><td colspan="8" class="ket"><b>Masalah:</b> ' + esc(r['Masalah yang Diselesaikan'] || '–') + '<br><b>Manfaat:</b> ' + esc(r['Manfaat'] || '–') + '<br><b>Anggota:</b> ' + esc(r['Anggota Tim'] || '–') +
+          (r['Kompetisi / Pengakuan'] ? '<br><b>Pengakuan:</b> ' + esc(r['Kompetisi / Pengakuan']) : '') + (/^https?:\/\//i.test(String(r['Link Eviden'] || '')) ? '<br><a href="' + esc(r['Link Eviden']) + '" target="_blank" rel="noopener">Buka eviden ↗</a>' : '') + (r['Keterangan'] ? '<br><b>Keterangan:</b> ' + esc(r['Keterangan']) : '') + '</td></tr>';
+      }).join('') || '<tr><td colspan="8" class="desc">Tidak ada.</td></tr>';
+    }
+    fill();
+    Array.prototype.forEach.call($('modalC').querySelectorAll('[data-if]'), function (b) { b.addEventListener('click', function () { f = b.getAttribute('data-if'); Array.prototype.forEach.call($('modalC').querySelectorAll('[data-if]'), function (x) { x.setAttribute('aria-selected', x === b); }); fill(); }); });
+    function buka(e) { var tr = e.target.closest('[data-in]'); if (!tr || e.target.closest('a')) return; if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); var d = $('inT').querySelector('[data-dn="' + tr.getAttribute('data-in') + '"]'); d.hidden = !d.hidden; }
+    $('inT').addEventListener('click', buka); $('inT').addEventListener('keydown', buka);
+  }
+
   /* ---------- struktur organisasi ---------- */
   function judulNama(t) {   // HURUF BESAR -> Huruf Awal Besar, singkatan tetap
     return String(t || '').toLowerCase().replace(/(^|[\s(\/,.-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); })
@@ -640,7 +765,7 @@
   function renderAll() {
     var gagal = [];
     [['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk], ['Struktur organisasi', renderOrg]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -768,6 +893,8 @@
       if (a === 'cc') return openCc();
       if (a === 'sert') return openSert();
       if (a === 'org') return openOrg();
+      if (a === 'idp') return openIdp();
+      if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
     var kl = t.closest('[data-kl]'); if (kl) { S.mlKlausul = kl.getAttribute('data-kl'); return renderMl(); }

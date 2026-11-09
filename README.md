@@ -23,7 +23,8 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
 | Tindak Lanjut Evaluasi | tab **Tindak Lanjut Evaluasi** (format template; dropdown Sumber, PIC, Status) | Admin |
 | Maturity Level Proses Bisnis | File **MLI Probis** → sheet **SMG**; target dari Konman (indikator Pengelolaan Proses Bisnis) | Tim Mutu |
 | Peta Risiko | File **Profil Risiko** (versi Google Sheets) → sheet *4. Peta Risiko*, mengikuti pilihan Inheren/Residual/Target di file itu | Tim JAR |
-| (Tahap 2) Pengembangan Inovasi | tab **Data - Inovasi** (sudah disiapkan; belum ditampilkan) | JAR |
+| Pengembangan Pegawai (IDP) | tab **Data - IDP** (kolom sama dengan template Pengembangan Pegawai). Selesai = semua jalur yang ada rencananya sudah ada realisasinya. Kelompok 4a–4e dari kolom Pemetaan IDP; nilai Konman 4a–4e dari tab Konman. Tidak mengikuti filter bulan. | Admin |
+| Pengembangan Inovasi | tab **Data - Inovasi** (tahun = kolom Tahun). Kategori Kinerja = untuk Konman no. 9, UPDL = internal. Persen Konman no. 9 diambil dari tab Konman, tidak dihitung ulang (tidak bergantung juklak). | JAR |
 | Struktur Organisasi (tombol di header, tampil sebagai jendela) | tab **Data - Pegawai** (Nama, NIP, Jabatan, Atasan Langsung, Level Jabatan) dan **Data - Alih Daya**; periode di Pengaturan `PERIODE_DATA_PEGAWAI`. Bagan disusun otomatis dari kolom Atasan Langsung (harus sama persis dengan Jabatan atasannya). NIP tidak dikirim ke website. | Admin |
 
 ## Rumus utama
