@@ -1,6 +1,6 @@
 (function () {
   var D = window.Dash, $ = function (id) { return document.getElementById(id); }, esc = D.esc;
-  var S = { data: null, tahun: null, bulan: null, mlMode: 'ver', mlKlausul: 'Semua', riskView: null, riskOn: null };
+  var S = { orgView: 'peg', orgOn: null, data: null, tahun: null, bulan: null, mlMode: 'ver', mlKlausul: 'Semua', riskView: null, riskOn: null };
   var DEFAULT_LINKS = { data: 'https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit' };
   var KLAUSUL = { 1: 'Konteks Organisasi', 2: 'Kepemimpinan', 3: 'Perencanaan', 4: 'Dukungan', 5: 'Operasi', 6: 'Evaluasi', 7: 'Peningkatan' };
 
@@ -408,6 +408,64 @@
     if (on) { var box = $('rkRows'); if (on.offsetTop < box.scrollTop || on.offsetTop > box.scrollTop + box.clientHeight - 30) box.scrollTop = on.offsetTop - 40; }
   }
 
+  /* ---------- struktur organisasi ---------- */
+  function judulNama(t) {   // HURUF BESAR -> Huruf Awal Besar, singkatan tetap
+    return String(t || '').toLowerCase().replace(/(^|[\s(\/,.-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); })
+      .replace(/\b(Pln|Updl|Tl|Sof|K3l|Pdkb|Pt|Cs|Fo|Jar|Pku|Pbj|Lab|Asman)\b/g, function (w) { return w === 'Asman' ? 'Asman' : w.toUpperCase(); })
+      .replace(/\b(Dan)\b/g, 'dan');
+  }
+  function renderOrg() {
+    var O = S.data.org, el = $('orgBody');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ov]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-ov') === S.orgView); });
+    if (!O) { el.innerHTML = '<div class="empty">Data struktur organisasi belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - Pegawai</b> ada di spreadsheet.</div>'; return; }
+    $('orgDesc').textContent = 'PLN UPDL Semarang' + (O.periode ? ' · data pegawai periode ' + O.periode : '') + ' · bagan disusun dari kolom Atasan Langsung';
+    var P = O.pegawai || [], AD = O.alihDaya || [];
+    if (S.orgView === 'ad') {
+      var bg = {}, ur = [], pr = {};
+      AD.forEach(function (x) { var k = x[2] + '|' + x[1]; if (!bg[k]) { bg[k] = { b: x[2], p: x[1], n: [], lok: {} }; ur.push(k); } bg[k].n.push(x[0]); if (x[3]) bg[k].lok[x[3]] = 1; pr[x[1] || '–'] = (pr[x[1] || '–'] || 0) + 1; });
+      var mx = Math.max.apply(null, ur.map(function (k) { return bg[k].n.length; }).concat([1]));
+      ur.sort(function (a, b) { return bg[b].n.length - bg[a].n.length || a.localeCompare(b); });
+      el.innerHTML = '<div class="org-v"><div class="org-sum"><div><b class="num">' + AD.length + '</b><span>tenaga alih daya</span></div>' +
+        Object.keys(pr).map(function (p) { return '<div><b class="num">' + pr[p] + '</b><span>' + esc(judulNama(p)) + '</span></div>'; }).join('') + '</div>' +
+        (AD.length ? '<div class="sub-h">Per bagian (klik untuk melihat nama)</div><div class="ad">' + ur.map(function (k) {
+          var x = bg[k];
+          return '<details class="grp"><summary><span><b>' + esc(x.b) + '</b><small>' + esc(judulNama(x.p)) + (Object.keys(x.lok).length ? ' · ' + esc(Object.keys(x.lok).map(judulNama).join(', ')) : '') + '</small></span><span class="c num">' + x.n.length + '</span><span class="bar"><i style="width:' + (x.n.length / mx * 100) + '%"></i></span></summary><ol>' +
+            x.n.map(function (n) { return '<li>' + esc(judulNama(n)) + '</li>'; }).join('') + '</ol></details>';
+        }).join('') + '</div>' : '<div class="empty">Tab Data - Alih Daya masih kosong.</div>') + '</div>';
+      return;
+    }
+    if (!P.length) { el.innerHTML = '<div class="empty">Tab Data - Pegawai masih kosong.</div>'; return; }
+    /* satu kotak = satu jabatan dengan atasan yang sama (bisa beberapa pemegang) */
+    var G = [], idx = {};
+    P.forEach(function (p) {
+      var j = p[1].toUpperCase(), a = String(p[2] || '').toUpperCase(), k = j + '|' + a;
+      if (!idx[k]) { idx[k] = { id: G.length, j: j, a: a, fung: /FUNGSIONAL/i.test(p[3]), org: [], kids: [] }; G.push(idx[k]); }
+      idx[k].org.push(judulNama(p[0]));
+    });
+    var root = null;
+    G.forEach(function (g) { var par = G.filter(function (x) { return x !== g && x.j === g.a; })[0]; if (par) { g.par = par; par.kids.push(g); } });
+    root = G.filter(function (g) { return !g.par; })[0];
+    G.forEach(function (g) { if (!g.par && g !== root) { g.par = root; g.yatim = true; root.kids.push(g); } });   // atasan tidak ditemukan: diletakkan di bawah pimpinan
+    root.kids.sort(function (a, b) { return a.kids.length - b.kids.length; });
+    S.orgG = G;
+    function node(g, cls) {
+      return '<button type="button" class="onode' + (g.fung ? ' fung' : '') + (cls ? ' ' + cls : '') + (S.orgOn === g.id ? ' on' : '') + '" data-og="' + g.id + '"><span class="j">' + esc(judulNama(g.j)) + '</span><span class="n">' +
+        g.org.map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</span></button>';
+    }
+    function tree(g) { return node(g) + (g.kids.length ? '<div class="kids">' + g.kids.map(function (k) { return '<div>' + tree(k) + '</div>'; }).join('') + '</div>' : ''); }
+    var st = P.filter(function (p) { return !/FUNGSIONAL/i.test(p[3]); }).length, yatim = G.filter(function (g) { return g.yatim; });
+    el.innerHTML = '<div class="org-v"><div class="org-sum"><div><b class="num">' + P.length + '</b><span>pegawai PLN</span></div><div><b class="num">' + st + '</b><span>struktural</span></div><div><b class="num">' + (P.length - st) + '</b><span>fungsional</span></div><div><b class="num">' + AD.length + '</b><span>tenaga alih daya</span></div></div>' +
+      '<div class="org">' + node(root, 'root') + (root.kids.length ? '<div class="vline v2"></div><div class="lv1" style="--k:' + root.kids.length + '">' + root.kids.map(function (k) { return '<div class="col">' + tree(k) + '</div>'; }).join('') + '</div>' : '') + '</div>' +
+      '<div class="org-leg"><span><i></i>Struktural</span><span><i class="f"></i>Fungsional</span></div>' +
+      (yatim.length ? '<div class="warnbox">Atasan langsung tidak ditemukan untuk: ' + yatim.map(function (g) { return esc(judulNama(g.j)) + ' (atasan tertulis "' + esc(g.a) + '")'; }).join('; ') + '. Samakan isi kolom Atasan Langsung dengan kolom Jabatan atasannya.</div>' : '') +
+      '<div class="org-info" id="orgInfo">' + orgInfo(S.orgOn) + '</div></div>';
+  }
+  function orgInfo(id) {
+    var g = S.orgG && S.orgG[id]; if (!g) return 'Klik kotak jabatan untuk melihat atasan dan jumlah bawahannya.';
+    var bawah = 0; (function c(x) { x.kids.forEach(function (k) { bawah += k.org.length; c(k); }); })(g);
+    return '<b>' + esc(judulNama(g.j)) + '</b> · ' + g.org.map(esc).join(', ') + '<br>Atasan langsung: ' + (g.par ? esc(judulNama(g.par.j)) : '–') + ' · Bawahan (semua tingkat): ' + bawah + ' orang · ' + (g.fung ? 'Fungsional' : 'Struktural');
+  }
+
   /* ---------- modals: kelas, HOP, rekap ---------- */
   function barChart(vals, labels, selIdx, unit) {
     var mx = Math.max.apply(null, vals.concat([1])), W = 600, H = 170, step = (W - 16) / vals.length, bw = step * 0.6, ih = H - 40;
@@ -576,7 +634,7 @@
   function renderAll() {
     var gagal = [];
     [['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -707,6 +765,8 @@
     }
     var kl = t.closest('[data-kl]'); if (kl) { S.mlKlausul = kl.getAttribute('data-kl'); return renderMl(); }
     var ml = t.closest('[data-ml]'); if (ml) { S.mlMode = ml.getAttribute('data-ml'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (b) { b.setAttribute('aria-pressed', b === ml); }); return renderMl(); }
+    var ov = t.closest('[data-ov]'); if (ov) { S.orgView = ov.getAttribute('data-ov'); return renderOrg(); }
+    var og = t.closest('[data-og]'); if (og) { var gi = +og.getAttribute('data-og'); S.orgOn = S.orgOn === gi ? null : gi; Array.prototype.forEach.call(document.querySelectorAll('.onode'), function (n) { n.classList.toggle('on', +n.getAttribute('data-og') === S.orgOn); }); $('orgInfo').innerHTML = orgInfo(S.orgOn); return; }
     var rv = t.closest('[data-rv]'); if (rv) { S.riskView = rv.getAttribute('data-rv'); return renderRisk(); }
     var r = t.closest('[data-r]'); if (r) { var n = r.getAttribute('data-r'); S.riskOn = S.riskOn === n ? null : n; return renderRisk(); }
     if (t.closest('[data-close]') || t === $('modal')) return closeModal();

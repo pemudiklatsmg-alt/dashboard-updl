@@ -44,7 +44,7 @@ var TAB = {
   INSTRUKTUR: 'Data - Instruktur EL1',
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
-  SERT: 'Data - Sertifikat'
+  SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya'
 };
 /* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
 var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
@@ -164,6 +164,10 @@ function buildData_() {
     try { out.eval[x[0]] = x[1](ss); }
     catch (e) { out.warnings.push(e.message); out.eval[x[0]] = null; }
   });
+
+  // Struktur organisasi (tanpa NIP)
+  try { out.org = bacaOrg_(ss); out.org.periode = String(cfg.PERIODE_DATA_PEGAWAI || ''); }
+  catch (e) { out.warnings.push(e.message); out.org = null; }
 
   // Rendiklat per tahun
   out.rendiklat = {};
@@ -661,6 +665,19 @@ function aggSert_(ss) {
     rows.push([i, isoTgl_(r[cT]), cS >= 0 ? isoTgl_(r[cS]) : '']);
   });
   return { status: status, rows: rows };
+}
+
+/* Struktur organisasi: pegawai [nama, jabatan, atasan, level]; alih daya [nama, perusahaan, bagian, lokasi]. NIP tidak dikirim. */
+function bacaOrg_(ss) {
+  var p = bacaMentah_(ss, TAB.ORG), a = bacaMentah_(ss, TAB.ALIHDAYA);
+  var cN = kol_(p.head, 'Nama'), cJ = kol_(p.head, 'Jabatan'), cA = kol_(p.head, 'Atasan Langsung'), cL = kol_(p.head, ['Level Jabatan', 'Keterangan / Level Jabatan', 'Level']);
+  if (p.rows.length && (cN < 0 || cJ < 0 || cA < 0)) throw new Error('Tab "' + TAB.ORG + '": kolom Nama / Jabatan / Atasan Langsung tidak ditemukan.');
+  var dN = kol_(a.head, ['Nama', 'Nama Tenaga Kerja']), dP = kol_(a.head, 'Perusahaan'), dB = kol_(a.head, 'Bagian'), dL = kol_(a.head, 'Lokasi Kerja');
+  if (a.rows.length && (dN < 0 || dB < 0)) throw new Error('Tab "' + TAB.ALIHDAYA + '": kolom Nama / Bagian tidak ditemukan.');
+  return {
+    pegawai: p.rows.filter(function (r) { return teks_(r[cN]) && teks_(r[cJ]); }).map(function (r) { return [teks_(r[cN]), teks_(r[cJ]), teks_(r[cA]), cL >= 0 ? teks_(r[cL]) : '']; }),
+    alihDaya: a.rows.filter(function (r) { return teks_(r[dN]); }).map(function (r) { return [teks_(r[dN]), dP >= 0 ? teks_(r[dP]) : '', teks_(r[dB]), dL >= 0 ? teks_(r[dL]) : '']; })
+  };
 }
 
 /* ======================================================================== */

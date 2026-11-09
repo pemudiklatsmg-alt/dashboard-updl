@@ -23,6 +23,7 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
 | Tindak Lanjut Evaluasi | tab **Tindak Lanjut Evaluasi** (format template; dropdown Sumber, PIC, Status) | Admin |
 | Maturity Level Proses Bisnis | File **MLI Probis** → sheet **SMG**; target dari Konman (indikator Pengelolaan Proses Bisnis) | Tim Mutu |
 | Peta Risiko | File **Profil Risiko** (versi Google Sheets) → sheet *4. Peta Risiko*, mengikuti pilihan Inheren/Residual/Target di file itu | Tim JAR |
+| Struktur Organisasi | tab **Data - Pegawai** (Nama, NIP, Jabatan, Atasan Langsung, Level Jabatan) dan **Data - Alih Daya**; periode di Pengaturan `PERIODE_DATA_PEGAWAI`. Bagan disusun otomatis dari kolom Atasan Langsung (harus sama persis dengan Jabatan atasannya). NIP tidak dikirim ke website. | Admin |
 
 ## Rumus utama
 
