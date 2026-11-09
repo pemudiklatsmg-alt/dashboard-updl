@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
-<link rel="stylesheet" href="assets/style.css?v=20261110a">
+<script>try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="stylesheet" href="assets/style.css?v=20261110b">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -31,6 +32,12 @@
       <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
       <select id="bulanSel" class="sel" aria-label="Pilih bulan"></select>
       <button class="btn" type="button" data-act="org" title="Lihat struktur organisasi UPDL Semarang"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5.5" y="1.5" width="5" height="3.5" rx="1"/><rect x="1" y="11" width="5" height="3.5" rx="1"/><rect x="10" y="11" width="5" height="3.5" rx="1"/><path d="M8 5v3M3.5 11V8h9v3"/></svg> <span class="lbl">Struktur Organisasi</span></button>
+      <button class="btn" type="button" id="guideBtn" title="Panduan memakai dan mengisi dashboard"><b>?</b> <span class="lbl">Panduan</span></button>
+      <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap">
+        <button type="button" data-th="light" title="Terang" aria-label="Tampilan terang" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+        <button type="button" data-th="auto" title="Ikuti perangkat" aria-label="Ikuti pengaturan perangkat" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+        <button type="button" data-th="dark" title="Gelap" aria-label="Tampilan gelap" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      </span>
       <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ <span class="lbl">Muat ulang</span></button>
       <button class="btn adm" id="exportBtn" type="button" title="Unduh laporan periode terpilih dalam format Excel">⬇ <span class="lbl">Export Excel</span></button>
       <button class="btn primary adm" id="inputBtn" type="button" title="Isi data dari website">＋ <span class="lbl">Input Data</span></button>
@@ -152,10 +159,58 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261110a"></script>
-<script src="assets/common.js?v=20261110a"></script>
-<script src="assets/dashboard.js?v=20261110a"></script>
-<script src="assets/input.js?v=20261110a"></script>
-<script src="assets/export.js?v=20261110a"></script>
+<script src="config.js?v=20261110b"></script>
+<script src="assets/common.js?v=20261110b"></script>
+<script src="assets/dashboard.js?v=20261110b"></script>
+<script src="assets/input.js?v=20261110b"></script>
+<script src="assets/export.js?v=20261110b"></script>
+<template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
+
+ <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
+  <div class="flow">
+   <div class="st"><span class="ic">📄</span><b>Sumber</b><span>Rendiklat, MLI Probis, Profil Risiko, dan hasil tarikan aplikasi (EL1, EL2, sertifikat)</span></div>
+   <div class="st"><span class="ic">🗂️</span><b>Spreadsheet</b><span>Admin menempel / mengisi tab "Data - …", Konman, Kepatuhan. Bisa juga lewat tombol Input Data</span></div>
+   <div class="st"><span class="ic">⚙️</span><b>Apps Script</b><span>Membaca &amp; menghitung otomatis. Data hanya dikirim ke akun yang login</span></div>
+   <div class="st"><span class="ic">📊</span><b>Dashboard</b><span>Pilih Tahun &amp; Bulan. Dimuat ulang otomatis tiap 5 menit</span></div>
+  </div>
+ </section>
+
+ <section class="g-sec" id="g2"><h4><span class="no">2</span>Siapa mengisi apa (warna = warna tab di spreadsheet)</h4>
+  <div class="cats">
+   <div class="cat" style="--cc:var(--c-kin)"><b>■ Kinerja</b><ul><li>Konman: Realisasi &amp; Ket bulanan</li><li>Jumlah Pegawai, Kepatuhan</li><li>Koreksi Rendiklat, Penyesuaian HOP</li></ul><span class="pic">PIC Konman · Admin</span></div>
+   <div class="cat" style="--cc:var(--c-eva)"><b>■ Evaluasi pembelajaran</b><ul><li>Tempel tarikan: Kepuasan, Instruktur, KSA, C&amp;C, Sertifikat</li><li>Rekap L3, L4, ROTI: 1 baris per pengukuran</li><li>Tindak Lanjut: status dari dropdown</li></ul><span class="pic">Admin · Bidang evaluasi</span></div>
+   <div class="cat" style="--cc:var(--c-sdm)"><b>■ SDM</b><ul><li>Data - Pegawai &amp; Alih Daya (struktur organisasi)</li><li>Data - IDP</li></ul><span class="pic">Admin</span></div>
+   <div class="cat" style="--cc:var(--c-ino)"><b>■ Inovasi</b><ul><li>Data - Inovasi: 1 baris per inovasi, kolom Tahun wajib</li></ul><span class="pic">PIC JAR</span></div>
+   <div class="cat" style="--cc:var(--c-pan)"><b>■ Petunjuk &amp; Pengaturan</b><ul><li>Target evaluasi, aturan HOP, ID file sumber</li></ul><span class="pic">Admin saja</span></div>
+   <div class="cat" style="--cc:var(--c-ars)"><b>■ Arsip</b><ul><li>Tab "(Lama) …" dan Tautan Penting</li><li>Tidak dibaca dashboard</li></ul><span class="pic">—</span></div>
+  </div>
+ </section>
+
+ <section class="g-sec" id="g3"><h4><span class="no">3</span>Jadwal rutin</h4>
+  <div class="time">
+   <div><b>Tiap bulan (≤ tgl 5)</b>Jumlah Pegawai, Konman, Kepatuhan, tarik kelas tanpa realisasi</div>
+   <div><b>Tiap ada tarikan data</b>Tempel di tab "Data - …" yang sesuai</div>
+   <div><b>Saat ada perubahan</b>Status Tindak Lanjut, IDP, Inovasi, mutasi pegawai</div>
+   <div><b>Awal tahun</b>Tab Konman baru, ID Rendiklat baru, baris tahun baru</div>
+  </div>
+ </section>
+
+ <section class="g-sec" id="g4"><h4><span class="no">4</span>Format isian</h4>
+  <div class="fmt">
+   <div><span class="desc">Tanggal</span><span><code>12/10/2026</code> &nbsp;bukan <s>Oktober 2026</s></span></div>
+   <div><span class="desc">Angka</span><span><code>4,63</code> · <code>49376</code> &nbsp;bukan <s>49.376</s></span></div>
+   <div><span class="desc">Persen</span><span><code>96</code> &nbsp;bukan <s>96%</s> atau <s>4,6 (baik)</s></span></div>
+  </div>
+ </section>
+
+ <section class="g-sec" id="g5"><h4><span class="no">5</span>Lakukan &amp; hindari</h4>
+  <div class="dd">
+   <div class="y"><b>✓ Lakukan</b><ul><li>Isi mulai baris kosong pertama</li><li>Pilih dari dropdown bila ada</li><li>Klik Muat ulang setelah mengisi</li><li>Tulis alasan di koreksi / penyesuaian</li></ul></div>
+   <div class="n"><b>– Tidak perlu</b><ul><li>Menghitung skor, rata-rata, atau persen sendiri</li><li>Menyalin data Rendiklat / MLI / Profil Risiko</li><li>Mengubah website atau GitHub</li></ul></div>
+   <div class="jg"><b>✕ Jangan</b><ul><li>Mengubah judul kolom atau nama tab</li><li>Menyisipkan baris total / kosong di tengah tabel</li><li>Membagikan alamat Apps Script atau password</li></ul></div>
+  </div>
+ </section>
+</template>
+<script src="assets/panduan.js?v=20261110b"></script>
 </body>
 </html>

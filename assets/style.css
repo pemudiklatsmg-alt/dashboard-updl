@@ -575,3 +575,45 @@ body:not(.peran-admin) .adm { display: none !important; }
 .ok { color: var(--good); font-weight: 700; } .no { color: var(--ink-3); }
 .dev-body .btn { align-self: flex-start; margin-top: auto; }
 @media (max-width: 640px) { .mini-sum { grid-template-columns: 1fr 1fr; } }
+
+/* ================= Panduan & tema ================= */
+:root{--c-pan:#2a3555;--c-kin:#7b1e3a;--c-eva:#3a4f8c;--c-sdm:#1f8a4c;--c-ino:#d98c1f;--c-ars:#9aa0ad}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-pan:#8a97c2;--c-kin:#e28aa6;--c-eva:#8ea6ec;--c-sdm:#5fd08f;--c-ino:#f0b860;--c-ars:#848ca3}}
+:root[data-theme="dark"]{--c-pan:#8a97c2;--c-kin:#e28aa6;--c-eva:#8ea6ec;--c-sdm:#5fd08f;--c-ino:#f0b860;--c-ars:#848ca3}
+.themebtn{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.themebtn button{border:0;background:var(--sheet);color:var(--ink-2);padding:6px 9px;cursor:pointer;color:var(--ink-2);display:grid;place-items:center}
+.themebtn button[aria-pressed="true"]{background:var(--accent);color:var(--sheet)}
+.themebtn svg{width:15px;height:15px}
+.modal-c.guide{width:min(100%,980px);gap:18px}
+.g-sec{display:grid;gap:10px}
+.g-sec h4{margin:0;font-family:var(--f-display);font-size:16px;font-weight:600;display:flex;gap:8px;align-items:center}
+.g-sec h4 .no{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--sheet);display:grid;place-items:center;font-size:12px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch;position:relative}
+.flow .st{border:1.5px solid var(--frame);border-radius:10px;padding:10px 12px;display:grid;gap:4px;align-content:start;position:relative;background:var(--sheet)}
+.flow .st:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:50%;transform:translate(50%,-50%);font-weight:700;color:var(--accent);background:var(--sheet);z-index:1}
+.flow .ic{font-size:20px;line-height:1}
+.flow b{font-size:13px}.flow span{font-size:11.5px;color:var(--ink-3)}
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cat{border:1px solid var(--line);border-top:5px solid var(--cc);border-radius:10px;padding:10px 12px;display:grid;gap:6px;align-content:start}
+.cat b{font-size:13px;color:var(--cc)}
+.cat ul{margin:0;padding-left:16px;font-size:12px;color:var(--ink-2);display:grid;gap:2px}
+.cat .pic{font-size:11px;font-weight:600}
+.time{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:3px solid var(--line);margin-top:8px}
+.time div{padding:12px 10px 0;position:relative;font-size:12px;color:var(--ink-2);display:grid;gap:3px;align-content:start}
+.time div::before{content:"";position:absolute;top:-8px;left:10px;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid var(--sheet)}
+.time b{color:var(--ink);font-size:12.5px}
+.dd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dd>div{border-radius:10px;padding:10px 12px;display:grid;gap:6px;align-content:start}
+.dd .y{background:var(--good-bg)}.dd .n{background:var(--idle-bg)}.dd .jg{background:var(--bad-bg)}
+.dd b{font-size:13px}.dd .y b{color:var(--good)}.dd .jg b{color:var(--bad)}
+.dd ul{margin:0;padding-left:16px;font-size:12px;display:grid;gap:3px}
+.fmt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fmt div{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;font-size:12px;display:grid;gap:3px}
+.fmt code{font-family:inherit;font-weight:700;color:var(--good)}.fmt s{color:var(--bad)}
+.gnav{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:-18px;background:var(--sheet);padding:6px 0;z-index:2}
+.gnav a{font-size:12px;font-weight:600;color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+
+.gnav{position:static}
+.cat .pic{font-size:11px;font-weight:600;color:var(--ink-3)}
+@media (max-width:760px){.flow,.cats,.dd,.fmt{grid-template-columns:1fr}.flow .st:not(:last-child)::after{content:"\2193";right:50%;top:auto;bottom:-12px;transform:translate(50%,50%)}.time{grid-template-columns:1fr 1fr;row-gap:12px}}
+.top.kecil .themebtn button{padding:5px 7px}
