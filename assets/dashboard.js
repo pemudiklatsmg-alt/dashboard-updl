@@ -414,9 +414,15 @@
       .replace(/\b(Pln|Updl|Tl|Sof|K3l|Pdkb|Pt|Cs|Fo|Jar|Pku|Pbj|Lab|Asman)\b/g, function (w) { return w === 'Asman' ? 'Asman' : w.toUpperCase(); })
       .replace(/\b(Dan)\b/g, 'dan');
   }
+  function openOrg() {
+    openModal('<div class="modal-h"><div><h3>Struktur Organisasi</h3><div class="desc" id="orgDesc">PLN UPDL Semarang</div></div>' +
+      '<div class="row-gap"><div class="seg" role="group" aria-label="Tampilan struktur"><button type="button" data-ov="peg" aria-pressed="true">Pegawai PLN</button><button type="button" data-ov="ad" aria-pressed="false">Tenaga Alih Daya</button></div><button class="btn" data-close>Tutup</button></div></div><div id="orgBody"></div>', 'xwide');
+    renderOrg();
+  }
   function renderOrg() {
     var O = S.data.org, el = $('orgBody');
     Array.prototype.forEach.call(document.querySelectorAll('[data-ov]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-ov') === S.orgView); });
+    if (!el) return;
     if (!O) { el.innerHTML = '<div class="empty">Data struktur organisasi belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - Pegawai</b> ada di spreadsheet.</div>'; return; }
     $('orgDesc').textContent = 'PLN UPDL Semarang' + (O.periode ? ' · data pegawai periode ' + O.periode : '') + ' · bagan disusun dari kolom Atasan Langsung';
     var P = O.pegawai || [], AD = O.alihDaya || [];
@@ -618,7 +624,7 @@
 
   /* ---------- modal ---------- */
   var lastFocus = null;
-  function openModal(html) { lastFocus = document.activeElement; $('modalC').innerHTML = html; $('modal').hidden = false; var b = $('modalC').querySelector('[data-close]'); if (b) b.focus(); }
+  function openModal(html, kelas) { lastFocus = document.activeElement; $('modalC').className = 'modal-c' + (kelas ? ' ' + kelas : ''); $('modalC').innerHTML = html; $('modal').hidden = false; var b = $('modalC').querySelector('[data-close]'); if (b) b.focus(); }
   function closeModal() { $('modal').hidden = true; $('modalC').innerHTML = ''; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
 
   /* ---------- state ---------- */
@@ -761,6 +767,7 @@
       if (a === 'ksa') return openKsa();
       if (a === 'cc') return openCc();
       if (a === 'sert') return openSert();
+      if (a === 'org') return openOrg();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
     var kl = t.closest('[data-kl]'); if (kl) { S.mlKlausul = kl.getAttribute('data-kl'); return renderMl(); }

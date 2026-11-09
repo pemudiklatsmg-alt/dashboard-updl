@@ -548,3 +548,6 @@ body:not(.peran-admin) .adm { display: none !important; }
 .grp ol { margin: 8px 0 2px; padding-left: 22px; font-size: 12.5px; columns: 2; column-gap: 18px; }
 @media (max-width: 900px) { .org .lv1 { grid-template-columns: minmax(0, 1fr); padding-top: 0; } .org .lv1::before, .org .col::before, .org .vline.v2 { display: none; } .org .col { border-top: 1px solid var(--line); padding-top: 10px; } }
 @media (max-width: 440px) { .grp ol { columns: 1; } }
+.modal-c.xwide { width: min(1180px, 100%); }
+.modal-h .row-gap { flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 640px) { .modal-h:has(.row-gap) { flex-wrap: wrap; } .modal-h .row-gap { width: 100%; justify-content: space-between; } }

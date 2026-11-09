@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
-<link rel="stylesheet" href="assets/style.css?v=20261109b">
+<link rel="stylesheet" href="assets/style.css?v=20261109c">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -30,6 +30,7 @@
     <div class="controls">
       <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
       <select id="bulanSel" class="sel" aria-label="Pilih bulan"></select>
+      <button class="btn" type="button" data-act="org" title="Lihat struktur organisasi UPDL Semarang"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5.5" y="1.5" width="5" height="3.5" rx="1"/><rect x="1" y="11" width="5" height="3.5" rx="1"/><rect x="10" y="11" width="5" height="3.5" rx="1"/><path d="M8 5v3M3.5 11V8h9v3"/></svg> <span class="lbl">Struktur Organisasi</span></button>
       <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ <span class="lbl">Muat ulang</span></button>
       <button class="btn adm" id="exportBtn" type="button" title="Unduh laporan periode terpilih dalam format Excel">⬇ <span class="lbl">Export Excel</span></button>
       <button class="btn primary adm" id="inputBtn" type="button" title="Isi data dari website">＋ <span class="lbl">Input Data</span></button>
@@ -101,14 +102,6 @@
     <div class="rk" id="riskBody"></div>
   </section>
 
-  <section class="panel" aria-label="Struktur organisasi">
-    <div class="panel-h">
-      <div><h2>Struktur Organisasi</h2><div class="desc" id="orgDesc">PLN UPDL Semarang · bagan disusun dari kolom Atasan Langsung</div></div>
-      <div class="seg" role="group" aria-label="Tampilan struktur"><button type="button" data-ov="peg" aria-pressed="true">Pegawai PLN</button><button type="button" data-ov="ad" aria-pressed="false">Tenaga Alih Daya</button></div>
-    </div>
-    <div id="orgBody"></div>
-  </section>
-
   <div class="foot-note" id="footNote"></div>
 </main>
 
@@ -143,10 +136,10 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261109b"></script>
-<script src="assets/common.js?v=20261109b"></script>
-<script src="assets/dashboard.js?v=20261109b"></script>
-<script src="assets/input.js?v=20261109b"></script>
-<script src="assets/export.js?v=20261109b"></script>
+<script src="config.js?v=20261109c"></script>
+<script src="assets/common.js?v=20261109c"></script>
+<script src="assets/dashboard.js?v=20261109c"></script>
+<script src="assets/input.js?v=20261109c"></script>
+<script src="assets/export.js?v=20261109c"></script>
 </body>
 </html>
