@@ -4,22 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
-<link rel="stylesheet" href="assets/style.css?v=20261105b">
+<link rel="stylesheet" href="assets/style.css?v=20261109a">
 </head>
 <body>
-<main class="sheet" id="app">
-  <header class="top">
+<!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
+<section class="login" id="loginGate">
+  <form class="lbox" id="loginForm" novalidate>
+    <h1>Dashboard Kinerja UPDL Semarang<span class="dot">.</span></h1>
+    <p class="desc" style="margin:0">Masuk untuk melihat dashboard. Data tidak ditampilkan sebelum login.</p>
+    <div class="field"><label for="uName">Username</label><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+    <div class="field"><label for="uPass">Password</label><input class="inp" id="uPass" type="password" autocomplete="current-password"></div>
+    <div class="errmsg" id="loginErr" hidden></div>
+    <button class="btn primary big" type="submit" id="loginBtn">Masuk</button>
+    <div class="roles"><span><b>Akun Admin</b> · melihat, input data, export Excel</span><span><b>Akun Lihat</b> · hanya melihat dashboard</span></div>
+    <p class="desc" style="margin:0">Lupa password? Pemilik spreadsheet bisa membuat password baru lewat menu <b>Dashboard → Atur akun</b>.</p>
+  </form>
+</section>
+
+<main class="sheet" id="app" hidden>
+  <header class="top" id="top">
     <div>
       <h1 id="judul">Dashboard Kinerja UPDL Semarang<span class="dot">.</span></h1>
-      <div class="sub"><span id="srcBadge" class="badge snap">Memuat data…</span><span id="srcInfo"></span></div>
+      <div class="sub"><span id="srcBadge" class="badge snap">Memuat data…</span><span id="srcInfo"></span><span class="who" id="who"></span></div>
     </div>
     <div class="controls">
       <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
       <select id="bulanSel" class="sel" aria-label="Pilih bulan"></select>
-      <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ Muat ulang</button>
-      <button class="btn" id="exportBtn" type="button" title="Unduh laporan periode terpilih dalam format Excel">⬇ Export Excel</button>
-      <button class="btn primary" id="inputBtn" type="button" title="Isi data dari website (perlu login)">＋ Input Data</button>
-      <a class="btn ghost" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener" title="Buka spreadsheet Data Dashboard UPDL Semarang">✎ Google Sheets</a>
+      <button class="btn" id="refreshBtn" type="button" title="Ambil data terbaru dari Google Sheets">↻ <span class="lbl">Muat ulang</span></button>
+      <button class="btn adm" id="exportBtn" type="button" title="Unduh laporan periode terpilih dalam format Excel">⬇ <span class="lbl">Export Excel</span></button>
+      <button class="btn primary adm" id="inputBtn" type="button" title="Isi data dari website">＋ <span class="lbl">Input Data</span></button>
+      <a class="btn ghost adm" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener" title="Buka spreadsheet Data Dashboard UPDL Semarang">✎ <span class="lbl">Google Sheets</span></a>
+      <button class="btn" id="logoutBtn" type="button" title="Keluar dan hapus data dari browser ini">Keluar</button>
     </div>
   </header>
 
@@ -72,7 +87,7 @@
     </div>
     <div class="panel">
       <div class="panel-h">
-        <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status temuan &amp; masukan</div></div>
+        <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
       </div>
       <div id="tlBody" class="tl-body"></div>
     </div>
@@ -80,15 +95,10 @@
 
   <section class="panel">
     <div class="panel-h">
-      <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang. Klik nomor untuk menyorot.</div></div>
+      <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang · klik nomor atau baris untuk menyorot</div></div>
       <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
     </div>
-    <div class="risk" id="riskBody"></div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-h"><h2>Tautan Penting</h2></div>
-    <div class="links" id="links"></div>
+    <div class="rk" id="riskBody"></div>
   </section>
 
   <div class="foot-note" id="footNote"></div>
@@ -96,25 +106,12 @@
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-c" id="modalC"></div></div>
 
-<!-- Login input data -->
-<div class="modal" id="loginModal" hidden role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <form class="modal-c small" id="loginForm" novalidate>
-    <div class="modal-h"><h3 id="loginTitle">Masuk untuk input data</h3><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
-    <p class="desc">Hanya petugas yang punya akun yang bisa menambah atau mengubah data. Melihat dashboard tidak perlu login.</p>
-    <div class="field"><label for="uName">Username</label><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-    <div class="field"><label for="uPass">Password</label><input class="inp" id="uPass" type="password" autocomplete="current-password"></div>
-    <div class="errmsg" id="loginErr" hidden></div>
-    <button class="btn primary big" type="submit" id="loginBtn">Masuk</button>
-    <p class="desc">Lupa password? Admin bisa membuat password baru lewat menu <b>Dashboard → Atur akun input web</b> di spreadsheet.</p>
-  </form>
-</div>
-
 <!-- Jendela input data -->
 <div class="modal" id="inputModal" hidden role="dialog" aria-modal="true" aria-labelledby="inputTitle">
   <div class="modal-c wide in-box">
     <div class="modal-h in-head">
       <div><h3 id="inputTitle">Input Data</h3><div class="desc">Masuk sebagai <b id="whoami">–</b> · data langsung tersimpan ke Google Sheets</div></div>
-      <div class="row-gap"><button class="btn" type="button" id="logoutBtn">Keluar</button><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
+      <button class="x" type="button" data-tutup aria-label="Tutup">×</button>
     </div>
     <div class="in-wrap">
       <nav class="in-menu" id="inMenu" aria-label="Jenis data"></nav>
@@ -138,10 +135,10 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261105b"></script>
-<script src="assets/common.js?v=20261105b"></script>
-<script src="assets/dashboard.js?v=20261105b"></script>
-<script src="assets/input.js?v=20261105b"></script>
-<script src="assets/export.js?v=20261105b"></script>
+<script src="config.js?v=20261109a"></script>
+<script src="assets/common.js?v=20261109a"></script>
+<script src="assets/dashboard.js?v=20261109a"></script>
+<script src="assets/input.js?v=20261109a"></script>
+<script src="assets/export.js?v=20261109a"></script>
 </body>
 </html>

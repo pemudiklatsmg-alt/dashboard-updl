@@ -7,7 +7,7 @@
     ['ringkasan', 'Ringkasan', 'Gambar dashboard + tabel ukuran utama dengan status', 1],
     ['indikator', 'Indikator Kinerja', 'Bobot, target, realisasi, pencapaian, skor, status', 1],
     ['tren', 'Tren Bulanan', 'Capaian, kelas, peserta, orang-hari, HOP per bulan', 1],
-    ['evaluasi', 'Evaluasi Pembelajaran', 'L1, L2, L3, L4, ROTI, Sertifikat', 1],
+    ['evaluasi', 'Evaluasi Pembelajaran', 'Kepuasan, instruktur, KSA, C&C, L3, L4, ROTI, sertifikat', 1],
     ['kepatuhan', 'Kepatuhan & Tindak Lanjut', 'Pengurang per aspek dan status temuan', 1],
     ['maturity', 'Maturity & Risiko', 'Skor per key element dan daftar risiko', 1],
     ['kelas', 'Lampiran: Daftar Kelas', 'Semua kelas Selesai (ratusan baris)', 0]
@@ -18,8 +18,9 @@
   function namaFile() { var S = A().S; return 'Laporan Dashboard UPDL Semarang - ' + A().namaBulan(S.bulan) + ' ' + S.tahun + '.xlsx'; }
   function bukaExport() {
     if (!A() || !A().S.data) { A() && A().toast('Data dashboard belum termuat.'); return; }
+    if (!A().admin()) { A().toast('Export hanya untuk akun Admin.'); return; }
     $('expName').textContent = namaFile(); $('expErr').hidden = true;
-    ['loginModal', 'inputModal'].forEach(function (m) { $(m).hidden = true; });
+    $('inputModal').hidden = true;
     $('exportModal').hidden = false; $('expGo').focus();
   }
   function tutup() { $('exportModal').hidden = true; $('exportBtn').focus(); }
@@ -65,7 +66,7 @@
   var C = { maroon: 'FF7B1E3A', ink: 'FF18233F', muted: 'FF7C8399', line: 'FFD8DBE4', soft: 'FFF6E9EE', zebra: 'FFF7F8FA', white: 'FFFFFFFF' };
   var ST = {   // [latar, teks]
     'Tercapai': ['FFE3F4EA', 'FF1F8A4C'], 'Patuh': ['FFE3F4EA', 'FF1F8A4C'], 'Selesai': ['FFE3F4EA', 'FF1F8A4C'], 'Rendah': ['FF8FD19E', 'FF18233F'],
-    'Hampir tercapai': ['FFFBF0DC', 'FFB7791F'], 'Berjalan': ['FFFBF0DC', 'FFB7791F'], 'Moderat': ['FFB5EBEE', 'FF18233F'], 'Ada pengurang': ['FFFBE5E5', 'FFC53030'],
+    'Hampir tercapai': ['FFFBF0DC', 'FFB7791F'], 'Berjalan': ['FFFBF0DC', 'FFB7791F'], 'OFI': ['FFFBF0DC', 'FFB7791F'], 'Proses Tindak Lanjut': ['FFFBF0DC', 'FFB7791F'], 'Sudah Dilaporkan': ['FFE3F4EA', 'FF1F8A4C'], 'Moderat': ['FFB5EBEE', 'FF18233F'], 'Ada pengurang': ['FFFBE5E5', 'FFC53030'],
     'Di bawah target': ['FFFBE5E5', 'FFC53030'], 'Belum Dimulai': ['FFFBE5E5', 'FFC53030'], 'Tinggi': ['FFF5D66B', 'FF18233F'], 'Sangat Tinggi': ['FFF4A259', 'FF18233F'], 'Ekstrem': ['FFE5625E', 'FFFFFFFF'],
     'Belum ada data': ['FFEEF0F4', 'FF7C8399'], 'Tanpa target': ['FFEEF0F4', 'FF7C8399'], 'Belum diisi': ['FFEEF0F4', 'FF7C8399']
   };
@@ -141,12 +142,13 @@
     var r = D.hitungRendiklat(a.kelas(), S.tahun, S.bulan, set), H = a.hop(S.tahun, S.bulan);
     function kt(re) { var it = a.find(re); return it && ada ? D.num(it.target[Bn].v) : null; }
     var tot = ada ? a.totalSkor(Bn) : null;
-    var L1 = D.rataTertimbang(rekap('l1', 'Tanggal Selesai'), 'Nilai Kepuasan (1-5)', 'Jumlah Responden');
-    var KSA = D.rataTertimbang(rekap('l2', 'Tanggal Selesai'), 'KSA Formatif (0-100)', 'Jumlah Peserta');
-    var CC = D.rataTertimbang(rekap('l2', 'Tanggal Selesai'), 'C&C Sumatif (1-4)', 'Jumlah Peserta');
+    var Kp = a.ev('kepuasan'), In = a.ev('instruktur'), Ks = a.ev('ksa'), Cc = a.ev('cc'), Se = a.ev('sertifikat');
+    var L1 = Kp && Kp.nilai !== null ? { nilai: Kp.nilai, n: Kp.pelatihan } : null, INS = In && In.nilai !== null ? { nilai: In.nilai, n: In.instruktur.length } : null;
+    var KSA = Ks && Ks.nilai !== null ? { nilai: Ks.nilai, n: Ks.pel.length } : null, CC = Cc && Cc.nilai !== null ? { nilai: Cc.nilai, n: Cc.pel.length } : null;
+    var skCC = set.skalaCC || 4;
     var L3 = D.rataTertimbang(rekap('l3', 'Tanggal Evaluasi'), 'Skor (0-100)'), L4 = D.rataTertimbang(rekap('l4', 'Tanggal Evaluasi'), 'Skor (0-100)');
     var RO = D.rataTertimbang(rekap('roti', 'Tanggal'), 'Nilai ROTI (%)');
-    var lul = 0, ter = 0, nS = 0; rekap('sertifikat', 'Tanggal').forEach(function (x) { var l = D.num(x['Peserta Lulus']); if (l) { lul += l; ter += D.num(x['Sertifikat Terbit']) || 0; nS++; } });
+    var sertP = Se && Se.total ? Se.pct * 100 : null;
     var M = S.data.maturity || [], mv = M.map(function (x) { var v = D.num(x[3]); return v !== null ? v : D.num(x[2]); });
     var mAvg = mv.length ? mv.reduce(function (s, v) { return s + (v || 0); }, 0) / mv.length : null;
     var itM = a.find(/Pengelolaan Proses Bisnis/i), mT = itM ? (ada ? D.num(itM.target[Bn].v) : null) : null;
@@ -164,21 +166,22 @@
           { n: 'Hari Orang Pelatihan (HOP)', v: H.nilai, t: kt(/Tingkat Pelaksanaan Pembelajaran/i), sat: 'hari/pegawai', f: '0.000', cat: 'Pegawai ' + a.namaBulan(S.bulan) + ': ' + (H.pegawai === null ? 'belum diisi' : D.fmt(H.pegawai, 0)) + (H.disesuaikan ? ' · ada penyesuaian' : '') }
         ]],
         ['Evaluasi Pembelajaran', [
-          { n: 'Kepuasan Peserta (L1)', v: n2(L1), t: set.targetL1, sat: 'skala 1–5', f: '0.00', cat: L1 ? L1.n + ' pelatihan' : 'Belum diisi' },
-          { n: 'Peningkatan KSA (L2 formatif)', v: n2(KSA), t: set.targetKSA, sat: 'skala 0–100', f: '0.0', cat: KSA ? KSA.n + ' pelatihan' : 'Belum diisi' },
-          { n: 'Confidence & Commitment (L2 sumatif)', v: n2(CC), t: set.targetCC, sat: 'skala 1–4', f: '0.00', cat: CC ? CC.n + ' pelatihan' : 'Belum diisi' },
+          { n: 'Kepuasan Peserta (L1)', v: n2(L1), t: set.targetL1, sat: 'skala 1–5', f: '0.00', cat: L1 ? D.fmt(Kp.responden, 0) + ' responden · ' + L1.n + ' pelatihan · rata-rata semua butir' : 'Belum diisi' },
+          { n: 'Penilaian Instruktur (L1)', v: n2(INS), t: set.targetInstruktur, sat: 'skala 1–5', f: '0.00', cat: INS ? INS.n + ' instruktur · ' + D.fmt(In.penilaian, 0) + ' penilaian' : 'Belum diisi' },
+          { n: 'Peningkatan KSA (L2 formatif)', v: n2(KSA), t: set.targetKSA, sat: 'skala 0–100', f: '0.0', cat: KSA ? D.fmt(Ks.peserta, 0) + ' peserta Hadir & Lulus · ' + KSA.n + ' pelatihan' : 'Belum diisi' },
+          { n: 'Confidence & Commitment (L2 sumatif)', v: n2(CC), t: set.targetCC, sat: 'skala 1–' + skCC, f: '0.00', cat: CC ? 'Confidence ' + D.fmt(Cc.conf, 2) + ' · Commitment ' + D.fmt(Cc.comm, 2) + ' · ' + D.fmt(Cc.n, 0) + ' pengisian' : 'Belum diisi' },
           { n: 'Dampak Perilaku (L3)', v: n2(L3), t: kt(/Perubahan Perilaku/i), sat: 'skor 0–100', f: '0.00', cat: L3 ? L3.n + ' pengukuran' : 'Belum diisi' },
           { n: 'Dampak Kinerja (L4)', v: n2(L4), t: kt(/Pada Kinerja/i), sat: 'skor 0–100', f: '0.00', cat: L4 ? L4.n + ' pengukuran' : 'Belum diisi' },
           { n: 'ROTI', v: n2(RO), t: null, sat: '%', f: '0.0', cat: RO ? RO.n + ' pengukuran' : 'Belum diisi' },
-          { n: 'Sertifikat Terbit', v: lul ? ter / lul * 100 : null, t: set.targetSertifikat, sat: '%', f: '0.0', cat: lul ? D.fmt(ter, 0) + ' dari ' + D.fmt(lul, 0) + ' peserta lulus (' + nS + ' pelatihan)' : 'Belum diisi' }
+          { n: 'Sertifikat Terbit (Finish TTE GM)', v: sertP, t: set.targetSertifikat, sat: '%', f: '0.0', cat: Se && Se.total ? D.fmt(Se.terbit, 0) + ' dari ' + D.fmt(Se.total, 0) + ' sertifikat · +' + D.fmt(Se.bulan, 0) + ' terbit di ' + a.namaBulan(S.bulan) : 'Belum ada data' }
         ]],
         ['Tata Kelola', [
           { n: 'Maturity Level Proses Bisnis', v: mAvg, t: mT, sat: 'skala 0–5', f: '0.00', cat: M.length + ' key element (sheet SMG, verifikasi)' },
-          { n: 'Tindak Lanjut Evaluasi selesai', v: TL.length ? tlS / TL.length * 100 : null, t: TL.length ? 100 : null, sat: '%', f: '0', cat: tlS + ' dari ' + TL.length + ' temuan' },
+          { n: 'Tindak Lanjut Evaluasi selesai', v: TL.length ? tlS / TL.length * 100 : null, t: TL.length ? 100 : null, sat: '%', f: '0', cat: tlS + ' dari ' + TL.length + ' komentar & temuan (Selesai + Sudah Dilaporkan)' },
           { n: 'Total pengurang kepatuhan', v: ada || kepIsi ? a.pengurang(Bn) : null, t: null, sat: 'poin', f: '0.00', cat: kepIsi ? kepIsi + ' dari ' + kepRows.length + ' aspek terisi' : 'Belum diisi', kep: true }
         ]]
       ],
-      r: r, H: H, L1: L1, KSA: KSA, CC: CC, L3: L3, L4: L4, RO: RO, sert: lul ? ter / lul * 100 : null, tot: tot, set: set, mAvg: mAvg, mT: mT
+      r: r, H: H, L1: L1, INS: INS, KSA: KSA, CC: CC, skCC: skCC, L3: L3, L4: L4, RO: RO, sert: sertP, Se: Se, tot: tot, set: set, mAvg: mAvg, mT: mT
     };
   }
 
@@ -227,7 +230,7 @@
       { judul: 'Total Peserta', sub: 'Rendiklat s.d. ' + A().namaBulan(p.m), nilai: D.fmt(r.peserta, 0), f: pP, warna: r.pakaiRencana ? W.warn : null, kaki: r.pakaiRencana ? r.pakaiRencana + ' kelas memakai rencana' : pctT(pP) + ' dari rencana', warnaKaki: r.pakaiRencana ? W.warn : null },
       { judul: 'Total Kelas', sub: 'Status Selesai s.d. ' + A().namaBulan(p.m), nilai: D.fmt(r.kelas, 0), f: pK, kaki: pctT(pK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' terjadwal' },
       { judul: 'Hari Orang Pelatihan', sub: 'Rendiklat ÷ jumlah pegawai', nilai: H.nilai === null ? '–' : D.fmt(H.nilai, 3), f: hc, kaki: tH ? pctT(hc) + ' dari target ' + D.fmt(tH, 3) : 'Target Konman belum ada' },
-      { judul: 'Kepuasan Peserta', sub: 'Evaluasi Level 1', nilai: h.L1 ? D.fmt(h.L1.nilai, 2) + ' / 5' : '–', f: f1, kaki: h.L1 ? h.L1.n + ' pelatihan' : 'Belum diisi', warnaKaki: h.L1 ? null : W.idle }
+      { judul: 'Kepuasan Peserta', sub: 'EL1 · rata-rata semua butir', nilai: h.L1 ? D.fmt(h.L1.nilai, 2) + ' / 5' : '–', f: f1, kecil: true, kaki: h.L1 ? h.L1.n + ' pelatihan' + (h.INS ? ' · instruktur ' + D.fmt(h.INS.nilai, 2) : '') : 'Belum ada data', warnaKaki: h.L1 ? null : W.idle }
     ];
     U.forEach(function (o, i) { ubin(g, i * (w5 + gap), y1, w5, h1, o); });
     var w6 = (Wd - gap * 5) / 6, y2 = y1 + h1 + gap, h2 = 116;
@@ -236,12 +239,12 @@
       return { judul: judul, sub: sub, nilai: o === null || o === undefined ? '–' : fmtV(o), f: f, kecil: true, warna: !o ? W.idle : target ? warnaStatus(f) : (f >= 0.8 ? W.good : f >= 0.6 ? W.warn : W.bad), kaki: o === null || o === undefined ? 'Belum diisi' : target ? (f >= 0.9999 ? 'Mencapai target' : 'Target ' + D.fmt(target, 2)) : 'Tanpa target', warnaKaki: o === null || o === undefined || !target ? W.idle : warnaStatus(f) };
     }
     var E = h.kelompok[1][1];
-    [ev('Peningkatan KSA', 'L2 formatif', h.KSA && h.KSA.nilai, E[1].t, 100, function (v) { return D.fmt(v, 1); }),
-     ev('Dampak Perilaku', 'L3', h.L3 && h.L3.nilai, E[3].t, 100, function (v) { return D.fmt(v, 2); }),
+    [ev('Peningkatan KSA', 'L2 · Hadir & Lulus', h.KSA && h.KSA.nilai, E[2].t, 100, function (v) { return D.fmt(v, 1); }),
+     ev('Dampak Perilaku', 'L3', h.L3 && h.L3.nilai, E[4].t, 100, function (v) { return D.fmt(v, 2); }),
      ev('ROTI', 'Return on Training Inv.', h.RO && h.RO.nilai, null, 100, function (v) { return D.fmt(v, 1) + '%'; }),
-     ev('Confidence & Commit.', 'L2 sumatif', h.CC && h.CC.nilai, E[2].t, 4, function (v) { return D.fmt(v, 2); }),
-     ev('Dampak Kinerja', 'L4', h.L4 && h.L4.nilai, E[4].t, 100, function (v) { return D.fmt(v, 2); }),
-     ev('Sertifikat Terbit', 'Terbit ÷ lulus', h.sert, E[6].t, 100, function (v) { return D.fmt(v, 1) + '%'; })
+     ev('Confidence & Commit.', 'L2 sumatif · rata-rata', h.CC && h.CC.nilai, E[3].t, h.skCC, function (v) { return D.fmt(v, 2); }),
+     ev('Dampak Kinerja', 'L4', h.L4 && h.L4.nilai, E[5].t, 100, function (v) { return D.fmt(v, 2); }),
+     ev('Sertifikat Terbit', 'Finish TTE GM', h.sert, E[7].t, 100, function (v) { return D.fmt(v, 1) + '%'; })
     ].forEach(function (o, i) { ubin(g, i * (w6 + gap), y2, w6, h2, o); });
     void S;
     return k;
@@ -347,32 +350,62 @@
       bekukan(ws, hr, 2);
     },
     evaluasi: function (wb) {
-      var ws = lembar(wb, 'Evaluasi Pembelajaran', [12, 48, 16, 14, 14, 42], { judul: 'Evaluasi Pembelajaran', tegak: true });
-      var DEF = [
-        ['Level 1 · Kepuasan Peserta', 'l1', 'Tanggal Selesai', ['Tanggal', 'Judul Pelatihan', 'Responden', 'Nilai (1–5)', '', 'Keterangan'], ['Judul Pelatihan', 'Jumlah Responden', 'Nilai Kepuasan (1-5)', null], '0.00', 'bobot'],
-        ['Level 2 · KSA & Confidence-Commitment', 'l2', 'Tanggal Selesai', ['Tanggal', 'Judul Pelatihan', 'Peserta', 'KSA (0–100)', 'C&C (1–4)', 'Keterangan'], ['Judul Pelatihan', 'Jumlah Peserta', 'KSA Formatif (0-100)', 'C&C Sumatif (1-4)'], '0.0', 'bobot2'],
-        ['Level 3 · Dampak Perilaku', 'l3', 'Tanggal Evaluasi', ['Tanggal', 'Judul Pelatihan', 'Unit', 'Skor (0–100)', '', 'Keterangan'], ['Judul Pelatihan', 'Unit', 'Skor (0-100)', null], '0.00', 'rata'],
-        ['Level 4 · Dampak Kinerja', 'l4', 'Tanggal Evaluasi', ['Tanggal', 'Judul Pelatihan', 'Unit', 'Skor (0–100)', '', 'Keterangan'], ['Judul Pelatihan', 'Unit', 'Skor (0-100)', null], '0.00', 'rata'],
-        ['ROTI', 'roti', 'Tanggal', ['Tanggal', 'Program', 'Unit', 'ROTI (%)', '', 'Keterangan'], ['Judul / Program', 'Unit', 'Nilai ROTI (%)', null], '0.0', 'rata'],
-        ['Sertifikat Terbit', 'sertifikat', 'Tanggal', ['Tanggal', 'Judul Pelatihan', 'Peserta Lulus', 'Terbit', '% Terbit', 'Keterangan'], ['Judul Pelatihan', 'Peserta Lulus', 'Sertifikat Terbit', null], '#,##0', 'sert']
-      ];
-      DEF.forEach(function (d) {
-        seksi(ws, d[0]); judulKolom(ws, d[3]); ws.getRow(ws._r - 1).height = 20;
-        var rows = rekap(d[1], d[2]), s = ws._r;
-        if (!rows.length) { baris(ws, ['', 'Belum ada data s.d. ' + per().label, '', '', '', ''], {}, {}); ws._r++; return; }
-        rows.forEach(function (x, j) {
-          var k = d[4], v3 = D.num(x[k[2]]), v4 = k[3] ? D.num(x[k[3]]) : null, c2 = k[1] === 'Unit' ? (x['Unit'] || '') : D.num(x[k[1]]);
-          var fm = { 3: k[1] === 'Unit' ? null : '#,##0', 4: d[5], 5: d[6] === 'bobot2' ? '0.00' : d[5] };
-          var r = baris(ws, [tglTeks(x._t || x[d[2]]), x[k[0]] || '', c2, v3, v4, String(x['Keterangan'] || '').replace(/\s*\(input web:[^)]*\)/g, '').trim()], fm, { bungkus: [2, 6], zebra: j % 2 === 1 });
-          if (d[6] === 'sert') { ws.getCell(r, 5).value = rumus('IF(C' + r + '=0,"",D' + r + '/C' + r + ')', c2 ? v3 / c2 : null); ws.getCell(r, 5).numFmt = '0.0%'; }
-        });
-        var e = ws._r - 1, R = 'C' + s + ':C' + e;
-        if (d[6] === 'sert') baris(ws, ['', 'Total', rumus('SUM(C' + s + ':C' + e + ')'), rumus('SUM(D' + s + ':D' + e + ')'), rumus('IF(C' + ws._r + '=0,"",D' + ws._r + '/C' + ws._r + ')'), ''], { 3: '#,##0', 4: '#,##0', 5: '0.0%' }, { tebal: true, latar: C.soft });
-        else if (d[6] === 'bobot') baris(ws, ['', 'Rata-rata (tertimbang responden)', rumus('SUM(' + R + ')'), rumus('IFERROR(SUMPRODUCT(' + R + ',D' + s + ':D' + e + ')/SUMIF(D' + s + ':D' + e + ',"<>",' + R + '),"")'), '', ''], { 3: '#,##0', 4: d[5] }, { tebal: true, latar: C.soft });
-        else if (d[6] === 'bobot2') baris(ws, ['', 'Rata-rata (tertimbang peserta)', rumus('SUM(' + R + ')'), rumus('IFERROR(SUMPRODUCT(' + R + ',D' + s + ':D' + e + ')/SUMIF(D' + s + ':D' + e + ',"<>",' + R + '),"")'), rumus('IFERROR(SUMPRODUCT(' + R + ',E' + s + ':E' + e + ')/SUMIF(E' + s + ':E' + e + ',"<>",' + R + '),"")'), ''], { 3: '#,##0', 4: '0.0', 5: '0.00' }, { tebal: true, latar: C.soft });
-        else baris(ws, ['', 'Rata-rata', '', rumus('IFERROR(AVERAGE(D' + s + ':D' + e + '),"")'), '', ''], { 4: d[5] }, { tebal: true, latar: C.soft });
+      var a = A(), ws = lembar(wb, 'Evaluasi Pembelajaran', [12, 50, 14, 14, 14, 36], { judul: 'Evaluasi Pembelajaran', tegak: true });
+      function kosong() { baris(ws, ['', 'Belum ada data s.d. ' + per().label, '', '', '', ''], {}, {}); ws._r++; }
+      function total(vals, fm) { baris(ws, vals, fm, { tebal: true, latar: C.soft }); ws._r++; }
+      function urut(L) { return L.slice().sort(function (x, y) { return x.tg < y.tg ? -1 : x.tg > y.tg ? 1 : 0; }); }
+
+      var Kp = a.ev('kepuasan');
+      seksi(ws, 'Level 1 · Kepuasan Peserta (rata-rata semua butir, kolom -Val tidak dihitung)'); judulKolom(ws, ['Selesai', 'Judul Pelatihan', 'Responden', 'Nilai (1–5)', '', '']);
+      if (!Kp || !Kp.pel.length) kosong(); else {
+        urut(Kp.pel).forEach(function (x, j) { baris(ws, [tglTeks(x.tg), x.judul, x.n, x.nilai, '', ''], { 3: '#,##0', 4: '0.00' }, { bungkus: [2], zebra: j % 2 === 1 }); });
+        total(['', 'Rata-rata semua jawaban', Kp.responden, Kp.nilai, '', ''], { 3: '#,##0', 4: '0.00' });
+        seksi(ws, 'Kepuasan per aspek'); judulKolom(ws, ['', 'Aspek', 'Jawaban', 'Nilai (1–5)', '', '']);
+        Kp.aspek.forEach(function (x, j) { baris(ws, ['', x.nama, x.n, x.nilai, '', ''], { 3: '#,##0', 4: '0.00' }, { zebra: j % 2 === 1 }); });
         ws._r++;
+      }
+
+      var In = a.ev('instruktur');
+      seksi(ws, 'Level 1 · Penilaian Instruktur (rata-rata semua butir)'); judulKolom(ws, ['', 'Instruktur', 'Pelatihan', 'Penilaian', 'Nilai (1–5)', 'Tipe']);
+      if (!In || !In.instruktur.length) kosong(); else {
+        In.instruktur.slice().sort(function (x, y) { return (y.nilai || 0) - (x.nilai || 0); }).forEach(function (x, j) {
+          baris(ws, [j + 1, x.nama, x.pel.length, x.n, x.nilai, x.tipe], { 3: '#,##0', 4: '#,##0', 5: '0.00' }, { bungkus: [2, 6], zebra: j % 2 === 1, tengah: [1] });
+        });
+        total(['', 'Rata-rata ' + In.instruktur.length + ' instruktur', '', In.penilaian, In.nilai, ''], { 4: '#,##0', 5: '0.00' });
+      }
+
+      var Ks = a.ev('ksa');
+      seksi(ws, 'Level 2 · Peningkatan KSA (hanya Hadir & Lulus)'); judulKolom(ws, ['Selesai', 'Judul Pelatihan', 'Hadir & Lulus', 'Semua peserta', 'Rata-rata', '']);
+      if (!Ks || !Ks.pel.length) kosong(); else {
+        urut(Ks.pel).forEach(function (x, j) { baris(ws, [tglTeks(x.tg), x.judul, x.n, x.semua, x.nilai, ''], { 3: '#,##0', 4: '#,##0', 5: '0.0' }, { bungkus: [2], zebra: j % 2 === 1 }); });
+        total(['', 'Rata-rata (per peserta)', Ks.peserta, Ks.semua, Ks.nilai, ''], { 3: '#,##0', 4: '#,##0', 5: '0.0' });
+      }
+
+      var Cc = a.ev('cc');
+      seksi(ws, 'Level 2 · Confidence & Commitment (skala 1–' + (a.set().skalaCC || 4) + ')'); judulKolom(ws, ['Selesai', 'Judul Pelatihan', 'Pengisian', 'Confidence', 'Commitment', '']);
+      if (!Cc || !Cc.pel.length) kosong(); else {
+        urut(Cc.pel).forEach(function (x, j) { baris(ws, [tglTeks(x.tg), x.judul, x.n, x.conf, x.comm, ''], { 3: '#,##0', 4: '0.00', 5: '0.00' }, { bungkus: [2], zebra: j % 2 === 1 }); });
+        total(['', 'Rata-rata (per pengisian)', Cc.n, Cc.conf, Cc.comm, ''], { 3: '#,##0', 4: '0.00', 5: '0.00' });
+      }
+
+      [['Level 3 · Dampak Perilaku', 'l3', 'Tanggal Evaluasi', 'Judul Pelatihan', 'Skor (0-100)', 'Skor (0–100)', '0.00'],
+       ['Level 4 · Dampak Kinerja', 'l4', 'Tanggal Evaluasi', 'Judul Pelatihan', 'Skor (0-100)', 'Skor (0–100)', '0.00'],
+       ['ROTI', 'roti', 'Tanggal', 'Judul / Program', 'Nilai ROTI (%)', 'ROTI (%)', '0.0']].forEach(function (d) {
+        seksi(ws, d[0]); judulKolom(ws, ['Tanggal', d[3] === 'Judul / Program' ? 'Program' : 'Judul Pelatihan', 'Unit', d[5], '', 'Keterangan']);
+        var rows = rekap(d[1], d[2]), s0 = ws._r;
+        if (!rows.length) return kosong();
+        rows.forEach(function (x, j) { baris(ws, [tglTeks(x._t || x[d[2]]), x[d[3]] || '', x['Unit'] || '', D.num(x[d[4]]), '', String(x['Keterangan'] || '').replace(/\s*\(input web:[^)]*\)/g, '').trim()], { 4: d[6] }, { bungkus: [2, 6], zebra: j % 2 === 1 }); });
+        total(['', 'Rata-rata', '', rumus('IFERROR(AVERAGE(D' + s0 + ':D' + (ws._r - 1) + '),"")'), '', ''], { 4: d[6] });
       });
+
+      var Se = a.ev('sertifikat');
+      seksi(ws, 'Sertifikat (terbit = Finish TTE GM, menurut Tgl.Terbit)'); judulKolom(ws, ['', 'Status', 'Jumlah', '% dari total', '', '']);
+      if (!Se || !Se.total) kosong(); else {
+        var s1 = ws._r;
+        Se.status.forEach(function (st, j) { var r = baris(ws, ['', st, Se.cnt[j], null, '', ''], { 3: '#,##0', 4: '0.0%' }, { zebra: j % 2 === 1 }); ws.getCell(r, 4).value = rumus('IF($C$' + (s1 + Se.status.length) + '=0,"",C' + r + '/$C$' + (s1 + Se.status.length) + ')', Se.cnt[j] / Se.total); });
+        total(['', 'Total sertifikat', rumus('SUM(C' + s1 + ':C' + (ws._r - 1) + ')', Se.total), '', '', ''], { 3: '#,##0' });
+        catatan(ws, 'Terbit s.d. ' + per().label + ': ' + D.fmt(Se.terbit, 0) + ' · terbit di bulan ' + A().namaBulan(per().m) + ' saja: ' + D.fmt(Se.bulan, 0) + ' · ' + D.fmt(Se.pct * 100, 1) + '% terbit');
+      }
     },
     kepatuhan: function (wb) {
       var a = A(), Bn = per().Bn, ws = lembar(wb, 'Kepatuhan & Tindak Lanjut', [6, 50, 16, 14, 16, 16, 42], { judul: 'Kepatuhan & Tindak Lanjut Evaluasi' });
@@ -385,16 +418,16 @@
       });
       if (ws._r > s) baris(ws, ['', 'Total pengurang', rumus('SUM(C' + s + ':C' + (ws._r - 1) + ')'), rumus('SUM(D' + s + ':D' + (ws._r - 1) + ')', a.pengurang(Bn)), '', '', ''], { 3: '0', 4: '0.00' }, { tebal: true, latar: C.soft });
       ws._r++;
-      seksi(ws, 'Tindak Lanjut Evaluasi'); judulKolom(ws, ['No', 'Temuan / Masukan', 'Sumber', 'PIC', 'Status', 'Target Selesai', 'Keterangan']);
+      seksi(ws, 'Tindak Lanjut Evaluasi'); judulKolom(ws, ['No', 'Komentar / Temuan', 'Pelatihan', 'PIC', 'Status', 'Sumber', 'Keterangan']);
       var TL = a.tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 };
       TL.forEach(function (x, j) {
-        var st = a.tlStatus(x); c[st]++;
-        var r = baris(ws, [D.num(x['No']), x['Temuan / Masukan'], x['Sumber'], x['PIC'], null, tglTeks(x['Target Selesai']), String(x['Keterangan'] || '')], {}, { bungkus: [2, 7], zebra: j % 2 === 1, tengah: [1, 6] });
-        tandai(ws, r, 5, st);
+        c[a.tlStatus(x)]++;
+        var r = baris(ws, [j + 1, x['Komentar'], x['Judul Diklat'], x['PIC'], null, x['Sumber'], String(x['Keterangan'] || '')], {}, { bungkus: [2, 3, 6, 7], zebra: j % 2 === 1, tengah: [1] });
+        tandai(ws, r, 5, a.tlAsli(x));
       });
-      if (!TL.length) baris(ws, ['', 'Belum ada temuan', '', '', '', '', ''], {});
+      if (!TL.length) baris(ws, ['', 'Belum ada komentar atau temuan', '', '', '', '', ''], {});
       ws._r++;
-      catatan(ws, 'Selesai ' + c['Selesai'] + ' · Berjalan ' + c['Berjalan'] + ' · Belum dimulai ' + c['Belum Dimulai'] + (TL.length ? ' · ' + D.fmt(c['Selesai'] / TL.length * 100, 0) + '% selesai' : ''));
+      catatan(ws, 'Selesai (Selesai + Sudah Dilaporkan) ' + c['Selesai'] + ' · Berjalan (OFI + Proses TL) ' + c['Berjalan'] + ' · Belum dimulai ' + c['Belum Dimulai'] + (TL.length ? ' · ' + D.fmt(c['Selesai'] / TL.length * 100, 0) + '% selesai' : ''));
     },
     maturity: function (wb) {
       var a = A(), h = hitung(), ws = lembar(wb, 'Maturity & Risiko', [8, 52, 18, 18, 18, 17], { judul: 'Maturity Level & Peta Risiko' });

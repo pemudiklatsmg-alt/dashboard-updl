@@ -1,46 +1,53 @@
 /**
  * ==========================================================================
- *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 3 (membaca + input web)
+ *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 4 (login dua akun)
  *  Dipasang pada spreadsheet "Data Dashboard UPDL Semarang".
  * --------------------------------------------------------------------------
  *  Sumber yang dibaca:
- *   - Spreadsheet ini : Konman <tahun>, Jumlah Pegawai, Rekap L1/L2/L3/L4/ROTI/
- *                        Sertifikat, Kepatuhan, Tindak Lanjut Evaluasi,
- *                        Tautan Penting, Koreksi Rendiklat, Penyesuaian HOP
+ *   - Spreadsheet ini : Konman <tahun>, Jumlah Pegawai, Rekap L3/L4/ROTI,
+ *                        Kepatuhan, Tindak Lanjut Evaluasi, Koreksi Rendiklat,
+ *                        Penyesuaian HOP, dan tab data mentah hasil tarikan:
+ *                        Data - Kepuasan EL1, Data - Instruktur EL1,
+ *                        Data - KSA EL2, Data - C&C EL2, Data - Sertifikat
  *   - Rendiklat        : sheet RENREKAP (ID per tahun di tab Pengaturan)
  *   - MLI Probis       : sheet SMG
  *   - Profil Risiko    : sheet "4. Peta Risiko" (versi Google Sheets)
  *
  *  Menu di spreadsheet: Dashboard > Tarik daftar kelas tanpa realisasi
- *                      Dashboard > Atur akun input web
+ *                      Dashboard > Atur akun Admin / Atur akun Lihat
  *
- *  Input dari website (doPost) hanya menulis ke tab yang sudah ada, dengan
- *  kolom yang sama. Tidak ada tab atau kolom baru. Password disimpan sebagai
- *  hash di Script Properties (tidak di spreadsheet, tidak di kode website).
+ *  Seluruh data hanya dikirim setelah login (doPost aksi "data").
+ *  Akun Admin: lihat + input + export. Akun Lihat: hanya melihat.
+ *  Password disimpan sebagai hash di Script Properties (tidak di spreadsheet,
+ *  tidak di kode website).
  *
  *  Setelah mengganti kode ini: Deploy > Manage deployments > ✏️ >
  *  Version: New version > Deploy. URL /exec tetap sama.
  * ==========================================================================
  */
 
-var VERSI = 3;
+var VERSI = 4;
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
   PENGATURAN: 'Pengaturan',
   PEGAWAI: 'Jumlah Pegawai',
-  L1: 'Rekap L1 Kepuasan',
-  L2: 'Rekap L2',
   L3: 'Rekap L3 Perilaku',
   L4: 'Rekap L4 Kinerja',
   ROTI: 'Rekap ROTI',
-  SERTIFIKAT: 'Rekap Sertifikat',
   KEPATUHAN: 'Kepatuhan',
   TINDAKLANJUT: 'Tindak Lanjut Evaluasi',
   TAUTAN: 'Tautan Penting',
   KOREKSI: 'Koreksi Rendiklat',
-  PENYESUAIAN: 'Penyesuaian HOP'
+  PENYESUAIAN: 'Penyesuaian HOP',
+  KEPUASAN: 'Data - Kepuasan EL1',
+  INSTRUKTUR: 'Data - Instruktur EL1',
+  KSA: 'Data - KSA EL2',
+  CC: 'Data - C&C EL2',
+  SERT: 'Data - Sertifikat'
 };
+/* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
+var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
 
 /* Kolom Rendiklat yang dipakai (dicari berdasarkan judul kolom baris 1) */
 var KOLOM_REN = ['ID REN', 'nm_judul', 'laks_diklat', 'Status Pelaksanaan', 'R.Tgl Mulai', 'R.Tgl Selesai',
@@ -54,7 +61,8 @@ function onOpen() {
     .addItem('Tarik daftar kelas tanpa realisasi', 'tarikKelasTanpaRealisasi')
     .addItem('Cek koneksi sumber data', 'cekKoneksi')
     .addSeparator()
-    .addItem('Atur akun input web', 'aturAkunWeb')
+    .addItem('Atur akun Admin (input & export)', 'aturAkunAdmin')
+    .addItem('Atur akun Lihat (hanya melihat)', 'aturAkunLihat')
     .addToUi();
 }
 
@@ -106,9 +114,9 @@ function tarikKelasTanpaRealisasi() {
 /* ======================================================================== */
 /*  API BACA                                                                 */
 /* ======================================================================== */
+/* Tanpa login tidak ada data yang dikirim. Data diambil lewat doPost aksi "data". */
 function doGet(e) {
-  try { return json_(buildData_()); }
-  catch (err) { return json_({ error: String(err && err.message || err) }); }
+  return json_({ ok: false, perluLogin: true, meta: { versi: VERSI } });
 }
 
 function buildData_() {
@@ -118,13 +126,13 @@ function buildData_() {
     meta: {
       versi: VERSI, source: 'live', generatedAt: new Date().toISOString(),
       unit: cfg.UNIT, judul: cfg.JUDUL,
-      inputWeb: !!PropertiesService.getScriptProperties().getProperty('WEB_PASS_HASH'),
       pengaturan: {
         kecualikanSL: ya_(cfg.HOP_KECUALIKAN_SELF_LEARNING),
         hitungHariSebelumTahun: cfg.HOP_HITUNG_HARI_SEBELUM_TAHUN === undefined ? true : ya_(cfg.HOP_HITUNG_HARI_SEBELUM_TAHUN),
         tanpaRealisasi: String(cfg.KELAS_TANPA_REALISASI || 'PAKAI RENCANA PESERTA').toUpperCase(),
         targetL1: angka_(cfg.TARGET_KEPUASAN_L1), targetKSA: angka_(cfg.TARGET_KSA_L2),
-        targetCC: angka_(cfg.TARGET_CC_L2), targetSertifikat: angka_(cfg.TARGET_SERTIFIKAT)
+        targetCC: angka_(cfg.TARGET_CC_L2), targetSertifikat: angka_(cfg.TARGET_SERTIFIKAT),
+        targetInstruktur: angka_(cfg.TARGET_INSTRUKTUR), skalaCC: angka_(cfg.SKALA_CC) || 4
       },
       links: {
         data: ss.getUrl(),
@@ -142,17 +150,20 @@ function buildData_() {
 
   // Tab lokal
   out.pegawai = readTab_(ss, TAB.PEGAWAI, out);
-  out.l1 = readTab_(ss, TAB.L1, out);
-  out.l2 = readTab_(ss, TAB.L2, out);
   out.l3 = readTab_(ss, TAB.L3, out);
   out.l4 = readTab_(ss, TAB.L4, out);
   out.roti = readTab_(ss, TAB.ROTI, out);
-  out.sertifikat = readTab_(ss, TAB.SERTIFIKAT, out);
   out.kepatuhan = readTab_(ss, TAB.KEPATUHAN, out);
-  out.tindaklanjut = readTab_(ss, TAB.TINDAKLANJUT, out);
-  out.tautan = readTab_(ss, TAB.TAUTAN, out);
+  out.tindaklanjut = readTab_(ss, TAB.TINDAKLANJUT, out, true);
   out.koreksi = readTab_(ss, TAB.KOREKSI, out);
   out.penyesuaian = readTab_(ss, TAB.PENYESUAIAN, out);
+
+  // Data mentah evaluasi (hasil tarikan) -> ringkasan per pelatihan / per instruktur
+  out.eval = {};
+  [['kepuasan', aggKepuasan_], ['instruktur', aggInstruktur_], ['ksa', aggKsa_], ['cc', aggCc_], ['sertifikat', aggSert_]].forEach(function (x) {
+    try { out.eval[x[0]] = x[1](ss); }
+    catch (e) { out.warnings.push(e.message); out.eval[x[0]] = null; }
+  });
 
   // Rendiklat per tahun
   out.rendiklat = {};
@@ -259,32 +270,50 @@ function bacaRisiko_(cfg) {
  * Jalankan dari menu Dashboard > Atur akun input web. Mengganti password
  * membuat semua orang yang sedang login harus masuk lagi.
  */
-function aturAkunWeb() {
+/* ---------- Akun: Admin (lihat, input, export) dan Lihat (hanya melihat) ---------- */
+var AKUN = {
+  admin: { kunci: 'WEB', nama: 'Admin', ket: 'melihat dashboard, mengisi data, dan export Excel' },
+  lihat: { kunci: 'LIHAT', nama: 'Lihat', ket: 'hanya melihat dashboard' }
+};
+function aturAkunAdmin() { aturAkun_('admin'); }
+function aturAkunLihat() { aturAkun_('lihat'); }
+function aturAkunWeb() { aturAkun_('admin'); }   // nama lama, tetap berfungsi
+
+function aturAkun_(peran) {
+  var a = AKUN[peran], lain = AKUN[peran === 'admin' ? 'lihat' : 'admin'];
   var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
-  var r1 = ui.prompt('Atur akun input web (1 dari 2)', 'Username untuk login di website.\nContoh: updlsmg', ui.ButtonSet.OK_CANCEL);
+  var r1 = ui.prompt('Atur akun ' + a.nama + ' (1 dari 2)', 'Akun ini untuk ' + a.ket + '.\n\nUsername (tanpa spasi):', ui.ButtonSet.OK_CANCEL);
   if (r1.getSelectedButton() !== ui.Button.OK) return;
   var u = r1.getResponseText().trim();
   if (!u || /\s/.test(u)) { ui.alert('Username tidak boleh kosong atau berisi spasi. Akun belum diubah.'); return; }
-  var r2 = ui.prompt('Atur akun input web (2 dari 2)', 'Password, minimal 8 karakter.\nCatat di tempat aman; password tidak bisa dilihat lagi, hanya bisa diganti.', ui.ButtonSet.OK_CANCEL);
+  if ((p.getProperty(lain.kunci + '_USER') || '').toLowerCase() === u.toLowerCase()) { ui.alert('Username ini sudah dipakai akun ' + lain.nama + '. Pakai username lain.'); return; }
+  var r2 = ui.prompt('Atur akun ' + a.nama + ' (2 dari 2)', 'Password, minimal 8 karakter.\nCatat di tempat aman; password tidak bisa dilihat lagi, hanya bisa diganti.', ui.ButtonSet.OK_CANCEL);
   if (r2.getSelectedButton() !== ui.Button.OK) return;
   var pw = r2.getResponseText();
   if (pw.length < 8) { ui.alert('Password minimal 8 karakter. Akun belum diubah.'); return; }
-  var salt = Utilities.getUuid();
-  p.setProperties({ WEB_USER: u, WEB_SALT: salt, WEB_PASS_HASH: hash_(salt, pw), WEB_VER: String(Number(p.getProperty('WEB_VER') || 0) + 1) });
-  ui.alert('Akun tersimpan.\n\nUsername: ' + u + '\n\nBagikan username dan password ini hanya kepada petugas yang mengisi data.');
+  var salt = Utilities.getUuid(), o = {};
+  o[a.kunci + '_USER'] = u; o[a.kunci + '_SALT'] = salt; o[a.kunci + '_PASS_HASH'] = hash_(salt, pw);
+  o[a.kunci + '_VER'] = String(Number(p.getProperty(a.kunci + '_VER') || 0) + 1);
+  p.setProperties(o);
+  ui.alert('Akun ' + a.nama + ' tersimpan.\n\nUsername: ' + u + '\nAkun ini bisa ' + a.ket + '.\n\nSemua yang sedang login dengan akun ' + a.nama + ' lama harus masuk lagi.');
 }
 
 function doPost(e) {
   try {
     var req = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (req.aksi === 'login') return json_(login_(req));
-    var user = cekToken_(req.token);
-    if (req.aksi === 'cek') return json_({ ok: true, user: user });
+    var sesi = cekToken_(req.token);
+    if (req.aksi === 'cek') return json_({ ok: true, user: sesi.user, peran: sesi.peran });
     if (req.aksi === 'keluar') { CacheService.getScriptCache().remove('tok_' + req.token); return json_({ ok: true }); }
+    if (req.aksi === 'data') {
+      var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
+      return json_(d);
+    }
     if (req.aksi === 'simpan') {
+      if (sesi.peran !== 'admin') throw new Error('Akun Lihat tidak bisa mengisi data. Masuk dengan akun Admin.');
       var lock = LockService.getScriptLock();
       lock.waitLock(20000);
-      try { var hasil = simpan_(String(req.jenis || ''), req.data || {}, user); SpreadsheetApp.flush(); return json_(hasil); }
+      try { var hasil = simpan_(String(req.jenis || ''), req.data || {}, sesi.user); SpreadsheetApp.flush(); return json_(hasil); }
       finally { lock.releaseLock(); }
     }
     throw new Error('Aksi tidak dikenal.');
@@ -296,26 +325,29 @@ function doPost(e) {
 
 function login_(req) {
   var p = PropertiesService.getScriptProperties();
-  var u = p.getProperty('WEB_USER'), h = p.getProperty('WEB_PASS_HASH'), salt = p.getProperty('WEB_SALT');
-  if (!u || !h) throw new Error('Akun input web belum diatur. Di spreadsheet, pilih menu Dashboard → Atur akun input web.');
+  var adaAkun = Object.keys(AKUN).some(function (k) { return p.getProperty(AKUN[k].kunci + '_PASS_HASH'); });
+  if (!adaAkun) throw new Error('Akun belum diatur. Di spreadsheet, pilih menu Dashboard → Atur akun Admin.');
   var c = CacheService.getScriptCache(), gagal = Number(c.get('login_gagal') || 0);
   if (gagal >= 10) throw new Error('Terlalu banyak percobaan gagal. Coba lagi 15 menit lagi.');
   Utilities.sleep(300);
-  if (String(req.username || '').trim().toLowerCase() !== u.toLowerCase() || hash_(salt, String(req.password || '')) !== h) {
-    c.put('login_gagal', String(gagal + 1), 900);
-    throw new Error('Username atau password salah.');
-  }
-  var t = Utilities.getUuid();
-  c.put('tok_' + t, u + '|' + (p.getProperty('WEB_VER') || '0'), 21600); // 6 jam
-  return { ok: true, token: t, user: u, berlakuDetik: 21600 };
+  var nama = String(req.username || '').trim().toLowerCase(), pw = String(req.password || '');
+  var cocok = Object.keys(AKUN).filter(function (k) {
+    var a = AKUN[k], u = p.getProperty(a.kunci + '_USER'), h = p.getProperty(a.kunci + '_PASS_HASH');
+    return u && h && u.toLowerCase() === nama && hash_(p.getProperty(a.kunci + '_SALT'), pw) === h;
+  })[0];
+  if (!cocok) { c.put('login_gagal', String(gagal + 1), 900); throw new Error('Username atau password salah.'); }
+  var a = AKUN[cocok], t = Utilities.getUuid(), u = p.getProperty(a.kunci + '_USER');
+  c.put('tok_' + t, [u, cocok, p.getProperty(a.kunci + '_VER') || '0'].join('|'), 21600); // 6 jam
+  return { ok: true, token: t, user: u, peran: cocok, berlakuDetik: 21600 };
 }
 
 function cekToken_(t) {
   var v = t ? CacheService.getScriptCache().get('tok_' + t) : null;
   if (!v) throw new Error('LOGIN: Sesi sudah berakhir. Silakan masuk lagi.');
-  var i = v.lastIndexOf('|'), ver = PropertiesService.getScriptProperties().getProperty('WEB_VER') || '0';
-  if (v.slice(i + 1) !== ver) throw new Error('LOGIN: Akun sudah diganti. Silakan masuk lagi.');
-  return v.slice(0, i);
+  var x = v.split('|'), peran = x[1], a = AKUN[peran];
+  if (!a) throw new Error('LOGIN: Sesi tidak valid. Silakan masuk lagi.');
+  if (x[2] !== (PropertiesService.getScriptProperties().getProperty(a.kunci + '_VER') || '0')) throw new Error('LOGIN: Akun sudah diganti. Silakan masuk lagi.');
+  return { user: x[0], peran: peran };
 }
 
 function hash_(salt, s) {
@@ -325,19 +357,15 @@ function hash_(salt, s) {
 
 /* Kolom per jenis isian (nama kolom = judul kolom di baris 1 tab) */
 var FORM_TAMBAH = {
-  l1: { tab: TAB.L1, kolom: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Jumlah Responden', 'int', 1, 1], ['Nilai Kepuasan (1-5)', 'angka', 1, 1, 5], ['Keterangan', 'ket']] },
-  l2: { tab: TAB.L2, kolom: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Jumlah Peserta', 'int', 1, 1], ['KSA Formatif (0-100)', 'angka', 0, 0, 100], ['C&C Sumatif (1-4)', 'angka', 0, 1, 4], ['Keterangan', 'ket']], salahSatu: ['KSA Formatif (0-100)', 'C&C Sumatif (1-4)'] },
   l3: { tab: TAB.L3, kolom: [['Tanggal Evaluasi', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Unit', 'teks', 0], ['Skor (0-100)', 'angka', 1, 0, 100], ['Keterangan', 'ket']] },
   l4: { tab: TAB.L4, kolom: [['Tanggal Evaluasi', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Unit', 'teks', 0], ['Skor (0-100)', 'angka', 1, 0, 100], ['Keterangan', 'ket']] },
   roti: { tab: TAB.ROTI, kolom: [['Tanggal', 'tgl', 1], ['Judul / Program', 'teks', 1], ['Unit', 'teks', 0], ['Nilai ROTI (%)', 'angka', 1], ['Keterangan', 'ket']] },
-  sertifikat: { tab: TAB.SERTIFIKAT, kolom: [['Tanggal', 'tgl', 1], ['Judul Pelatihan', 'teks', 1], ['Peserta Lulus', 'int', 1, 0], ['Sertifikat Terbit', 'int', 1, 0], ['Keterangan', 'ket']] },
-  hop: { tab: TAB.PENYESUAIAN, kolom: [['Tahun', 'int', 1, 2000, 2100], ['Bulan', 'bulan', 1], ['Penyesuaian Orang-Hari (+/-)', 'angka', 0], ['HOP Final (timpa)', 'angka', 0, 0], ['Alasan', 'teks', 1], ['Diisi Oleh', 'user']], salahSatu: ['Penyesuaian Orang-Hari (+/-)', 'HOP Final (timpa)'] },
-  tl: { tab: TAB.TINDAKLANJUT, kolom: [['Tanggal', 'tgl', 1], ['Temuan / Masukan', 'teks', 1], ['Sumber', 'teks', 1], ['PIC', 'teks', 1], ['Status', 'status', 1], ['Target Selesai', 'tgl', 0], ['Keterangan', 'ket']] }
+  hop: { tab: TAB.PENYESUAIAN, kolom: [['Tahun', 'int', 1, 2000, 2100], ['Bulan', 'bulan', 1], ['Penyesuaian Orang-Hari (+/-)', 'angka', 0], ['HOP Final (timpa)', 'angka', 0, 0], ['Alasan', 'teks', 1], ['Diisi Oleh', 'user']], salahSatu: ['Penyesuaian Orang-Hari (+/-)', 'HOP Final (timpa)'] }
 };
-var STATUS_TL = ['Belum Dimulai', 'Berjalan', 'Selesai'];
+var STATUS_TL = ['Belum Dimulai', 'OFI', 'Proses Tindak Lanjut', 'Sudah Dilaporkan', 'Selesai'];
 
 function simpan_(jenis, d, user) {
-  if (FORM_TAMBAH[jenis] && !(jenis === 'tl' && d.mode === 'ubah')) return tambahBaris_(jenis, d, user);
+  if (FORM_TAMBAH[jenis]) return tambahBaris_(jenis, d, user);
   if (jenis === 'tl') return ubahTindakLanjut_(d, user);
   if (jenis === 'pegawai') return simpanPegawai_(d, user);
   if (jenis === 'konman') return simpanKonman_(d, user);
@@ -365,18 +393,17 @@ function tambahBaris_(jenis, d, user) {
   return { ok: true, tab: f.tab, baris: r, pesan: 'Ditambahkan di tab ' + f.tab + ', baris ' + r + '.' };
 }
 
+/* Ubah status satu baris Tindak Lanjut. Baris dikenali dari nomor baris + isi komentar (dicek ulang). */
 function ubahTindakLanjut_(d, user) {
-  var sh = tab_(TAB.TINDAKLANJUT), head = judulKolom_(sh), cNo = head.indexOf('No'), cSt = head.indexOf('Status'), cKet = head.indexOf('Keterangan');
-  var st = nilaiKolom_(['Status', 'status', 1], d['Status'], user);
-  var v = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), head.length).getValues();
-  for (var i = 0; i < v.length; i++) {
-    if (String(v[i][cNo]).trim() === String(d.no).trim() && String(v[i][cNo]).trim() !== '') {
-      sh.getRange(i + 2, cSt + 1).setValue(st);
-      if (cKet >= 0) sh.getRange(i + 2, cKet + 1).setValue(ket_(d['Keterangan'] !== undefined && String(d['Keterangan']).trim() !== '' ? d['Keterangan'] : v[i][cKet], user));
-      return { ok: true, tab: TAB.TINDAKLANJUT, baris: i + 2, pesan: 'Status temuan No ' + d.no + ' diubah menjadi ' + st + '.' };
-    }
-  }
-  throw new Error('Temuan No ' + d.no + ' tidak ditemukan. Mungkin sudah dihapus atau diubah nomornya di spreadsheet.');
+  var sh = tab_(TAB.TINDAKLANJUT), head = judulKolom_(sh), cSt = head.indexOf('Status'), cKet = head.indexOf('Keterangan'), cKom = head.indexOf('Komentar');
+  if (cSt < 0 || cKom < 0) throw new Error('Kolom Status / Komentar tidak ditemukan di tab ' + TAB.TINDAKLANJUT + '.');
+  var st = nilaiKolom_(['Status', 'status', 1], d['Status'], user), r = Number(d.baris);
+  if (!(r >= 2 && r <= sh.getLastRow())) throw new Error('Baris tindak lanjut tidak ditemukan. Muat ulang dashboard lalu coba lagi.');
+  var kom = String(sh.getRange(r, cKom + 1).getValue()).trim();
+  if (kom.slice(0, 60) !== String(d.komentar || '').trim().slice(0, 60)) throw new Error('Urutan baris di spreadsheet sudah berubah. Muat ulang dashboard lalu coba lagi.');
+  sh.getRange(r, cSt + 1).setValue(st);
+  if (cKet >= 0) sh.getRange(r, cKet + 1).setValue(ket_(d['Keterangan'] !== undefined && String(d['Keterangan']).trim() !== '' ? d['Keterangan'] : sh.getRange(r, cKet + 1).getValue(), user));
+  return { ok: true, tab: TAB.TINDAKLANJUT, baris: r, pesan: 'Status diubah menjadi ' + st + ' (baris ' + r + ').' };
 }
 
 function simpanPegawai_(d, user) {
@@ -506,6 +533,137 @@ function nilaiKolom_(k, v, user) {
 }
 
 /* ======================================================================== */
+/*  DATA MENTAH EVALUASI (salin-tempel hasil tarikan) -> RINGKASAN           */
+/* ======================================================================== */
+/* Membaca tab: { head: [...], rows: [[...]] } ; null bila tab belum ada / kosong */
+function bacaMentah_(ss, nama) {
+  var sh = ss.getSheetByName(nama);
+  if (!sh) throw new Error('Tab "' + nama + '" belum ada.');
+  if (sh.getLastRow() < 2) return { head: sh.getLastColumn() ? judulKolom_(sh) : [], rows: [] };
+  var v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+  var head = v[0].map(function (h) { return String(h).replace(/\s+/g, ' ').trim(); });
+  return { head: head, rows: v.slice(1).filter(function (r) { return r.some(function (x) { return x !== '' && x !== null; }); }) };
+}
+function kol_(head, nama) {   // cari kolom tanpa peduli huruf besar/kecil, spasi, titik, garis bawah
+  var norm = function (x) { return String(x).toLowerCase().replace(/[\s._]+/g, ''); };
+  var list = [].concat(nama), i;
+  for (var k = 0; k < list.length; k++) { i = head.map(norm).indexOf(norm(list[k])); if (i >= 0) return i; }
+  return -1;
+}
+function nilai_(v) {           // angka penilaian; teks / kosong -> null
+  if (v === '' || v === null || v === undefined) return null;
+  var n = typeof v === 'number' ? v : Number(String(v).replace(',', '.').trim());
+  return isNaN(n) ? null : n;
+}
+function isoTgl_(v) { var s = keIso_(v); return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : ''; }
+function teks_(v) { return String(v === null || v === undefined ? '' : v).trim(); }
+var NAMA_ASPEK_ = { INS: 'Instruktur', MAT: 'Materi', SARPRAS: 'Sarana & Prasarana', DIG: 'Digital' };
+/* Butir penilaian = kolom di luar daftar kolom keterangan; kolom berakhiran "Val" tidak dihitung */
+function butir_(head, meta, tolak) {
+  var m = meta.map(function (x) { return x.toLowerCase().replace(/[\s._]+/g, ''); });
+  var out = [];
+  head.forEach(function (h, i) {
+    var n = h.toLowerCase().replace(/[\s._]+/g, '');
+    if (!h || m.indexOf(n) >= 0 || /(^|[\s\-_])val$/i.test(h) || (tolak && tolak.test(h))) return;
+    var pre = h.split('-')[0].trim(), asp = NAMA_ASPEK_[pre.toUpperCase()] || pre;
+    out.push({ i: i, label: h, aspek: asp });
+  });
+  return out;
+}
+function bulatkan_(a) { return a.map(function (x) { return Math.round(x * 1000) / 1000; }); }
+
+/* Kepuasan Peserta EL1: per pelatihan -> jumlah responden + jumlah & banyaknya nilai per butir */
+function aggKepuasan_(ss) {
+  var t = bacaMentah_(ss, TAB.KEPUASAN), h = t.head;
+  var cJ = kol_(h, ['Judul Pembelajaran', 'Judul']), cK = kol_(h, ['Kode Pembelajaran', 'Kode']), cS = kol_(h, ['Tanggal Selesai', 'Tgl Selesai']);
+  if (t.rows.length && (cJ < 0 || cS < 0)) throw new Error('Tab "' + TAB.KEPUASAN + '": kolom Judul Pembelajaran / Tanggal Selesai tidak ditemukan.');
+  var B = butir_(h, ['Nama', 'NIP', 'Kode Pembelajaran', 'Judul Pembelajaran', 'Bidang', 'Tanggal Mulai', 'Tanggal Selesai', 'UPDL Penyelenggara', 'Jenis Penyelenggaraan', 'Waktu Pengisian Evaluasi'], /^waktu/i);
+  var g = {}, urut = [];
+  t.rows.forEach(function (r) {
+    var tg = isoTgl_(r[cS]); if (!tg) return;
+    var key = teks_(r[cK]) + '|' + teks_(r[cJ]) + '|' + tg;
+    var x = g[key]; if (!x) { x = g[key] = { tg: tg, j: teks_(r[cJ]), n: 0, s: B.map(function () { return 0; }), c: B.map(function () { return 0; }) }; urut.push(key); }
+    var ada = false;
+    B.forEach(function (b, k) { var v = nilai_(r[b.i]); if (v !== null && v > 0) { x.s[k] += v; x.c[k]++; ada = true; } });
+    if (ada) x.n++;
+  });
+  return { butir: B.map(function (b) { return b.label; }), aspek: B.map(function (b) { return b.aspek; }),
+    pel: urut.map(function (k) { var x = g[k]; return [x.tg, x.j, x.n, bulatkan_(x.s), x.c]; }) };
+}
+
+/* Penilaian Instruktur EL1: per instruktur per pelatihan */
+function aggInstruktur_(ss) {
+  var t = bacaMentah_(ss, TAB.INSTRUKTUR), h = t.head;
+  var cN = kol_(h, 'Nama'), cNip = kol_(h, 'NIP'), cTp = kol_(h, 'Tipe Instruktur'), cJ = kol_(h, ['Judul Diklat', 'Judul']), cA = kol_(h, 'Angkatan'), cS = kol_(h, ['Tgl Selesai', 'Tanggal Selesai']);
+  if (t.rows.length && (cN < 0 || cJ < 0 || cS < 0)) throw new Error('Tab "' + TAB.INSTRUKTUR + '": kolom Nama / Judul Diklat / Tgl Selesai tidak ditemukan.');
+  var B = butir_(h, ['NIP', 'Nama', 'Unit Induk', 'Tipe Instruktur', 'Tgl Mulai', 'Tgl Selesai', 'Kode Diklat', 'Judul Diklat', 'Angkatan', 'UPDL', 'Jenis Diklat', 'Jenis Peyelenggaraan', 'Jenis Penyelenggaraan', 'Durasi Mengajar'], /^k\s*\./i);
+  var ins = [], idx = {}, g = {}, urut = [];
+  t.rows.forEach(function (r) {
+    var tg = isoTgl_(r[cS]), nm = teks_(r[cN]); if (!tg || !nm) return;
+    var ki = teks_(r[cNip]) + '|' + nm.toUpperCase();
+    if (idx[ki] === undefined) { idx[ki] = ins.length; ins.push([nm, teks_(r[cTp])]); }
+    var key = idx[ki] + '|' + teks_(r[cJ]) + '|' + teks_(r[cA]) + '|' + tg;
+    var x = g[key]; if (!x) { x = g[key] = { i: idx[ki], tg: tg, j: teks_(r[cJ]), a: teks_(r[cA]), n: 0, s: B.map(function () { return 0; }), c: B.map(function () { return 0; }) }; urut.push(key); }
+    var ada = false;
+    B.forEach(function (b, k) { var v = nilai_(r[b.i]); if (v !== null && v > 0) { x.s[k] += v; x.c[k]++; ada = true; } });
+    if (ada) x.n++;
+  });
+  return { butir: B.map(function (b) { return b.label; }), instruktur: ins,
+    pel: urut.map(function (k) { var x = g[k]; return [x.i, x.tg, x.j, x.a, x.n, bulatkan_(x.s), x.c]; }) };
+}
+
+/* KSA EL2: hanya Kehadiran = Hadir dan Kelulusan = Lulus */
+function aggKsa_(ss) {
+  var t = bacaMentah_(ss, TAB.KSA), h = t.head;
+  var cH = kol_(h, 'Kehadiran'), cL = kol_(h, 'Kelulusan'), cV = kol_(h, 'Nilai'), cJ = kol_(h, ['Nama Judul', 'Judul']), cS = kol_(h, ['R.Tgl_Selesai', 'R.Tgl Selesai', 'P.Tgl_Selesai', 'Tgl Selesai']);
+  if (t.rows.length && (cH < 0 || cL < 0 || cV < 0 || cS < 0)) throw new Error('Tab "' + TAB.KSA + '": kolom Kehadiran / Kelulusan / Nilai / R.Tgl_Selesai tidak ditemukan.');
+  var g = {}, urut = [];
+  t.rows.forEach(function (r) {
+    var tg = isoTgl_(r[cS]); if (!tg) return;
+    var key = teks_(r[cJ]) + '|' + tg;
+    var x = g[key]; if (!x) { x = g[key] = { tg: tg, j: teks_(r[cJ]), n: 0, s: 0, semua: 0 }; urut.push(key); }
+    x.semua++;
+    var v = nilai_(r[cV]);
+    if (/^hadir$/i.test(teks_(r[cH])) && /^lulus$/i.test(teks_(r[cL])) && v !== null) { x.n++; x.s += v; }
+  });
+  return { pel: urut.map(function (k) { var x = g[k]; return [x.tg, x.j, x.n, Math.round(x.s * 1000) / 1000, x.semua]; }) };
+}
+
+/* Confidence & Commitment EL2 */
+function aggCc_(ss) {
+  var t = bacaMentah_(ss, TAB.CC), h = t.head;
+  var cJ = kol_(h, ['Judul', 'Nama Judul']), cS = kol_(h, ['Tgl Selesai', 'Tanggal Selesai']), cC = kol_(h, 'Confidence Level'), cM = kol_(h, 'Commitment Level');
+  if (t.rows.length && (cS < 0 || cC < 0 || cM < 0)) throw new Error('Tab "' + TAB.CC + '": kolom Tgl Selesai / Confidence Level / Commitment Level tidak ditemukan.');
+  var g = {}, urut = [];
+  t.rows.forEach(function (r) {
+    var tg = isoTgl_(r[cS]); if (!tg) return;
+    var key = teks_(r[cJ]) + '|' + tg;
+    var x = g[key]; if (!x) { x = g[key] = { tg: tg, j: teks_(r[cJ]), n: 0, sc: 0, nc: 0, sm: 0, nm: 0 }; urut.push(key); }
+    var c = nilai_(r[cC]), m = nilai_(r[cM]);
+    if (c !== null && c > 0) { x.sc += c; x.nc++; }
+    if (m !== null && m > 0) { x.sm += m; x.nm++; }
+    if ((c !== null && c > 0) || (m !== null && m > 0)) x.n++;
+  });
+  return { pel: urut.map(function (k) { var x = g[k]; return [x.tg, x.j, x.n, x.sc, x.nc, x.sm, x.nm]; }) };
+}
+
+/* Sertifikat: satu baris = satu sertifikat -> [indeks status, tanggal terbit, tanggal selesai pelatihan] */
+function aggSert_(ss) {
+  var t = bacaMentah_(ss, TAB.SERT), h = t.head;
+  var cSt = kol_(h, 'Status'), cT = kol_(h, ['Tgl.Terbit', 'Tgl Terbit', 'Tanggal Terbit']), cS = kol_(h, ['Tgl.Selesai', 'Tgl Selesai', 'Tanggal Selesai']);
+  if (t.rows.length && (cSt < 0 || cT < 0)) throw new Error('Tab "' + TAB.SERT + '": kolom Status / Tgl.Terbit tidak ditemukan.');
+  var status = STATUS_SERT.slice(), up = status.map(function (s) { return s.toUpperCase(); });
+  var rows = [];
+  t.rows.forEach(function (r) {
+    var s = teks_(r[cSt]); if (!s) return;
+    var i = up.indexOf(s.toUpperCase());
+    if (i < 0) { status.push(s); up.push(s.toUpperCase()); i = status.length - 1; }
+    rows.push([i, isoTgl_(r[cT]), cS >= 0 ? isoTgl_(r[cS]) : '']);
+  });
+  return { status: status, rows: rows };
+}
+
+/* ======================================================================== */
 /*  UTIL                                                                     */
 /* ======================================================================== */
 function bukaSheet_(id, tab) {
@@ -515,11 +673,12 @@ function bukaSheet_(id, tab) {
   return sh;
 }
 
-function readTab_(ss, name, out) {
+function readTab_(ss, name, out, denganBaris) {
   var sh = ss.getSheetByName(name);
   if (!sh || sh.getLastRow() === 0) { out.warnings.push('Tab "' + name + '" tidak ditemukan.'); return []; }
   var v = clean_(sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues());
-  return v.filter(function (r, i) { return i === 0 || r.some(function (x) { return x !== '' && x !== null; }); });
+  if (denganBaris) v = v.map(function (r, i) { return r.concat([i === 0 ? '_baris' : i + 1]); });
+  return v.filter(function (r, i) { return i === 0 || r.some(function (x, j) { return j < r.length - (denganBaris ? 1 : 0) && x !== '' && x !== null; }); });
 }
 
 function clean_(rows) {

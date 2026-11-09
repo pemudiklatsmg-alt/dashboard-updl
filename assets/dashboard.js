@@ -16,9 +16,20 @@
   }
   function cv(c) { return 'var(--' + c + ')'; }
   function set() { return (S.data.meta && S.data.meta.pengaturan) || { tanpaRealisasi: 'PAKAI RENCANA PESERTA', hitungHariSebelumTahun: true, kecualikanSL: false }; }
+  function admin() { return S.peran === 'admin'; }
   function sheetLink(label, tab) {
     var url = (S.data.meta.links && S.data.meta.links.data) || DEFAULT_LINKS.data;
-    return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + '</a>' + (tab ? ' (tab <b>' + esc(tab) + '</b>)' : '');
+    return (admin() ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + '</a>' : esc(label)) + (tab ? ' (tab <b>' + esc(tab) + '</b>)' : '');
+  }
+  /* Ringkasan evaluasi dari data mentah, kumulatif s.d. bulan terpilih */
+  function ev(nama, y, m) {
+    var E = (S.data && S.data.eval) || {}, f = { kepuasan: D.evalKepuasan, instruktur: D.evalInstruktur, ksa: D.evalKsa, cc: D.evalCc, sertifikat: D.evalSert }[nama];
+    return f(E[nama], y || S.tahun, m || S.bulan);
+  }
+  function skala5(v, t) {   // status nilai skala 5: pakai target bila ada
+    if (v === null || v === undefined) return { c: 'idle', t: 'Belum ada data' };
+    if (t) return status(v / t);
+    return v >= 4.5 ? { c: 'good', t: 'Sangat Baik' } : v >= 4 ? { c: 'good', t: 'Baik' } : v >= 3 ? { c: 'warn', t: 'Cukup' } : { c: 'bad', t: 'Kurang' };
   }
   function tag(t, c) { return ' <span class="tag ' + (c || '') + '">' + t + '</span>'; }
 
@@ -150,37 +161,52 @@
       foot: H.pegawai === null && H.adj.timpa === null ? 'Jumlah pegawai ' + bl + ' belum diisi' : (tgt ? D.pct(hc) + ' dari target ' + D.fmt(tgt, 3) : 'Target Konman belum ada'),
       cls: H.pegawai === null && H.adj.timpa === null ? 'warn' : status(hc).c, click: 'hop' });
 
-    var L1 = D.rataTertimbang(D.rekapSampai(S.data.l1, 'Tanggal Selesai', S.tahun, S.bulan), 'Nilai Kepuasan (1-5)', 'Jumlah Responden');
-    var t1 = set().targetL1;
-    var k1 = !L1 ? { c: 'idle', t: 'Belum diisi' } : t1 ? status(L1.nilai / t1) : (L1.nilai >= 4.5 ? { c: 'good', t: 'Sangat Baik' } : L1.nilai >= 4 ? { c: 'good', t: 'Baik' } : L1.nilai >= 3 ? { c: 'warn', t: 'Cukup' } : { c: 'bad', t: 'Kurang' });
-    var f1 = L1 ? (t1 ? L1.nilai / t1 : L1.nilai / 5) : null;
-    h += card({ title: 'Kepuasan Peserta', hint: 'Evaluasi Level 1 · s.d. ' + bl, val: L1 ? D.fmt(L1.nilai, 2) + ' <small>/ 5</small>' : '–',
-      ring: ring(f1, k1.c, pctTxt(f1), t1 ? 'Kepuasan ' + pctTxt(f1) + ' dari target' : 'Kepuasan ' + pctTxt(f1) + ' dari skala 5'),
-      foot: L1 ? k1.t + ' · ' + L1.n + ' pelatihan' : 'Belum diisi', cls: k1.c, click: 'rekap:l1' });
+    var Kp = ev('kepuasan'), In = ev('instruktur'), p = set();
+    function mini(o) {
+      var v = o.v, st = skala5(v, o.t), f = v === null ? null : (o.t ? v / o.t : v / 5);
+      return card({ title: o.title, hint: o.hint, val: v === null ? '–' : D.fmt(v, 2) + ' <small>/ 5</small>', cls: v === null ? 'idle' : st.c, click: o.click,
+        ring: ring(f, st.c, pctTxt(f), o.title + ' ' + pctTxt(f) + (o.t ? ' dari target' : ' dari skala 5')),
+        foot: v === null ? 'Belum ada data s.d. ' + bl : o.foot + ' <span class="more">→</span>' }).replace('class="card', 'class="card mini2');
+    }
+    h += '<div class="stack2">' +
+      mini({ title: 'Kepuasan Peserta', hint: 'EL1 · rata-rata semua butir', v: Kp ? Kp.nilai : null, t: p.targetL1, click: 'kepuasan',
+        foot: Kp ? D.fmt(Kp.responden, 0) + ' responden · ' + Kp.pelatihan + ' pelatihan' : '' }) +
+      mini({ title: 'Penilaian Instruktur', hint: 'EL1 · rata-rata semua butir', v: In ? In.nilai : null, t: p.targetInstruktur, click: 'instruktur',
+        foot: In ? In.instruktur.length + ' instruktur · ' + D.fmt(In.penilaian, 0) + ' penilaian' : '' }) + '</div>';
     $('kpis').innerHTML = h;
   }
 
   function renderMinis() {
     var bl = namaBulan(S.bulan), Bn = B(), p = set(), h = '';
-    function evalCard(o) {
-      var rows = D.rekapSampai(S.data[o.data], o.kolTgl, S.tahun, S.bulan);
-      var a = o.agg ? o.agg(rows) : D.rataTertimbang(rows, o.kolNilai, o.kolBobot);
+    function rekapCard(o) {
+      var rows = D.rekapSampai(S.data[o.data], o.kolTgl, S.tahun, S.bulan), a = D.rataTertimbang(rows, o.kolNilai);
       var st = !a ? { c: 'idle', t: 'Belum diisi' } : o.target ? status(a.nilai / o.target) : { c: 'idle', t: a.n + ' data' };
-      var foot = !a ? 'Belum diisi' : (o.target ? (a.nilai / o.target >= 0.9999 ? 'Mencapai target ' : 'Dari target ') + D.fmt(o.target, o.dTarget === undefined ? 2 : o.dTarget) : a.n + ' data s.d. ' + bl);
-      var fr = !a ? null : o.target ? a.nilai / o.target : a.nilai / o.skala;
+      var fr = !a ? null : o.target ? a.nilai / o.target : a.nilai / 100;
       var rc = !a ? 'idle' : o.target ? st.c : (fr >= 0.8 ? 'good' : fr >= 0.6 ? 'warn' : 'bad');
-      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', foot: foot, cls: st.c, click: 'rekap:' + o.data + (o.key ? ':' + o.key : ''),
-        ring: ring(fr, rc, pctTxt(fr), o.title + ' ' + pctTxt(fr) + (o.target ? ' dari target' : ' dari skala maksimum')) });
+      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', cls: st.c, click: 'rekap:' + o.data,
+        foot: !a ? 'Belum diisi' : (o.target ? (a.nilai / o.target >= 0.9999 ? 'Mencapai target ' : 'Dari target ') + D.fmt(o.target, 2) : a.n + ' data s.d. ' + bl),
+        ring: ring(fr, rc, pctTxt(fr), o.title + ' ' + pctTxt(fr)) });
     }
     function konTarget(re) { var it = find(re); return it && konmanAda(Bn) ? D.num(it.target[Bn].v) : null; }
-    h += evalCard({ title: 'Peningkatan KSA', hint: 'Evaluasi Level 2 · Formatif', data: 'l2', key: 'ksa', kolTgl: 'Tanggal Selesai', kolNilai: 'KSA Formatif (0-100)', kolBobot: 'Jumlah Peserta', target: p.targetKSA, skala: 100, fmtV: function (v) { return D.fmt(v, 1) + ' <small>/ 100</small>'; } });
-    h += evalCard({ title: 'Dampak pada Perilaku', hint: 'Evaluasi Level 3', data: 'l3', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Perubahan Perilaku/i), skala: 100, fmtV: function (v) { return D.fmt(v, 2); } });
-    h += evalCard({ title: 'ROTI', hint: 'Return on Training Investment', data: 'roti', kolTgl: 'Tanggal', kolNilai: 'Nilai ROTI (%)', skala: 100, fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
-    h += evalCard({ title: 'Confidence & Commitment', hint: 'Evaluasi Level 2 · Sumatif', data: 'l2', key: 'cc', kolTgl: 'Tanggal Selesai', kolNilai: 'C&C Sumatif (1-4)', kolBobot: 'Jumlah Peserta', target: p.targetCC, skala: 4, fmtV: function (v) { return D.fmt(v, 2) + ' <small>/ 4</small>'; } });
-    h += evalCard({ title: 'Dampak pada Kinerja', hint: 'Evaluasi Level 4', data: 'l4', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Pada Kinerja/i), skala: 100, fmtV: function (v) { return D.fmt(v, 2); } });
-    h += evalCard({ title: 'Sertifikat Terbit', hint: 'Terbit ÷ peserta lulus', data: 'sertifikat', kolTgl: 'Tanggal', target: p.targetSertifikat, dTarget: 0, skala: 100,
-      agg: function (rows) { var l = 0, t = 0, n = 0; rows.forEach(function (r) { var a = D.num(r['Peserta Lulus']), b = D.num(r['Sertifikat Terbit']); if (a) { l += a; t += b || 0; n++; } }); return n ? { nilai: t / l * 100, n: n } : null; },
-      fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
+
+    var K = ev('ksa'), kv = K ? K.nilai : null, kt = p.targetKSA, kf = kv === null ? null : kt ? kv / kt : kv / 100;
+    var kc = kv === null ? 'idle' : kt ? status(kf).c : (kf >= 0.8 ? 'good' : kf >= 0.6 ? 'warn' : 'bad');
+    h += card({ title: 'Peningkatan KSA', hint: 'EL2 formatif · Hadir & Lulus', val: kv === null ? '–' : D.fmt(kv, 1), click: 'ksa', cls: kv === null ? 'idle' : kt ? kc : 'idle',
+      ring: ring(kf, kc, pctTxt(kf), 'KSA ' + pctTxt(kf) + (kt ? ' dari target' : ' dari skala 100')),
+      foot: kv === null ? 'Belum ada data s.d. ' + bl : D.fmt(K.peserta, 0) + ' peserta Hadir & Lulus' });
+    h += rekapCard({ title: 'Dampak pada Perilaku', hint: 'Evaluasi Level 3', data: 'l3', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Perubahan Perilaku/i), fmtV: function (v) { return D.fmt(v, 2); } });
+    h += rekapCard({ title: 'ROTI', hint: 'Return on Training Investment', data: 'roti', kolTgl: 'Tanggal', kolNilai: 'Nilai ROTI (%)', fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
+
+    var C = ev('cc'), sk = p.skalaCC || 4, ct = p.targetCC, cn = C ? C.nilai : null, cst = cn === null ? { c: 'idle' } : ct ? status(cn / ct) : { c: 'idle' };
+    h += card({ title: 'Confidence & Commitment', hint: 'EL2 sumatif · skala 1–' + sk, click: 'cc', cls: cst.c,
+      html: '<div class="duo"><div><b class="num">' + (C && C.conf !== null ? D.fmt(C.conf, 2) : '–') + '</b><span>Confidence</span></div><div><b class="num">' + (C && C.comm !== null ? D.fmt(C.comm, 2) : '–') + '</b><span>Commitment</span></div></div>',
+      foot: cn === null ? 'Belum ada data s.d. ' + bl : (ct ? (cn / ct >= 0.9999 ? 'Mencapai target ' : 'Target ') + D.fmt(ct, 2) + ' · ' : '') + D.fmt(C.n, 0) + ' pengisian' });
+    h += rekapCard({ title: 'Dampak pada Kinerja', hint: 'Evaluasi Level 4', data: 'l4', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Pada Kinerja/i), fmtV: function (v) { return D.fmt(v, 2); } });
+
+    var Se = ev('sertifikat'), sp = Se ? Se.pct : null, sc = sp === null ? 'idle' : sp >= 0.95 ? 'good' : sp >= 0.8 ? 'warn' : 'bad';
+    h += card({ title: 'Sertifikat Terbit', hint: 'Status Finish TTE GM · s.d. ' + bl, val: Se && Se.total ? D.fmt(Se.terbit, 0) : '–', click: 'sert', cls: 'idle',
+      ring: ring(sp, sc, pctTxt(sp), 'Sertifikat terbit ' + pctTxt(sp) + ' dari seluruh sertifikat'),
+      foot: Se && Se.total ? '<b class="num" style="color:var(--ink)">+' + D.fmt(Se.bulan, 0) + '</b> terbit di ' + bl + ' <span class="more">→</span>' : 'Belum ada data s.d. ' + bl });
     $('minis').innerHTML = h;
   }
 
@@ -259,29 +285,50 @@
   }
 
   /* ---------- tindak lanjut ---------- */
-  function tlRows() { return D.rows(S.data.tindaklanjut).filter(function (r) { return String(r['Temuan / Masukan'] || '').trim(); }); }
-  function tlStatus(r) { var s = String(r['Status'] || 'Belum Dimulai').trim(); return { 'Selesai': 1, 'Berjalan': 1, 'Belum Dimulai': 1 }[s] ? s : 'Belum Dimulai'; }
+  /* Status asli 5 pilihan -> 3 kelompok. Selesai = Selesai + Sudah Dilaporkan; Berjalan = OFI + Proses Tindak Lanjut */
+  var TL_GRUP = { 'SELESAI': 'Selesai', 'SUDAH DILAPORKAN': 'Selesai', 'OFI': 'Berjalan', 'PROSES TINDAK LANJUT': 'Berjalan', 'BERJALAN': 'Berjalan' };
+  var TL_KLS = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
+  function tlRows() { return D.rows(S.data.tindaklanjut).filter(function (r) { return String(r['Komentar'] || '').trim(); }); }
+  function tlAsli(r) { return String(r['Status'] || '').trim() || 'Belum Dimulai'; }
+  function tlStatus(r) { return TL_GRUP[tlAsli(r).toUpperCase()] || 'Belum Dimulai'; }
   function renderTL() {
-    var R = tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 };
-    R.forEach(function (r) { c[tlStatus(r)]++; });
+    var R = tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 }, pic = {};
+    R.forEach(function (r) {
+      var g = tlStatus(r), k = String(r['PIC'] || '').trim() || '(tanpa PIC)'; c[g]++;
+      if (!pic[k]) pic[k] = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0, n: 0 };
+      pic[k][g]++; pic[k].n++;
+    });
     var n = R.length;
-    $('tlDesc').textContent = n + ' temuan & masukan';
-    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada temuan atau masukan. Tambahkan lewat tombol Input Data atau di ' + sheetLink('Google Sheets', 'Tindak Lanjut Evaluasi') + '.</div>'; return; }
-    var seg = [['Selesai', 'good'], ['Berjalan', 'warn'], ['Belum Dimulai', 'bad']];
-    var cls = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
-    var buka = R.filter(function (r) { return tlStatus(r) !== 'Selesai'; });
+    $('tlDesc').textContent = n + ' komentar & temuan (semua periode)';
+    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada komentar atau temuan. Tempel data di ' + sheetLink('Google Sheets', 'Tindak Lanjut Evaluasi') + '.</div>'; return; }
+    var seg = [['Selesai', 'good', 'Selesai + Sudah Dilaporkan'], ['Berjalan', 'warn', 'OFI + Proses TL'], ['Belum Dimulai', 'bad', 'Belum Dimulai']];
+    var mx = Math.max.apply(null, Object.keys(pic).map(function (k) { return pic[k].n; }));
+    var bars = Object.keys(pic).sort(function (a, b) { return pic[b].n - pic[a].n || a.localeCompare(b); }).map(function (k) {
+      var x = pic[k];
+      return '<div class="r" title="' + esc(k + ': ' + seg.map(function (s) { return s[0] + ' ' + x[s[0]]; }).join(', ')) + '"><span>' + esc(k) + '</span><span class="t">' +
+        seg.map(function (s) { return x[s[0]] ? '<i style="width:' + (x[s[0]] / mx * 100) + '%;background:var(--' + s[1] + ')"></i>' : ''; }).join('') + '</span><span class="num">' + x.n + '</span></div>';
+    }).join('');
     $('tlBody').innerHTML = '<div class="tl-top">' + donut(seg.map(function (s) { return { n: c[s[0]], c: s[1], t: s[0] }; }), D.fmt(c['Selesai'] / n * 100, 0) + '%', 'selesai') +
-      '<div class="tl-sum">' + seg.map(function (s) { return '<div><b class="num ' + s[1] + '">' + c[s[0]] + '</b><span>' + s[0] + '</span></div>'; }).join('') + '</div></div>' +
-      '<div class="sub-h">Belum selesai (' + buka.length + ')</div>' +
-      '<div class="fill tl-list">' + (buka.length ? buka.map(function (r) {
-        var s = tlStatus(r); return '<div class="tl-item"><div><div class="tl-t">' + esc(r['Temuan / Masukan']) + '</div><div class="tl-m">' + esc([r['PIC'], r['Sumber'], r['Target Selesai'] ? 'target ' + r['Target Selesai'] : ''].filter(Boolean).join(' · ')) + '</div></div><span class="pill ' + cls[s] + '">' + s + '</span></div>';
-      }).join('') : '<div class="empty">Semua temuan sudah selesai.</div>') + '</div>' +
+      '<div class="tl-sum">' + seg.map(function (s) { return '<div><b class="num ' + s[1] + '">' + c[s[0]] + '</b><span>' + s[2] + '</span></div>'; }).join('') + '</div></div>' +
+      '<div class="sub-h">Per PIC</div><div class="bars">' + bars + '</div>' +
+      '<div class="legend"><span><i style="background:var(--good)"></i>Selesai</span><span><i style="background:var(--warn)"></i>Berjalan</span><span><i style="background:var(--bad)"></i>Belum dimulai</span></div>' +
       '<button class="btn" style="align-self:flex-start" data-act="tl">Lihat daftar lengkap →</button>';
   }
   function openTL() {
-    var cls = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
-    openModal('<div class="modal-h"><h3>Daftar Tindak Lanjut Evaluasi</h3><button class="btn" data-close>Tutup</button></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>No</th><th>Temuan / Masukan</th><th>Sumber</th><th>PIC</th><th>Status</th><th>Target</th><th>Keterangan</th></tr></thead><tbody>' +
-      tlRows().map(function (r) { var s = String(r['Status'] || 'Belum Dimulai'); return '<tr><td>' + esc(r['No']) + '</td><td>' + esc(r['Temuan / Masukan']) + '</td><td>' + esc(r['Sumber']) + '</td><td>' + esc(r['PIC']) + '</td><td><span class="pill ' + (cls[s] || 'idle') + '">' + esc(s) + '</span></td><td class="r">' + esc(r['Target Selesai']) + '</td><td class="ket">' + esc(r['Keterangan']) + '</td></tr>'; }).join('') + '</tbody></table></div>');
+    var R = tlRows();
+    openModal('<div class="modal-h"><div><h3>Tindak Lanjut Evaluasi</h3><div class="desc">' + R.length + ' komentar & temuan · ' + (admin() ? 'ubah status lewat Input Data → Tindak Lanjut, atau langsung di Google Sheets' : 'status diperbarui oleh admin') + '</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tools"><input class="inp" id="tlQ" type="search" placeholder="Cari komentar, pelatihan, PIC…" aria-label="Cari"><select class="inp" id="tlF" aria-label="Saring status" style="max-width:220px"><option value="">Semua status</option><option>Selesai</option><option>Berjalan</option><option>Belum Dimulai</option></select></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Komentar</th><th>Kategori</th><th>Sumber</th><th>PIC</th><th>Status</th><th>Keterangan</th></tr></thead><tbody id="tlT"></tbody></table></div><div class="note" id="tlN"></div>');
+    function fill() {
+      var q = $('tlQ').value.toLowerCase(), f = $('tlF').value;
+      var L = R.filter(function (r) { return (!f || tlStatus(r) === f) && (!q || [r['Judul Diklat'], r['Komentar'], r['PIC'], r['Kategori Komentar'], r['Sumber']].join(' ').toLowerCase().indexOf(q) >= 0); });
+      $('tlT').innerHTML = L.map(function (r) {
+        return '<tr><td>' + esc(r['Judul Diklat']) + (r['Angkatan'] ? '<div class="tl-m">Angkatan ' + esc(r['Angkatan']) + '</div>' : '') + '</td><td>' + esc(r['Komentar']) + '</td><td>' + esc(r['Kategori Komentar']) + '</td><td>' + esc(r['Sumber']) + '</td><td>' + esc(r['PIC']) +
+          '</td><td><span class="pill ' + TL_KLS[tlStatus(r)] + '">' + esc(tlAsli(r)) + '</span></td><td class="ket">' + esc(String(r['Keterangan'] || '')) + '</td></tr>';
+      }).join('') || '<tr><td colspan="7" class="desc">Tidak ada yang cocok.</td></tr>';
+      $('tlN').textContent = L.length + ' dari ' + R.length + ' baris';
+    }
+    $('tlQ').addEventListener('input', fill); $('tlF').addEventListener('change', fill); fill();
   }
 
   /* ---------- maturity (sheet SMG) ---------- */
@@ -334,34 +381,31 @@
     var R = (S.data.risiko && S.data.risiko.rows) ? D.rows(S.data.risiko.rows) : [];
     var col = { inheren: 'Inheren', residual: 'Residual', target: 'Target' }[S.riskView];
     Array.prototype.forEach.call(document.querySelectorAll('[data-rv]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-rv') === S.riskView); });
-    var list = R.map(function (r) { return { no: r['No'], id: r['ID Risk'], des: r['Deskripsi Risiko'], p: parseLabel(r[col]) }; });
-    var g = '<div class="rmap"><div class="yt">Tingkat Kemungkinan</div>';
-    ['E', 'D', 'C', 'B', 'A'].forEach(function (k, ri) {
-      g += '<div class="yl" style="grid-row:' + (ri + 1) + '">' + KEM[k] + ' ' + k + '</div>';
+    var list = R.map(function (r) { return { no: String(r['No']), id: r['ID Risk'], des: r['Deskripsi Risiko'], p: parseLabel(r[col]) }; });
+    var g = '<div class="rk-map" role="group" aria-label="Peta risiko ' + col + '">';
+    ['E', 'D', 'C', 'B', 'A'].forEach(function (k) {
+      g += '<div class="ry">' + KEM[k] + ' (' + k + ')</div>';
       for (var d = 1; d <= 5; d++) {
         var lv = MATRIKS[k][d - 1], here = list.filter(function (x) { return x.p && x.p.k === k && x.p.d === d; });
-        g += '<div class="cell" data-l="' + LV[lv] + '" style="grid-row:' + (ri + 1) + ';grid-column:' + (d + 2) + '" title="' + k + d + ' · ' + lv + '">' +
-          here.map(function (x) { return '<button type="button" class="rdot' + (S.riskOn === x.no ? ' on' : '') + '" data-r="' + esc(x.no) + '" title="' + esc(x.des) + '">' + esc(x.no) + '</button>'; }).join('') + '</div>';
+        g += '<div class="c" data-l="' + LV[lv] + '" title="' + k + d + ' · ' + lv + '">' +
+          here.map(function (x) { return '<button type="button" class="rdot' + (S.riskOn === x.no ? ' on' : '') + '" data-r="' + esc(x.no) + '" title="' + esc(x.no + '. ' + x.des) + '">' + esc(x.no) + '</button>'; }).join('') + '</div>';
       }
     });
-    for (var d = 1; d <= 5; d++) g += '<div class="xl" style="grid-row:6;grid-column:' + (d + 2) + '"><b>' + d + '</b><br>' + DAM[d - 1] + '</div>';
-    g += '<div class="xt" style="grid-row:7">Tingkat Dampak</div></div>';
+    g += '<div></div>';
+    for (var d = 1; d <= 5; d++) g += '<div class="rx">' + d + '<br>' + DAM[d - 1] + '</div>';
+    g += '</div><div class="rk-ax"><span>↑ Kemungkinan</span><span>Dampak →</span></div>';
     var urut = ['Rendah', 'Moderat', 'Tinggi', 'Sangat Tinggi', 'Ekstrem'], cnt = {};
     list.forEach(function (x) { if (x.p) cnt[x.p.level] = (cnt[x.p.level] || 0) + 1; });
-    var segR = urut.filter(function (l) { return cnt[l]; }).map(function (l) { return { n: cnt[l], c: 'risk-' + LV[l], t: l }; });
-    var ringkas = list.length ? '<div class="rsum">' + donut(segR, String(list.length), 'risiko') + '<div class="rsum-l">' + segR.map(function (x) { return '<span><i class="sw" style="background:var(--' + x.c + ')"></i>' + x.t + ' <b class="num">' + x.n + '</b></span>'; }).join('') + '</div></div>' : '';
-    var tbl = '<div class="rside">' + ringkas + '<div class="rlist"><div class="h"><span>Daftar Risiko · ' + col + '</span><span>' + list.length + '</span></div>' + (list.length ?
-      '<div style="max-height:300px;overflow:auto"><table><thead><tr><th>No</th><th>Risiko</th><th>Level</th></tr></thead><tbody>' + list.map(function (x) {
-        return '<tr data-r="' + esc(x.no) + '"' + (S.riskOn === x.no ? ' class="on"' : '') + ' title="' + esc(x.id) + '"><td>' + esc(x.no) + '</td><td>' + esc(x.des) + '</td><td class="lvl">' + (x.p ? '<i class="sw" style="background:var(--risk-' + LV[x.p.level] + ')"></i>' + esc(x.p.level) + ' (' + x.p.k + x.p.d + ')' : '–') + '</td></tr>';
-      }).join('') + '</tbody></table></div>' : '<div class="empty" style="border:0">File Profil Risiko belum terbaca.</div>') + '</div></div>';
-    $('riskBody').innerHTML = g + tbl;
-  }
-
-  /* ---------- tautan ---------- */
-  function renderLinks() {
-    var R = D.rows(S.data.tautan).filter(function (r) { return String(r['Nama'] || '').trim() && String(r['URL'] || '').trim(); })
-      .sort(function (a, b) { return (D.num(a['Urutan']) || 99) - (D.num(b['Urutan']) || 99); });
-    $('links').innerHTML = R.map(function (r) { return '<a class="link" href="' + esc(r['URL']) + '" target="_blank" rel="noopener"><b>' + esc(r['Nama']) + '</b><span>' + esc(r['Kelompok'] || '') + '</span></a>'; }).join('');
+    var ringkas = '<div class="rk-sum"><div class="rk-total"><b class="num">' + list.length + '</b><span>risiko</span></div><div class="rk-chips">' +
+      urut.map(function (l) { return '<span' + (cnt[l] ? '' : ' class="nol"') + '><i style="background:var(--risk-' + LV[l] + ')"></i>' + l + ' <b class="num">' + (cnt[l] || 0) + '</b></span>'; }).join('') + '</div></div>';
+    var daftar = '<div class="rk-list"><div class="rk-lh"><span>Daftar risiko · ' + col + '</span><span>' + list.length + '</span></div><div class="rk-rows" id="rkRows">' + (list.length ?
+      list.map(function (x) {
+        return '<button type="button" class="rk-row' + (S.riskOn === x.no ? ' on' : '') + '" data-r="' + esc(x.no) + '" title="' + esc(x.id) + '"><span class="num">' + esc(x.no) + '</span><span>' + esc(x.des) + '</span>' +
+          (x.p ? '<span class="lv" style="background:var(--risk-' + LV[x.p.level] + ')">' + esc(x.p.level) + ' (' + x.p.k + x.p.d + ')</span>' : '<span class="lv">–</span>') + '</button>';
+      }).join('') : '<div class="empty" style="border:0">File Profil Risiko belum terbaca.</div>') + '</div></div>';
+    $('riskBody').innerHTML = '<div class="rk-l">' + g + ringkas + '</div>' + daftar;
+    var on = S.riskOn && $('rkRows') && $('rkRows').querySelector('.rk-row.on');
+    if (on) { var box = $('rkRows'); if (on.offsetTop < box.scrollTop || on.offsetTop > box.scrollTop + box.clientHeight - 30) box.scrollTop = on.offsetTop - 40; }
   }
 
   /* ---------- modals: kelas, HOP, rekap ---------- */
@@ -411,10 +455,100 @@
       (H.adj.alasan.length ? '<div class="note">Penyesuaian: ' + H.adj.alasan.map(esc).join(' · ') + '</div>' : '') +
       '<div class="note">Aturan diubah di ' + sheetLink('Google Sheets', 'Pengaturan') + '; jumlah pegawai di tab <b>Jumlah Pegawai</b>; penyesuaian di tab <b>Penyesuaian HOP</b>.</div>');
   }
-  var REKAP = {
-    l1: ['Rekap L1 Kepuasan', 'l1', 'Tanggal Selesai'], l2: ['Rekap L2', 'l2', 'Tanggal Selesai'], l3: ['Rekap L3 Perilaku', 'l3', 'Tanggal Evaluasi'],
-    l4: ['Rekap L4 Kinerja', 'l4', 'Tanggal Evaluasi'], roti: ['Rekap ROTI', 'roti', 'Tanggal'], sertifikat: ['Rekap Sertifikat', 'sertifikat', 'Tanggal']
-  };
+  var REKAP = { l3: ['Rekap L3 Perilaku', 'l3', 'Tanggal Evaluasi'], l4: ['Rekap L4 Kinerja', 'l4', 'Tanggal Evaluasi'], roti: ['Rekap ROTI', 'roti', 'Tanggal'] };
+
+  /* ---------- rincian evaluasi dari data mentah ---------- */
+  function tglPendek(iso) { var t = D.tgl(iso); return t ? t.getDate() + ' ' + D.BLN3[t.getMonth()] + ' ' + t.getFullYear() : ''; }
+  function nilaiKls(v, t) { return v === null || v === undefined ? 'idle' : skala5(v, t).c; }
+  function barH(label, v, maks, teksV, warna, judul) {
+    return '<div class="r"' + (judul ? ' title="' + esc(judul) + '"' : '') + '><span>' + esc(label) + '</span><span class="t"><i style="width:' + (v === null ? 0 : Math.max(0, Math.min(1, v / maks)) * 100) + '%;background:var(--' + (warna || 'bar') + ')"></i></span><span class="num">' + teksV + '</span></div>';
+  }
+  function kosongEval(tab) { return '<div class="empty">Belum ada data s.d. ' + namaBulan(S.bulan) + ' ' + S.tahun + '. Tempel hasil tarikan di ' + sheetLink('Google Sheets', tab) + '.</div>'; }
+  function judulEval(judul, desc) { return '<div class="modal-h"><div><h3>' + judul + '</h3><div class="desc">' + desc + '</div></div><button class="btn" data-close>Tutup</button></div>'; }
+  function pasangTab() {
+    Array.prototype.forEach.call($('modalC').querySelectorAll('[data-tab]'), function (b) {
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call($('modalC').querySelectorAll('[data-tab]'), function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); $(x.getAttribute('data-tab')).hidden = x !== b; });
+      });
+    });
+  }
+  function urutPel(L) { return L.slice().sort(function (a, b) { return a.tg < b.tg ? 1 : a.tg > b.tg ? -1 : 0; }); }
+
+  function openKepuasan() {
+    var K = ev('kepuasan'), per = ' · s.d. ' + namaBulan(S.bulan) + ' ' + S.tahun;
+    if (!K || !K.pelatihan) return openModal(judulEval('Kepuasan Peserta' + per, 'Evaluasi Level 1') + kosongEval('Data - Kepuasan EL1'));
+    var t = set().targetL1;
+    openModal(judulEval('Kepuasan Peserta' + per, 'Rata-rata ' + D.fmt(K.nilai, 2) + ' dari semua butir (kolom berakhiran -Val tidak dihitung) · ' + D.fmt(K.responden, 0) + ' responden · ' + K.pelatihan + ' pelatihan' + (t ? ' · target ' + D.fmt(t, 2) : '')) +
+      '<div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="kA">Per aspek</button><button type="button" role="tab" aria-selected="false" data-tab="kB">Per butir</button><button type="button" role="tab" aria-selected="false" data-tab="kC">Per pelatihan</button></div>' +
+      '<div id="kA" class="bars">' + K.aspek.map(function (a) { return barH(a.nama, a.nilai, 5, D.fmt(a.nilai, 2), nilaiKls(a.nilai, t) === 'bad' ? 'bad' : 'bar', D.fmt(a.n, 0) + ' jawaban'); }).join('') + '</div>' +
+      '<div id="kB" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Aspek</th><th>Butir (judul kolom)</th><th class="r">Rata-rata</th><th class="r">Jawaban</th></tr></thead><tbody>' +
+        K.butir.map(function (b) { return '<tr><td>' + esc(b.aspek) + '</td><td>' + esc(b.label) + '</td><td class="r ' + nilaiKls(b.nilai, t) + '"><b>' + D.fmt(b.nilai, 2) + '</b></td><td class="r">' + D.fmt(b.n, 0) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div id="kC" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Pelatihan</th><th>Selesai</th><th class="r">Responden</th><th class="r">Nilai</th></tr></thead><tbody>' +
+        urutPel(K.pel).map(function (x) { return '<tr><td>' + esc(x.judul) + '</td><td>' + tglPendek(x.tg) + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r ' + nilaiKls(x.nilai, t) + '"><b>' + D.fmt(x.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="note">Judul butir mengikuti judul kolom di tab <b>Data - Kepuasan EL1</b>. Aspek = awalan sebelum tanda "-" (Ins, Mat, Sarpras, Dig).</div>');
+    pasangTab();
+  }
+
+  function openInstruktur() {
+    var I = ev('instruktur'), per = ' · s.d. ' + namaBulan(S.bulan) + ' ' + S.tahun, t = set().targetInstruktur;
+    if (!I || !I.instruktur.length) return openModal(judulEval('Penilaian Instruktur' + per, 'Evaluasi Level 1') + kosongEval('Data - Instruktur EL1'));
+    var dUmum = I.instruktur.length + ' instruktur · ' + D.fmt(I.penilaian, 0) + ' penilaian · rata-rata ' + D.fmt(I.nilai, 2) + ' (kolom -Val, K. dan Durasi Mengajar tidak dihitung)';
+    openModal(judulEval('<span id="insJ">Penilaian Instruktur' + per + '</span>', '<span id="insD">' + esc(dUmum) + '</span>') +
+      '<div id="insList" style="display:grid;gap:10px"><div class="tools"><input class="inp" id="insQ" type="search" placeholder="Cari nama instruktur" aria-label="Cari nama instruktur">' +
+      '<select class="inp" id="insSort" aria-label="Urutkan" style="max-width:200px"><option value="t">Nilai tertinggi</option><option value="r">Nilai terendah</option><option value="n">Nama A–Z</option><option value="p">Pelatihan terbanyak</option></select></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Instruktur</th><th>Tipe</th><th class="r">Pelatihan</th><th class="r">Penilaian</th><th class="r">Nilai</th></tr></thead><tbody id="insBody"></tbody></table></div><div class="note">Klik nama untuk melihat nilai per pelatihan.</div></div>' +
+      '<div id="insDet" hidden style="display:grid;gap:10px"></div>');
+    function daftar() {
+      var q = $('insQ').value.toLowerCase(), so = $('insSort').value;
+      var L = I.instruktur.filter(function (x) { return x.nama.toLowerCase().indexOf(q) >= 0; });
+      L.sort(function (a, b) { return so === 't' ? (b.nilai || 0) - (a.nilai || 0) : so === 'r' ? (a.nilai || 0) - (b.nilai || 0) : so === 'p' ? b.pel.length - a.pel.length : a.nama.localeCompare(b.nama); });
+      $('insBody').innerHTML = L.map(function (x) {
+        return '<tr class="klik" tabindex="0" data-ins="' + x.i + '"><td><b>' + esc(x.nama) + '</b></td><td>' + esc(x.tipe) + '</td><td class="r">' + x.pel.length + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r ' + nilaiKls(x.nilai, t) + '"><b>' + D.fmt(x.nilai, 2) + '</b></td></tr>';
+      }).join('') || '<tr><td colspan="5" class="desc">Tidak ada nama yang cocok.</td></tr>';
+    }
+    function detail(i) {
+      var x = I.instruktur.filter(function (o) { return o.i === i; })[0]; if (!x) return;
+      $('insJ').textContent = x.nama; $('insD').textContent = (x.tipe ? x.tipe + ' · ' : '') + x.pel.length + ' pelatihan · ' + D.fmt(x.n, 0) + ' penilaian · rata-rata ' + D.fmt(x.nilai, 2);
+      $('insDet').innerHTML = '<button class="back" type="button" id="insBack">← Semua instruktur</button>' +
+        '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Angkatan</th><th>Selesai</th><th class="r">Penilaian</th><th class="r">Nilai</th></tr></thead><tbody>' +
+        urutPel(x.pel).map(function (p) { return '<tr><td>' + esc(p.judul) + '</td><td>' + esc(p.angkatan) + '</td><td>' + tglPendek(p.tg) + '</td><td class="r">' + D.fmt(p.n, 0) + '</td><td class="r ' + nilaiKls(p.nilai, t) + '"><b>' + D.fmt(p.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
+        '<div class="sub-h">Rata-rata per butir</div><div class="bars">' + x.butir.filter(function (b) { return b.nilai !== null; }).map(function (b) { return barH(b.label, b.nilai, 5, D.fmt(b.nilai, 2)); }).join('') + '</div>';
+      $('insList').hidden = true; $('insDet').hidden = false;
+      $('insBack').addEventListener('click', function () { $('insJ').textContent = 'Penilaian Instruktur' + per; $('insD').textContent = dUmum; $('insDet').hidden = true; $('insList').hidden = false; });
+      $('insBack').focus();
+    }
+    $('insQ').addEventListener('input', daftar); $('insSort').addEventListener('change', daftar); daftar();
+    $('insBody').addEventListener('click', function (e) { var tr = e.target.closest('[data-ins]'); if (tr) detail(+tr.getAttribute('data-ins')); });
+    $('insBody').addEventListener('keydown', function (e) { var tr = e.target.closest('[data-ins]'); if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); detail(+tr.getAttribute('data-ins')); } });
+  }
+
+  function openKsa() {
+    var K = ev('ksa'), per = ' · s.d. ' + namaBulan(S.bulan) + ' ' + S.tahun;
+    if (!K || !K.pel.length) return openModal(judulEval('Peningkatan KSA' + per, 'Evaluasi Level 2 formatif') + kosongEval('Data - KSA EL2'));
+    openModal(judulEval('Peningkatan KSA' + per, 'Rata-rata nilai ' + D.fmt(K.nilai, 1) + ' · hanya peserta Kehadiran = Hadir dan Kelulusan = Lulus (' + D.fmt(K.peserta, 0) + ' dari ' + D.fmt(K.semua, 0) + ' baris)') +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Selesai</th><th class="r">Hadir & Lulus</th><th class="r">Semua peserta</th><th class="r">Rata-rata</th></tr></thead><tbody>' +
+      urutPel(K.pel).map(function (x) { return '<tr><td>' + esc(x.judul) + '</td><td>' + tglPendek(x.tg) + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r">' + D.fmt(x.semua, 0) + '</td><td class="r"><b>' + D.fmt(x.nilai, 1) + '</b></td></tr>'; }).join('') + '</tbody></table></div>');
+  }
+
+  function openCc() {
+    var C = ev('cc'), per = ' · s.d. ' + namaBulan(S.bulan) + ' ' + S.tahun;
+    if (!C || !C.pel.length) return openModal(judulEval('Confidence & Commitment' + per, 'Evaluasi Level 2 sumatif') + kosongEval('Data - C&C EL2'));
+    openModal(judulEval('Confidence & Commitment' + per, 'Confidence ' + D.fmt(C.conf, 2) + ' · Commitment ' + D.fmt(C.comm, 2) + ' · skala 1–' + (set().skalaCC || 4) + ' · ' + D.fmt(C.n, 0) + ' pengisian') +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Selesai</th><th class="r">Pengisian</th><th class="r">Confidence</th><th class="r">Commitment</th></tr></thead><tbody>' +
+      urutPel(C.pel).map(function (x) { return '<tr><td>' + esc(x.judul) + '</td><td>' + tglPendek(x.tg) + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r"><b>' + D.fmt(x.conf, 2) + '</b></td><td class="r"><b>' + D.fmt(x.comm, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>');
+  }
+
+  function openSert() {
+    var Se = ev('sertifikat'), bl = namaBulan(S.bulan);
+    if (!Se || !Se.total) return openModal(judulEval('Sertifikat · ' + S.tahun, 'Status penerbitan sertifikat') + kosongEval('Data - Sertifikat'));
+    var mx = Math.max.apply(null, Se.cnt.concat([1]));
+    var warna = function (i) { return i === 0 ? 'good' : i <= 4 ? 'warn' : i <= 6 ? 'bad' : 'idle'; };
+    openModal(judulEval('Sertifikat · s.d. ' + bl + ' ' + S.tahun, 'Terbit = status Finish TTE GM, dihitung dari Tgl.Terbit. Yang belum terbit dihitung menurut tanggal selesai pelatihan.') +
+      '<div class="tl-sum"><div><b class="num good">' + D.fmt(Se.terbit, 0) + '</b><span>Terbit s.d. ' + bl + '</span></div><div><b class="num">' + D.fmt(Se.bulan, 0) + '</b><span>Terbit di ' + bl + ' saja</span></div>' +
+      '<div><b class="num">' + D.fmt(Se.pct * 100, 0) + '% / ' + D.fmt((1 - Se.pct) * 100, 0) + '%</b><span>Terbit / belum terbit (' + D.fmt(Se.total, 0) + ' sertifikat)</span></div></div>' +
+      '<div class="sub-h">Jumlah per status</div><div class="bars">' + Se.status.map(function (st, i) { return barH(st, Se.cnt[i], mx, D.fmt(Se.cnt[i], 0), warna(i)); }).join('') + '</div>');
+  }
+
   function openRekap(key) {
     var cfg = REKAP[key]; if (!cfg) return;
     var tbl = S.data[cfg[1]] || [], head = (tbl[0] || []).map(String), rows = D.rekapSampai(tbl, cfg[2], S.tahun, S.bulan);
@@ -442,7 +576,7 @@
   function renderAll() {
     var gagal = [];
     [['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk], ['Tautan', renderLinks]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['Peta risiko', renderRisk]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -478,6 +612,7 @@
     Object.keys(data.konman || {}).forEach(function (y) { S.cache.konman[y] = D.parseKonman(data.konman[y]); });
     Object.keys(data.rendiklat || {}).forEach(function (y) { S.cache.kelas[y] = D.parseRendiklat(data.rendiklat[y], data.koreksi); });
     var m = data.meta || {};
+    if (m.peran) aturPeran(m.peran, m.user);
     if (m.judul) { $('judul').innerHTML = esc(m.judul) + '<span class="dot">.</span>'; document.title = m.judul; }
     if (m.links && m.links.data) $('sheetBtn').href = m.links.data;
     var badge = $('srcBadge');
@@ -499,22 +634,60 @@
     if (!S.tahun || years.indexOf(S.tahun) < 0) { S.tahun = years[years.length - 1]; S.bulan = bulanBawaan(S.tahun); }
     if (!S.riskView) S.riskView = /inheren/i.test(data.risiko && data.risiko.tampilan) ? 'inheren' : /residu/i.test(data.risiko && data.risiko.tampilan) ? 'residual' : 'target';
     setPeriode(S.tahun, S.bulan);
-    $('footNote').innerHTML = 'Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan ' + sheetLink('Data Dashboard') + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
+    $('footNote').textContent = 'Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
   }
+
+  /* ---------- login & peran ---------- */
+  function aturPeran(peran, user) {
+    S.peran = peran === 'admin' ? 'admin' : 'lihat';
+    document.body.classList.toggle('peran-admin', S.peran === 'admin');
+    $('who').textContent = (user ? user + ' · ' : '') + (S.peran === 'admin' ? 'Admin' : 'Akun Lihat');
+  }
+  function tampilLogin(pesan) {
+    S.data = null; S.cache = null; S.tahun = null; S.bulan = null; S.riskOn = null;
+    document.body.classList.remove('peran-admin');
+    Array.prototype.forEach.call(document.querySelectorAll('.modal'), function (m) { m.hidden = true; });
+    $('app').hidden = true; $('loginGate').hidden = false;
+    $('loginErr').hidden = !pesan; $('loginErr').textContent = pesan || '';
+    $('uPass').value = ''; setTimeout(function () { ($('uName').value ? $('uPass') : $('uName')).focus(); }, 30);
+  }
+  function tampilApp() { $('loginGate').hidden = true; $('app').hidden = false; window.scrollTo(0, 0); }
+  function keluar(pesan) {
+    var s0 = D.sesi(); if (s0) D.api({ aksi: 'keluar', token: s0.token }).catch(function () {});
+    D.hapusSesi(); tampilLogin(pesan);
+    if (!pesan) toast('Anda sudah keluar. Data dihapus dari browser ini.');
+  }
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var u = $('uName').value.trim(), pw = $('uPass').value;
+    $('uName').classList.toggle('err', !u); $('uPass').classList.toggle('err', !pw);
+    if (!u || !pw) { $('loginErr').hidden = false; $('loginErr').textContent = 'Isi username dan password.'; return; }
+    var b = $('loginBtn'); b.disabled = true; b.textContent = 'Memeriksa…'; $('loginErr').hidden = true;
+    D.api({ aksi: 'login', username: u, password: pw }).then(function (d) {
+      D.simpanSesi({ token: d.token, user: d.user, peran: d.peran, exp: Date.now() + (d.berlakuDetik || 21600) * 1000 - 60000 });
+      $('uPass').value = ''; aturPeran(d.peran, d.user); tampilApp(); return load();
+    }).catch(function (er) { $('loginErr').hidden = false; $('loginErr').textContent = er.message; $('uPass').select(); })
+      .then(function () { b.disabled = false; b.textContent = 'Masuk'; });
+  });
+  $('logoutBtn').addEventListener('click', function () { keluar(); });
 
   function load() {
     $('srcBadge').className = 'badge snap'; $('srcBadge').textContent = 'Memuat data…';
     var c = D.cachedData(); if (c && !S.data) boot(c);
     return D.loadData().then(boot).catch(function (e) {
+      if (e.login) { D.hapusSesi(); return tampilLogin(e.message === 'Silakan masuk.' ? '' : e.message); }
       $('srcBadge').className = 'badge err'; $('srcBadge').textContent = 'Gagal memuat';
       $('warn').hidden = false; $('warn').className = 'warnbox'; $('warn').textContent = 'Data tidak bisa dimuat: ' + (e.message || e);
     });
   }
+  /* header mengecil saat digulir */
+  var top = $('top');
+  window.addEventListener('scroll', function () { top.classList.toggle('kecil', window.scrollY > 60); }, { passive: true });
 
   /* ---------- events ---------- */
   $('tahunSel').addEventListener('change', function (e) { var y = +e.target.value; setPeriode(y, S.cache.konman[y] ? bulanBawaan(y) : S.bulan); });
   $('bulanSel').addEventListener('change', function (e) { setPeriode(S.tahun, +e.target.value); });
-  function muatUlang() { try { sessionStorage.removeItem('dash-cache-v3'); } catch (e) {} return load(); }
+  function muatUlang() { D.hapusCache(); return load(); }
   $('refreshBtn').addEventListener('click', muatUlang);
   document.addEventListener('click', function (e) {
     var t = e.target; if (!t.closest) return;
@@ -525,6 +698,11 @@
       if (a === 'kelas') return openKelas();
       if (a === 'hop') return openHop();
       if (a === 'tl') return openTL();
+      if (a === 'kepuasan') return openKepuasan();
+      if (a === 'instruktur') return openInstruktur();
+      if (a === 'ksa') return openKsa();
+      if (a === 'cc') return openCc();
+      if (a === 'sert') return openSert();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
     var kl = t.closest('[data-kl]'); if (kl) { S.mlKlausul = kl.getAttribute('data-kl'); return renderMl(); }
@@ -542,11 +720,12 @@
   window.DashApp = {
     S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
-    tlRows: tlRows, tlStatus: tlStatus, reload: muatUlang, toast: toast
+    tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 
-  load();
+  var s0 = D.sesi();
+  if (s0) { aturPeran(s0.peran, s0.user); tampilApp(); load(); } else tampilLogin('');
   setInterval(function () {
     var bebas = Array.prototype.every.call(document.querySelectorAll('.modal'), function (m) { return m.hidden; });
     if (S.data && S.data.meta && S.data.meta.source === 'live' && document.visibilityState === 'visible' && bebas) { muatUlang(); }

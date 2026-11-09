@@ -1,9 +1,9 @@
-/* Input data lewat website: login (1 akun bersama) -> pilih jenis data -> isi -> periksa -> simpan ke Google Sheets */
+/* Input data lewat website (akun Admin): pilih jenis data -> isi -> periksa -> simpan ke Google Sheets.
+   Data evaluasi mentah (Kepuasan, Instruktur, KSA, C&C, Sertifikat) ditempel langsung di tab "Data - …". */
 (function () {
   var D = window.Dash, A = function () { return window.DashApp; }, $ = function (id) { return document.getElementById(id); }, esc = D.esc;
-  var TOKEN_KEY = 'dash-input-token';
   var BLN = D.BULAN.map(D.cap);
-  var STATUS_TL = ['Belum Dimulai', 'Berjalan', 'Selesai'];
+  var STATUS_TL = ['Belum Dimulai', 'OFI', 'Proses Tindak Lanjut', 'Sudah Dilaporkan', 'Selesai'];
 
   /* ---------- definisi formulir (kolom = judul kolom di tab spreadsheet) ---------- */
   // field: [nama kolom, jenis, wajib, petunjuk, min, max]
@@ -15,12 +15,6 @@
       tips: ['Bulan mengikuti pilihan Bulan di bagian atas dashboard.', 'Kotak yang Anda ubah ditandai warna; hanya baris itu yang disimpan.', 'Desimal pakai koma, contoh 2,45. Untuk indikator yang realisasinya persen, ketik angkanya saja (98 berarti 98%).', 'Skor dan pencapaian dihitung otomatis oleh rumus di spreadsheet.'] },
     kepatuhan: { grp: 'Rutin bulanan', nama: 'Kepatuhan', tab: 'Kepatuhan', cara: 'Mengisi kolom bulan terpilih untuk tiap aspek kepatuhan tahun ini.', khusus: 'kepatuhan',
       tips: ['Isi 0 kalau patuh (tidak ada pengurang).', 'Nilai tidak boleh melebihi batas maks tiap aspek.', 'Bulan mengikuti pilihan Bulan di bagian atas dashboard.'] },
-    l1: { grp: 'Evaluasi pelatihan', nama: 'Kepuasan Peserta (L1)', tab: 'Rekap L1 Kepuasan', cara: 'Menambah satu baris baru di bawah data terakhir.',
-      fields: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'judul', 1, 'Ketik beberapa huruf, lalu pilih dari daftar Rendiklat'], ['Jumlah Responden', 'int', 1, '', 1], ['Nilai Kepuasan (1-5)', 'angka', 1, 'Contoh: 4,62', 1, 5], ['Keterangan', 'teks', 0]],
-      tips: ['Satu baris = satu pelatihan.', 'Nilai kepuasan memakai skala 1 sampai 5.', 'Rata-rata di dashboard ditimbang dengan jumlah responden.'] },
-    l2: { grp: 'Evaluasi pelatihan', nama: 'KSA & C&C (L2)', tab: 'Rekap L2', cara: 'Menambah satu baris baru di bawah data terakhir.', salahSatu: ['KSA Formatif (0-100)', 'C&C Sumatif (1-4)'],
-      fields: [['Tanggal Selesai', 'tgl', 1], ['Judul Pelatihan', 'judul', 1], ['Jumlah Peserta', 'int', 1, '', 1], ['KSA Formatif (0-100)', 'angka', 0, 'Skala 0–100', 0, 100], ['C&C Sumatif (1-4)', 'angka', 0, 'Skala 1–4', 1, 4], ['Keterangan', 'teks', 0]],
-      tips: ['KSA dan C&C boleh diisi salah satu kalau yang lain belum ada.', 'Rata-rata di dashboard ditimbang dengan jumlah peserta.'] },
     l3: { grp: 'Evaluasi pelatihan', nama: 'Dampak Perilaku (L3)', tab: 'Rekap L3 Perilaku', cara: 'Menambah satu baris baru di bawah data terakhir.',
       fields: [['Tanggal Evaluasi', 'tgl', 1, 'Tanggal pengukuran dilakukan'], ['Judul Pelatihan', 'judul', 1], ['Unit', 'teks', 0], ['Skor (0-100)', 'angka', 1, '', 0, 100], ['Keterangan', 'teks', 0]],
       tips: ['Tanggal evaluasi adalah tanggal pengukuran, bukan tanggal pelatihan.', 'Target L3 diambil dari Konman.'] },
@@ -30,12 +24,8 @@
     roti: { grp: 'Evaluasi pelatihan', nama: 'ROTI', tab: 'Rekap ROTI', cara: 'Menambah satu baris baru di bawah data terakhir.',
       fields: [['Tanggal', 'tgl', 1], ['Judul / Program', 'judul', 1], ['Unit', 'teks', 0], ['Nilai ROTI (%)', 'angka', 1, 'Tanpa tanda %. Contoh: 125 untuk 125%'], ['Keterangan', 'teks', 0]],
       tips: ['Isi persen tanpa tanda %.'] },
-    sertifikat: { grp: 'Evaluasi pelatihan', nama: 'Sertifikat Terbit', tab: 'Rekap Sertifikat', cara: 'Menambah satu baris baru. Kolom % Terbit dihitung otomatis.',
-      fields: [['Tanggal', 'tgl', 1], ['Judul Pelatihan', 'judul', 1], ['Peserta Lulus', 'int', 1, '', 0], ['Sertifikat Terbit', 'int', 1, 'Tidak boleh lebih dari peserta lulus', 0], ['Keterangan', 'teks', 0]],
-      tips: ['Kolom % Terbit tidak perlu diisi; spreadsheet menghitungnya otomatis.'] },
-    tl: { grp: 'Lainnya', nama: 'Tindak Lanjut Evaluasi', tab: 'Tindak Lanjut Evaluasi', cara: 'Menambah temuan baru, atau mengubah status temuan yang sudah ada.', mode: true,
-      fields: [['Tanggal', 'tgl', 1], ['Temuan / Masukan', 'area', 1], ['Sumber', 'opsi:Evaluasi Level 1|Evaluasi Level 2|Evaluasi Level 3|Evaluasi Level 4|Audit|Masukan Pelanggan|Lainnya', 1], ['PIC', 'teks', 1], ['Status', 'opsi:' + STATUS_TL.join('|'), 1], ['Target Selesai', 'tgl', 0], ['Keterangan', 'teks', 0]],
-      tips: ['Untuk memperbarui temuan lama, pilih "Ubah status temuan", jangan menambah baris baru.', 'Kolom No terisi otomatis.'] },
+    tl: { grp: 'Lainnya', nama: 'Tindak Lanjut Evaluasi', tab: 'Tindak Lanjut Evaluasi', cara: 'Mengubah Status dan Keterangan satu komentar/temuan yang sudah ada. Baris baru ditempel langsung di spreadsheet.', khusus: 'tl',
+      tips: ['Pilih baris lewat kotak pencarian: ketik judul pelatihan, komentar, atau PIC.', 'Selesai dan Sudah Dilaporkan dihitung "selesai"; OFI dan Proses Tindak Lanjut dihitung "berjalan".', 'Kolom lain (komentar, PIC, sumber) diubah langsung di Google Sheets.'] },
     koreksi: { grp: 'Lainnya', nama: 'Koreksi Rendiklat', tab: 'Koreksi Rendiklat', cara: 'Mengisi baris kelas yang dipilih. File Rendiklat asli tidak diubah.', khusus: 'koreksi',
       tips: ['Daftar kelas berasal dari tab Koreksi Rendiklat (menu Dashboard → Tarik daftar kelas tanpa realisasi).', 'Kosongkan Hari Kerja kalau hitungan otomatis sudah benar.', 'Kolom "Diisi Oleh" terisi otomatis.'] },
     hop: { grp: 'Lainnya', nama: 'Penyesuaian HOP', tab: 'Penyesuaian HOP', cara: 'Menambah satu baris baru.', salahSatu: ['Penyesuaian Orang-Hari (+/-)', 'HOP Final (timpa)'],
@@ -47,51 +37,26 @@
     'Salah input? Perbaiki atau hapus langsung di Google Sheets pada tab yang sama. Form ini tidak bisa menghapus data.',
     'Setelah tersimpan, dashboard memuat ulang data dengan sendirinya.', 'Klik <b>Keluar</b> bila memakai komputer bersama.'];
 
-  var cur = null, mode = 'baru', awal = {}, kirim = null, lanjut = false;
+  var cur = null, awal = {}, kirim = null;
 
-  /* ---------- sesi & API ---------- */
-  function sesi() { try { var s = JSON.parse(sessionStorage.getItem(TOKEN_KEY) || 'null'); return s && s.exp > Date.now() ? s : null; } catch (e) { return null; } }
-  function simpanSesi(s) { try { sessionStorage.setItem(TOKEN_KEY, JSON.stringify(s)); } catch (e) {} }
-  function hapusSesi() { try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} }
-  function api(body) {
-    var url = String((window.DASH_CONFIG || {}).API_URL || '').trim();
-    if (!url) return Promise.reject(new Error('Alamat Apps Script belum diatur di config.js.'));
-    return fetch(url, { method: 'POST', body: JSON.stringify(body), redirect: 'follow' })
-      .then(function (r) { return r.text(); })
-      .then(function (t) {
-        var d; try { d = JSON.parse(t); } catch (e) { throw new Error('Apps Script belum mendukung input dari website. Tempel Code.gs terbaru lalu Deploy versi baru (lihat README).'); }
-        if (!d.ok) { var er = new Error(d.error || 'Gagal.'); er.login = !!d.login; throw er; }
-        return d;
-      }, function () { throw new Error('Tidak bisa terhubung ke Apps Script. Bila Apps Script belum diperbarui ke versi 3, tempel Code.gs terbaru lalu Deploy versi baru. Bila sudah, periksa koneksi internet lalu coba lagi.'); });
-  }
+  /* ---------- sesi & API (bersama, dari common.js) ---------- */
+  var sesi = D.sesi, api = D.api;
 
   /* ---------- buka / tutup ---------- */
   var lastFocus = null;
-  function buka(id) { lastFocus = lastFocus || document.activeElement; ['loginModal', 'inputModal', 'exportModal'].forEach(function (m) { $(m).hidden = m !== id; }); var f = $(id).querySelector('input:not([type=hidden]),select,textarea'); if (f) setTimeout(function () { f.focus(); }, 30); }
-  function tutup() { ['loginModal', 'inputModal'].forEach(function (m) { $(m).hidden = true; }); if (lastFocus && lastFocus.focus) lastFocus.focus(); lastFocus = null; }
-  document.addEventListener('click', function (e) { var t = e.target; if (!t.closest) return; if (t.closest('#loginModal [data-tutup], #inputModal [data-tutup]') || t === $('loginModal') || t === $('inputModal')) tutup(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && (!$('loginModal').hidden || !$('inputModal').hidden)) tutup(); });
+  function buka(id) { lastFocus = lastFocus || document.activeElement; ['inputModal', 'exportModal'].forEach(function (m) { $(m).hidden = m !== id; }); var f = $(id).querySelector('input:not([type=hidden]),select,textarea'); if (f) setTimeout(function () { f.focus(); }, 30); }
+  function tutup() { ['inputModal'].forEach(function (m) { $(m).hidden = true; }); if (lastFocus && lastFocus.focus) lastFocus.focus(); lastFocus = null; }
+  document.addEventListener('click', function (e) { var t = e.target; if (!t.closest) return; if (t.closest('#inputModal [data-tutup]') || t === $('inputModal')) tutup(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('inputModal').hidden) tutup(); });
 
   $('inputBtn').addEventListener('click', function () {
     if (!A() || !A().S.data) { A() && A().toast('Data dashboard belum termuat. Tunggu sebentar atau klik Muat ulang.'); return; }
-    var s = sesi(); if (s) { $('whoami').textContent = s.user; buka('inputModal'); if (!cur) pilih('l1'); else form(); } else bukaLogin();
+    var s = sesi();
+    if (!s) return A().keluar('Sesi sudah berakhir. Silakan masuk lagi.');
+    if (!A().admin()) return A().toast('Akun Lihat hanya bisa melihat dashboard.');
+    $('whoami').textContent = s.user; buka('inputModal'); if (!cur) pilih('konman'); else form();
   });
-  function bukaLogin(pesan) {
-    $('loginErr').hidden = !pesan; $('loginErr').textContent = pesan || ''; $('uPass').value = ''; buka('loginModal');
-  }
-  $('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var u = $('uName').value.trim(), p = $('uPass').value;
-    $('uName').classList.toggle('err', !u); $('uPass').classList.toggle('err', !p);
-    if (!u || !p) { $('loginErr').hidden = false; $('loginErr').textContent = 'Isi username dan password.'; return; }
-    var b = $('loginBtn'); b.disabled = true; b.textContent = 'Memeriksa…'; $('loginErr').hidden = true;
-    api({ aksi: 'login', username: u, password: p }).then(function (d) {
-      simpanSesi({ token: d.token, user: d.user, exp: Date.now() + (d.berlakuDetik || 21600) * 1000 - 60000 });
-      $('uPass').value = ''; $('whoami').textContent = d.user; buka('inputModal'); if (!cur) pilih('l1'); else if (!lanjut) form(); lanjut = false;
-    }).catch(function (er) { $('loginErr').hidden = false; $('loginErr').textContent = er.message; $('uPass').select(); })
-      .then(function () { b.disabled = false; b.textContent = 'Masuk'; });
-  });
-  $('logoutBtn').addEventListener('click', function () { var s = sesi(); if (s) api({ aksi: 'keluar', token: s.token }).catch(function () {}); hapusSesi(); tutup(); A().toast('Anda sudah keluar dari mode input.'); });
+  function sesiHabis(pesan) { tutup(); A().keluar(pesan || 'Sesi sudah berakhir. Silakan masuk lagi.'); }
 
   /* ---------- menu ---------- */
   (function () {
@@ -101,7 +66,7 @@
     $('inMenu').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) pilih(b.getAttribute('data-k')); });
   })();
   function pilih(k) {
-    cur = k; mode = 'baru';
+    cur = k;
     Array.prototype.forEach.call($('inMenu').querySelectorAll('[data-k]'), function (b) { b.setAttribute('aria-current', b.getAttribute('data-k') === k ? 'true' : 'false'); });
     form(); panduan();
   }
@@ -159,21 +124,19 @@
   /* ---------- langkah 1: formulir ---------- */
   function form() {
     var d = F[cur], h = head(1), p = per(); perForm = p.label;
-    if (d.mode) h += '<div class="modeseg" role="group" aria-label="Pilih tindakan"><button type="button" class="btn' + (mode === 'baru' ? ' primary' : '') + '" data-mode="baru">＋ Tambah temuan baru</button><button type="button" class="btn' + (mode === 'ubah' ? ' primary' : '') + '" data-mode="ubah">✎ Ubah status temuan</button></div>';
     if (d.khusus === 'konman') h += formKonman(p);
     else if (d.khusus === 'kepatuhan') h += formKep(p);
     else if (d.khusus === 'koreksi') h += formKoreksi();
-    else if (d.mode && mode === 'ubah') h += formUbahTL();
+    else if (d.khusus === 'tl') h += formUbahTL();
     else h += '<div class="grid2">' + d.fields.map(inputFor).join('') + '</div>';
     h += '<div class="errmsg" id="fErr" hidden></div><div class="actions"><button type="button" class="btn" id="fReset">Kosongkan</button><button type="button" class="btn primary" id="fNext">Lanjut periksa →</button></div>';
     h += '<datalist id="dlJudul">' + judulList().map(function (j) { return '<option value="' + esc(j) + '">'; }).join('') + '</datalist>';
     $('inForm').innerHTML = h; $('inForm').scrollTop = 0;
-    Array.prototype.forEach.call($('inForm').querySelectorAll('[data-mode]'), function (b) { b.addEventListener('click', function () { mode = b.getAttribute('data-mode'); form(); }); });
     $('fReset').addEventListener('click', form);
     $('fNext').addEventListener('click', periksa);
     if (cur === 'pegawai') { var tampil = function () { infoPegawai(); }; ['fi0', 'fi1'].forEach(function (id) { $(id).addEventListener('change', tampil); }); tampil(); }
     if (d.khusus === 'koreksi') { $('kSel').addEventListener('change', infoKoreksi); $('kSel').addEventListener('input', infoKoreksi); }
-    if (d.mode && mode === 'ubah') { $('tlSel').addEventListener('change', infoTL); infoTL(); }
+    if (d.khusus === 'tl' && $('tlSel')) { $('tlSel').addEventListener('change', infoTL); $('tlSel').addEventListener('input', infoTL); }
     Array.prototype.forEach.call($('inForm').querySelectorAll('.etbl input'), function (i) { i.setAttribute('data-awal', i.value); });   // nilai awal sesuai isi kotak (baris baru dihapus browser)
     Array.prototype.forEach.call($('inForm').querySelectorAll('.etbl tr[data-b]'), function (tr) { var x = tr.querySelectorAll('input'); awal[tr.getAttribute('data-b')] = { r: x[0].value, k: x[1].value }; });
     Array.prototype.forEach.call($('inForm').querySelectorAll('.etbl input'), function (i) { i.addEventListener('input', function () { var tr = i.closest('tr'); tr.classList.toggle('chg', Array.prototype.some.call(tr.querySelectorAll('input'), function (x) { return x.value !== x.getAttribute('data-awal'); })); }); });
@@ -229,17 +192,26 @@
     el.textContent = 'Rencana peserta ' + (r['Rencana Peserta'] || '–') + ' · ' + (tglId(r['Tgl Mulai']) || '?') + ' s.d. ' + (tglId(r['Tgl Selesai']) || '?') + (String(r['Realisasi Peserta (koreksi)']).trim() ? ' · koreksi sekarang: ' + r['Realisasi Peserta (koreksi)'] : '');
     if (String(r['Realisasi Peserta (koreksi)']).trim() && !$('fi1').value) $('fi1').value = r['Realisasi Peserta (koreksi)'];
   }
+  var tlMap = {};
   function formUbahTL() {
-    var R = A().tlRows();
-    if (!R.length) return '<div class="errmsg">Belum ada temuan. Pilih "Tambah temuan baru".</div>';
-    return '<div class="grid2"><div class="field full" data-w="1"><label for="tlSel">Temuan yang diubah <em>*</em></label><select class="inp" id="tlSel">' +
-      R.map(function (r) { return '<option value="' + esc(r['No']) + '">' + esc(r['No'] + '. ' + String(r['Temuan / Masukan']).slice(0, 90) + ' — ' + A().tlStatus(r)) + '</option>'; }).join('') + '</select><span class="now" id="tlInfo" hidden></span></div>' +
-      inputFor(['Status', 'opsi:' + STATUS_TL.join('|'), 1], 1) + inputFor(['Keterangan', 'teks', 0, 'Contoh: sudah diperbaiki tanggal 3 Nov'], 2) + '</div>';
+    var R = A().tlRows(); tlMap = {}; tlTerakhir = null;
+    if (!R.length) return '<div class="errmsg">Tab Tindak Lanjut Evaluasi masih kosong. Tempel komentar & temuan langsung di Google Sheets.</div>';
+    var opts = R.map(function (r) {
+      var lbl = '[' + A().tlAsli(r) + '] ' + String(r['Judul Diklat'] || '').trim() + ' — ' + String(r['Komentar']).replace(/\s+/g, ' ').trim().slice(0, 80) + ' · baris ' + r['_baris'];
+      tlMap[lbl] = r; return '<option value="' + esc(lbl) + '">';
+    }).join('');
+    return '<div class="grid2"><div class="field full" data-w="1"><label for="tlSel">Komentar / temuan yang diubah <em>*</em></label><input class="inp" id="tlSel" list="dlTL" placeholder="Ketik judul pelatihan, komentar, atau PIC, lalu pilih" autocomplete="off">' +
+      '<span class="hint2">' + R.length + ' baris di tab Tindak Lanjut Evaluasi.</span><span class="now" id="tlInfo" hidden></span></div>' +
+      inputFor(['Status', 'opsi:' + STATUS_TL.join('|'), 1], 1) + inputFor(['Keterangan', 'teks', 0, 'Contoh: sudah diperbaiki tanggal 3 Nov'], 2) + '</div><datalist id="dlTL">' + opts + '</datalist>';
   }
+  var tlTerakhir = null;
   function infoTL() {
-    var r = A().tlRows().filter(function (x) { return String(x['No']) === $('tlSel').value; })[0]; if (!r) return;
-    $('fi1').value = A().tlStatus(r); $('fi2').value = String(r['Keterangan'] || '').replace(/\s*\(input web:[^)]*\)/g, '').trim();
-    $('tlInfo').hidden = false; $('tlInfo').textContent = 'PIC ' + (r['PIC'] || '–') + ' · status sekarang: ' + A().tlStatus(r);
+    var r = tlMap[$('tlSel').value], el = $('tlInfo'); el.hidden = !r;
+    if (!r || r === tlTerakhir) return;   // isi Status/Keterangan hanya saat baris yang dipilih berganti
+    tlTerakhir = r;
+    var st = A().tlAsli(r); $('fi1').value = STATUS_TL.indexOf(st) >= 0 ? st : 'Belum Dimulai';
+    $('fi2').value = String(r['Keterangan'] || '').replace(/\s*\(input web:[^)]*\)/g, '').trim();
+    el.textContent = 'PIC ' + (r['PIC'] || '–') + ' · ' + (r['Sumber'] || '') + ' · status sekarang: ' + st;
   }
 
   /* ---------- langkah 2: periksa ---------- */
@@ -308,16 +280,17 @@
       data.kunci = kunci(r['ID REN'], r['Judul Pelatihan'], r['Tgl Mulai']);
       rows.unshift(['Kelas', $('kSel').value]); rows.push(['Diisi Oleh', sesi() ? sesi().user + ' (otomatis)' : '']);
       kirim = { jenis: 'koreksi', data: data };
-    } else if (d.mode && mode === 'ubah') {
+    } else if (d.khusus === 'tl') {
       if (!$('tlSel')) return;
+      var rt = tlMap[$('tlSel').value];
+      if (!rt) return salah('Pilih baris dari daftar (ketik lalu klik salah satu pilihan).', $('tlSel'));
       if (!kumpulkanField(data, rows)) return;
-      data.mode = 'ubah'; data.no = $('tlSel').value;
-      rows.unshift(['Temuan', $('tlSel').options[$('tlSel').selectedIndex].text]);
+      data.baris = rt['_baris']; data.komentar = String(rt['Komentar']).trim();
+      rows.unshift(['Komentar', String(rt['Komentar'])]); rows.unshift(['Pelatihan', String(rt['Judul Diklat'] || '–')]);
       kirim = { jenis: 'tl', data: data };
     } else {
       if (!kumpulkanField(data, rows)) return;
       if (d.salahSatu && d.salahSatu.every(function (k) { return !data[k]; })) return salah('Isi minimal salah satu: ' + d.salahSatu.join(' atau ') + '.');
-      if (cur === 'sertifikat' && D.num(data['Sertifikat Terbit']) > D.num(data['Peserta Lulus'])) return salah('Sertifikat Terbit tidak boleh lebih besar dari Peserta Lulus.');
       if (cur === 'hop') rows.push(['Diisi Oleh', sesi() ? sesi().user + ' (otomatis)' : '']);
       kirim = { jenis: cur, data: data };
     }
@@ -335,7 +308,7 @@
 
   /* ---------- langkah 3: simpan ---------- */
   function simpan(btn) {
-    var s = sesi(); if (!s) { lanjut = true; tutup(); return bukaLogin('Sesi sudah berakhir. Silakan masuk lagi; isian Anda masih ada.'); }
+    var s = sesi(); if (!s) return sesiHabis();
     btn.disabled = true; btn.textContent = 'Menyimpan…'; $('sBack').disabled = true;
     api({ aksi: 'simpan', token: s.token, jenis: kirim.jenis, data: kirim.data }).then(function (d) {
       $('inForm').innerHTML = head(3) + '<div class="done"><div class="ic">✓</div><h3>Tersimpan</h3><p class="desc" style="max-width:460px;margin:0">' + esc(d.pesan || 'Data tersimpan.') + '</p>' +
@@ -343,7 +316,7 @@
       $('dAgain').addEventListener('click', form); $('dDone').addEventListener('click', tutup);
       A().reload();
     }).catch(function (er) {
-      if (er.login) { hapusSesi(); btn.disabled = false; btn.textContent = '✓ Simpan ke Google Sheets'; $('sBack').disabled = false; lanjut = true; tutup(); bukaLogin(er.message + ' Isian Anda masih ada.'); return; }
+      if (er.login) return sesiHabis(er.message);
       $('sErr').hidden = false; $('sErr').textContent = er.message; btn.disabled = false; btn.textContent = '✓ Coba simpan lagi'; $('sBack').disabled = false;
     });
   }

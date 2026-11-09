@@ -189,40 +189,135 @@
     return n ? { nilai: s / w, n: n } : null;
   }
 
+  /* ---------------- EVALUASI dari data mentah (ringkasan dibuat Apps Script) ---------------- */
+  /* Semua dihitung kumulatif Januari s.d. akhir bulan m tahun y, berdasarkan tanggal selesai pelatihan */
+  function dalam(iso, y, m) { var t = tgl(iso); return !!t && t.getFullYear() === y && t <= akhirBulan(y, m); }
+  function nol(n) { var a = []; for (var i = 0; i < n; i++) a.push(0); return a; }
+  function jumlah(a) { return a.reduce(function (s, x) { return s + (x || 0); }, 0); }
+
+  function evalKepuasan(E, y, m) {
+    if (!E || !E.butir) return null;
+    var nb = E.butir.length, s = nol(nb), c = nol(nb), pel = [], resp = 0;
+    (E.pel || []).forEach(function (p) {
+      if (!dalam(p[0], y, m)) return;
+      for (var k = 0; k < nb; k++) { s[k] += p[3][k] || 0; c[k] += p[4][k] || 0; }
+      var ps = jumlah(p[3]), pc = jumlah(p[4]); resp += p[2];
+      pel.push({ tg: p[0], judul: p[1], n: p[2], nilai: pc ? ps / pc : null });
+    });
+    var S = jumlah(s), C = jumlah(c), asp = {}, urut = [];
+    var butir = E.butir.map(function (b, k) {
+      var a = E.aspek[k] || 'Lainnya';
+      if (!asp[a]) { asp[a] = { nama: a, s: 0, c: 0 }; urut.push(a); }
+      asp[a].s += s[k]; asp[a].c += c[k];
+      return { label: b, aspek: a, nilai: c[k] ? s[k] / c[k] : null, n: c[k] };
+    });
+    return { nilai: C ? S / C : null, responden: resp, pelatihan: pel.length, butir: butir, pel: pel,
+      aspek: urut.map(function (a) { return { nama: a, nilai: asp[a].c ? asp[a].s / asp[a].c : null, n: asp[a].c }; }) };
+  }
+
+  function evalInstruktur(E, y, m) {
+    if (!E || !E.butir) return null;
+    var nb = E.butir.length;
+    var ins = (E.instruktur || []).map(function (x, i) { return { i: i, nama: x[0], tipe: x[1], s: 0, c: 0, n: 0, pel: [], bs: nol(nb), bc: nol(nb) }; });
+    (E.pel || []).forEach(function (p) {
+      var o = ins[p[0]]; if (!o || !dalam(p[1], y, m)) return;
+      for (var k = 0; k < nb; k++) { o.bs[k] += p[5][k] || 0; o.bc[k] += p[6][k] || 0; }
+      var ps = jumlah(p[5]), pc = jumlah(p[6]); o.s += ps; o.c += pc; o.n += p[4];
+      o.pel.push({ tg: p[1], judul: p[2], angkatan: p[3], n: p[4], nilai: pc ? ps / pc : null });
+    });
+    var list = ins.filter(function (o) { return o.pel.length; }).map(function (o) {
+      o.nilai = o.c ? o.s / o.c : null;
+      o.butir = E.butir.map(function (b, k) { return { label: b, nilai: o.bc[k] ? o.bs[k] / o.bc[k] : null }; });
+      return o;
+    });
+    var S = jumlah(list.map(function (o) { return o.s; })), C = jumlah(list.map(function (o) { return o.c; }));
+    return { nilai: C ? S / C : null, instruktur: list, penilaian: jumlah(list.map(function (o) { return o.n; })) };
+  }
+
+  function evalKsa(E, y, m) {
+    if (!E || !E.pel) return null;
+    var pel = [], n = 0, s = 0, semua = 0;
+    E.pel.forEach(function (p) {
+      if (!dalam(p[0], y, m)) return;
+      n += p[2]; s += p[3]; semua += p[4];
+      pel.push({ tg: p[0], judul: p[1], n: p[2], semua: p[4], nilai: p[2] ? p[3] / p[2] : null });
+    });
+    return { nilai: n ? s / n : null, peserta: n, semua: semua, pel: pel };
+  }
+
+  function evalCc(E, y, m) {
+    if (!E || !E.pel) return null;
+    var pel = [], n = 0, sc = 0, nc = 0, sm = 0, nm = 0;
+    E.pel.forEach(function (p) {
+      if (!dalam(p[0], y, m)) return;
+      n += p[2]; sc += p[3]; nc += p[4]; sm += p[5]; nm += p[6];
+      pel.push({ tg: p[0], judul: p[1], n: p[2], conf: p[4] ? p[3] / p[4] : null, comm: p[6] ? p[5] / p[6] : null });
+    });
+    var conf = nc ? sc / nc : null, comm = nm ? sm / nm : null;
+    return { conf: conf, comm: comm, nilai: conf !== null && comm !== null ? (conf + comm) / 2 : (conf !== null ? conf : comm), n: n, pel: pel };
+  }
+
+  /* Sertifikat: terbit = status pertama (Finish TTE GM), dihitung dari Tgl.Terbit.
+     Yang belum terbit ditempatkan pada periode menurut tanggal selesai pelatihan. */
+  function evalSert(E, y, m) {
+    if (!E || !E.status) return null;
+    var cnt = nol(E.status.length), kum = 0, bln = 0, total = 0;
+    (E.rows || []).forEach(function (r) {
+      var terbit = r[0] === 0, d = terbit ? (r[1] || r[2]) : (r[2] || r[1]);
+      if (!dalam(d, y, m)) return;
+      total++; cnt[r[0]]++;
+      if (terbit) { kum++; if (tgl(d).getMonth() + 1 === m) bln++; }
+    });
+    return { status: E.status, cnt: cnt, terbit: kum, bulan: bln, total: total, pct: total ? kum / total : null };
+  }
+
+  /* ---------------- SESI LOGIN ---------------- */
+  var SESI_KEY = 'dash-sesi', CACHE_KEY = 'dash-cache-v4';
+  function sesi() { try { var s = JSON.parse(sessionStorage.getItem(SESI_KEY) || 'null'); return s && s.exp > Date.now() ? s : null; } catch (e) { return null; } }
+  function simpanSesi(s) { try { sessionStorage.setItem(SESI_KEY, JSON.stringify(s)); } catch (e) {} }
+  function hapusSesi() {
+    try { sessionStorage.removeItem(SESI_KEY); sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('dash-cache-v3'); sessionStorage.removeItem('dash-input-token'); } catch (e) {}
+  }
+  function api(body) {
+    var url = String((window.DASH_CONFIG || {}).API_URL || '').trim();
+    if (!url) return Promise.reject(new Error('Alamat Apps Script belum diatur di config.js.'));
+    return fetch(url, { method: 'POST', body: JSON.stringify(body), redirect: 'follow' })
+      .then(function (r) { return r.text(); }, function () { throw new Error('Tidak bisa terhubung ke Google Sheets. Periksa koneksi internet lalu coba lagi.'); })
+      .then(function (t) {
+        var d; try { d = JSON.parse(t); } catch (e) { throw new Error('Apps Script belum diperbarui. Tempel Code.gs versi 4 lalu Deploy versi baru (lihat README).'); }
+        if (!d.ok) {
+          var er = new Error(d.error || (d.perluLogin ? 'Silakan masuk.' : 'Gagal.')); er.login = !!d.login; throw er;
+        }
+        return d;
+      });
+  }
+
   /* ---------------- LOAD ---------------- */
-  var CACHE_KEY = 'dash-cache-v3';
-  function loadData(opts) {
-    opts = opts || {};
-    var cfg = window.DASH_CONFIG || {};
-    var api = String(cfg.API_URL || '').trim();
-    if (!api) return loadSnapshot('API belum diatur');
-    return fetch(api + (api.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { redirect: 'follow' })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  function loadData() {
+    var s = sesi();
+    if (!s) { var e0 = new Error('Silakan masuk.'); e0.login = true; return Promise.reject(e0); }
+    return api({ aksi: 'data', token: s.token })
       .then(function (d) {
-        if (d && d.error) throw new Error(d.error);
-        if (!d.meta || !(d.meta.versi >= 2)) throw new Error('Apps Script masih versi lama. Tempel Code.gs terbaru lalu buat versi deployment baru.');
+        if (!d.meta || !(d.meta.versi >= 4)) throw new Error('Apps Script masih versi lama. Tempel Code.gs terbaru lalu buat versi deployment baru.');
         try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {}
         return d;
       })
       .catch(function (err) {
-        var cached = null;
-        try { cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) {}
+        if (err.login) throw err;
+        var cached = cachedData();
         if (cached) { cached.meta.stale = String(err.message || err); return cached; }
-        return loadSnapshot('Gagal memuat dari Google Sheets: ' + (err.message || err));
+        throw new Error('Gagal memuat dari Google Sheets: ' + (err.message || err) + ' Coba klik Muat ulang beberapa saat lagi.');
       });
   }
   function cachedData() { try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; } }
-  function loadSnapshot(reason) {
-    var done = function (d) { d.meta = d.meta || {}; d.meta.source = 'snapshot'; d.meta.reason = reason; return d; };
-    if (window.__SNAPSHOT__) return Promise.resolve(done(window.__SNAPSHOT__));
-    // Tidak ada salinan data di website: tampilkan pesan, bukan angka contoh
-    return Promise.reject(new Error(reason + '. Coba klik Muat ulang beberapa saat lagi.'));
-  }
+  function hapusCache() { try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {} }
 
   window.Dash = {
     BULAN: BULAN, BLN3: BLN3, cap: cap, num: num, esc: esc, fmt: fmt, pct: pct, rows: rows,
     parseKonman: parseKonman, capaianItem: capaianItem, bobotFor: bobotFor, hasData: hasData,
     tgl: tgl, hariKerja: hariKerja, akhirBulan: akhirBulan, parseRendiklat: parseRendiklat, hitungRendiklat: hitungRendiklat,
-    rekapSampai: rekapSampai, rataTertimbang: rataTertimbang, loadData: loadData, cachedData: cachedData
+    rekapSampai: rekapSampai, rataTertimbang: rataTertimbang, loadData: loadData, cachedData: cachedData, hapusCache: hapusCache,
+    evalKepuasan: evalKepuasan, evalInstruktur: evalInstruktur, evalKsa: evalKsa, evalCc: evalCc, evalSert: evalSert,
+    sesi: sesi, simpanSesi: simpanSesi, hapusSesi: hapusSesi, api: api
   };
 })();
