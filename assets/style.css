@@ -618,7 +618,7 @@ body:not(.peran-admin) .adm { display: none !important; }
 @media (max-width:760px){.flow,.cats,.dd,.fmt{grid-template-columns:1fr}.flow .st:not(:last-child)::after{content:"\2193";right:50%;top:auto;bottom:-12px;transform:translate(50%,50%)}.time{grid-template-columns:1fr 1fr;row-gap:12px}}
 .top.kecil .themebtn button{padding:5px 7px}
 
-/* ===================== LIQUID GLASS (bisa dimatikan dengan tombol Kaca) ===================== */
+/* ===================== LIQUID GLASS (selalu aktif) ===================== */
 :root{--g-card:rgba(255,255,255,.62);--g-bar:rgba(255,255,255,.55);--g-btn:rgba(255,255,255,.5);--g-modal:rgba(255,255,255,.8);--g-border:rgba(255,255,255,.75);--g-hi:rgba(255,255,255,.95);--g-shadow:0 10px 30px rgba(24,35,63,.10);
  --g-bg:#eceff6;--g-b1:rgba(123,30,58,.30);--g-b2:rgba(58,79,140,.32);--g-b3:rgba(31,138,140,.22);--g-b4:rgba(217,140,31,.22)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--g-card:rgba(30,38,64,.55);--g-bar:rgba(18,24,42,.6);--g-btn:rgba(255,255,255,.07);--g-modal:rgba(24,31,52,.82);--g-border:rgba(255,255,255,.13);--g-hi:rgba(255,255,255,.16);--g-shadow:0 10px 30px rgba(0,0,0,.35);
@@ -643,7 +643,6 @@ html.glass .onode,html.glass .flow .st,html.glass .tl-sum div,html.glass .mini-s
 html.glass .tbl th,html.glass .rk-lh{background:transparent}
 html.glass .badge,html.glass .who{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 @media (prefers-reduced-transparency:reduce){html.glass .card,html.glass .panel,html.glass .top,html.glass .modal-c,html.glass .btn{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--sheet)}}
-html.glass .themebtn button[data-kaca][aria-pressed="true"]{background:var(--accent);color:#fff}
 html.glass .warnbox{background:color-mix(in srgb,var(--warn-bg) 85%,transparent)}
 html.glass .login{background:transparent}
 html.glass .chip[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
