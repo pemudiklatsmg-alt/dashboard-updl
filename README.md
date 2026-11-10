@@ -25,7 +25,7 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
 | Peta Risiko | File **Profil Risiko** (versi Google Sheets) → sheet *4. Peta Risiko*, mengikuti pilihan Inheren/Residual/Target di file itu | Tim JAR |
 | Pengembangan Pegawai (IDP) | tab **Data - IDP** (kolom sama dengan template Pengembangan Pegawai). Selesai = semua jalur yang ada rencananya sudah ada realisasinya. Kelompok 4a–4e dari kolom Pemetaan IDP; nilai Konman 4a–4e dari tab Konman. Tidak mengikuti filter bulan. | Admin |
 | Pengembangan Inovasi | tab **Data - Inovasi** (tahun = kolom Tahun). Kategori Kinerja = untuk Konman no. 9, UPDL = internal. Persen Konman no. 9 diambil dari tab Konman, tidak dihitung ulang (tidak bergantung juklak). | JAR |
-| Struktur Organisasi (tombol di header, tampil sebagai jendela) | tab **Data - Pegawai** (Nama, NIP, Jabatan, Atasan Langsung, Level Jabatan) dan **Data - Alih Daya**; periode di Pengaturan `PERIODE_DATA_PEGAWAI`. Bagan disusun otomatis dari kolom Atasan Langsung (harus sama persis dengan Jabatan atasannya). NIP tidak dikirim ke website. | Admin |
+| Struktur Organisasi (menu ☰, tampil sebagai jendela) | tab **Data - Pegawai** (Nama, NIP, Jabatan, Atasan Langsung, Level Jabatan) dan **Data - Alih Daya**; periode di Pengaturan `PERIODE_DATA_PEGAWAI`. Bagan disusun otomatis dari kolom Atasan Langsung (harus sama persis dengan Jabatan atasannya): Manager di atas, jabatan langsung di bawah Manager di garis tengah, lalu satu kolom per Asman; urut abjad jabatan lalu nama. Alih daya dikelompokkan per perusahaan, lalu per jenis pekerjaan (kata pertama kolom Bagian), nama urut abjad. NIP tidak dikirim ke website. | Admin |
 
 ## Rumus utama
 
@@ -61,6 +61,9 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 
 ## Export Excel
 Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
+
+## Tampilan
+- Menu dan jendela pop-up memakai efek genie (±0,3 detik); otomatis mati bila perangkat diatur "kurangi gerakan".
 
 ## Font
 Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.

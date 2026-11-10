@@ -21,9 +21,18 @@
     if (!A().admin()) { A().toast('Export hanya untuk akun Admin.'); return; }
     $('expName').textContent = namaFile(); $('expErr').hidden = true;
     $('inputModal').hidden = true;
-    $('exportModal').hidden = false; $('expGo').focus();
+    var baru = $('exportModal').hidden; asalEx = G ? G.catat() : null;
+    $('exportModal').hidden = false; $('expGo').focus({ preventScroll: true });
+    if (baru && G) { G.bersih($('exportModal')); G.pudar($('exportModal'), true); G.jalan($('exportModal').querySelector('.modal-c'), G.balik(asalEx), true); }
   }
-  function tutup() { $('exportModal').hidden = true; $('exportBtn').focus(); }
+  var G = window.Genie, asalEx = null, menutup = 0;
+  function tutup() {
+    if ($('exportModal').hidden || menutup) return;
+    var token = menutup = Date.now();
+    function selesai() { if (menutup !== token) return; menutup = 0; $('exportModal').hidden = true; if (G) G.bersih($('exportModal')); var mb = $('menuBtn'); if (mb) mb.focus({ preventScroll: true }); }
+    if (!G) return selesai();
+    G.pudar($('exportModal'), false); G.jalan($('exportModal').querySelector('.modal-c'), G.balik(asalEx), false).then(selesai);
+  }
   $('exportBtn').addEventListener('click', bukaExport);
   document.addEventListener('click', function (e) { if (e.target.closest && (e.target.closest('#exportModal [data-tutup]') || e.target === $('exportModal'))) tutup(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('exportModal').hidden) tutup(); });

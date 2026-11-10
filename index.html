@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261110f">
+<link rel="stylesheet" href="assets/style.css?v=20261110g">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
 <section class="login" id="loginGate">
   <form class="lbox" id="loginForm" novalidate>
-    <h1>Dashboard Kinerja UPDL Semarang<span class="dot">.</span></h1>
+    <h1>Dashboard Kinerja UPDL Semarang</h1>
     <p class="desc" style="margin:0">Masuk untuk melihat dashboard. Data tidak ditampilkan sebelum login.</p>
     <div class="field"><label for="uName">Username</label><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
     <div class="field"><label for="uPass">Password</label><input class="inp" id="uPass" type="password" autocomplete="current-password"></div>
@@ -26,7 +26,7 @@
   <header class="top" id="top">
     <div class="brand">
       <span class="st snap" id="stDot" title="Memuat data…"></span>
-      <h1><span class="long" id="judul">Dashboard Kinerja UPDL Semarang<span class="dot">.</span></span><span class="short" aria-hidden="true">Dashboard UPDL<span class="dot">.</span></span></h1>
+      <h1><span class="long" id="judul">Dashboard Kinerja UPDL Semarang</span><span class="short" aria-hidden="true">Dashboard UPDL</span><span class="heart" aria-hidden="true">🩷</span></h1>
     </div>
     <div class="periode">
       <select id="tahunSel" class="sel" aria-label="Pilih tahun"></select>
@@ -135,6 +135,7 @@
   </section>
 
   <div class="foot-note" id="footNote"></div>
+  <div class="credit">Dirancang &amp; dikembangkan oleh Vania Azaria Bonaputri<small>PLN UPDL Semarang · 2026</small></div>
 </main>
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-c" id="modalC"></div></div>
@@ -168,11 +169,12 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261110f"></script>
-<script src="assets/common.js?v=20261110f"></script>
-<script src="assets/dashboard.js?v=20261110f"></script>
-<script src="assets/input.js?v=20261110f"></script>
-<script src="assets/export.js?v=20261110f"></script>
+<script src="config.js?v=20261110g"></script>
+<script src="assets/common.js?v=20261110g"></script>
+<script src="assets/genie.js?v=20261110g"></script>
+<script src="assets/dashboard.js?v=20261110g"></script>
+<script src="assets/input.js?v=20261110g"></script>
+<script src="assets/export.js?v=20261110g"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -220,6 +222,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261110f"></script>
+<script src="assets/panduan.js?v=20261110g"></script>
 </body>
 </html>

@@ -23,14 +23,21 @@
 
   /* Menu header (☰): dropdown di laptop, lembar dari bawah di HP */
   var btn = $('menuBtn'), menu = $('mainMenu'), scrim = $('menuScrim');
-  function tutup(fokus) { if (menu.hidden) return; menu.hidden = true; scrim.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (fokus) btn.focus(); }
+  var G = window.Genie, menutup = 0;
+  function tutup(fokus) {
+    if (menu.hidden || menutup) return;
+    var token = menutup = Date.now(); btn.setAttribute('aria-expanded', 'false'); scrim.hidden = true;
+    function selesai() { if (menutup !== token) return; menutup = 0; menu.hidden = true; if (fokus) btn.focus(); }
+    if (G) G.jalan(menu, btn.getBoundingClientRect(), false).then(selesai); else selesai();
+  }
   function buka() {
-    menu.hidden = false; scrim.hidden = false; btn.setAttribute('aria-expanded', 'true'); tandai();
+    menutup = 0; menu.hidden = false; scrim.hidden = false; btn.setAttribute('aria-expanded', 'true'); tandai();
     if (window.innerWidth > 640) { var r = btn.getBoundingClientRect(); menu.style.top = (r.bottom + 8) + 'px'; menu.style.right = Math.max(12, window.innerWidth - r.right) + 'px'; }
     else { menu.style.top = ''; menu.style.right = ''; }
     var f = menu.querySelector('.mi'); if (f) f.focus({ preventScroll: true });
+    if (G) G.jalan(menu, btn.getBoundingClientRect(), true);
   }
-  btn.addEventListener('click', function () { menu.hidden ? buka() : tutup(true); });
+  btn.addEventListener('click', function () { (menu.hidden || menutup) ? buka() : tutup(true); });
   scrim.addEventListener('click', function () { tutup(false); });
   menu.addEventListener('click', function (e) { if (e.target.closest('.mi')) tutup(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) tutup(true); });

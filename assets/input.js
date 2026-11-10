@@ -44,8 +44,21 @@
 
   /* ---------- buka / tutup ---------- */
   var lastFocus = null;
-  function buka(id) { lastFocus = lastFocus || document.activeElement; ['inputModal', 'exportModal'].forEach(function (m) { $(m).hidden = m !== id; }); var f = $(id).querySelector('input:not([type=hidden]),select,textarea'); if (f) setTimeout(function () { f.focus(); }, 30); }
-  function tutup() { ['inputModal'].forEach(function (m) { $(m).hidden = true; }); if (lastFocus && lastFocus.focus) lastFocus.focus(); lastFocus = null; }
+  var G = window.Genie, asalIn = null, menutup = 0;
+  function buka(id) {
+    var baru = $(id).hidden || !!menutup; menutup = 0;
+    lastFocus = lastFocus || document.activeElement; if (baru && G) asalIn = G.catat();
+    ['inputModal', 'exportModal'].forEach(function (m) { $(m).hidden = m !== id; });
+    var f = $(id).querySelector('input:not([type=hidden]),select,textarea'); if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
+    if (baru && G) { G.bersih($(id)); G.pudar($(id), true); G.jalan($(id).querySelector('.modal-c'), G.balik(asalIn), true); }
+  }
+  function tutup() {
+    if ($('inputModal').hidden || menutup) return;
+    var token = menutup = Date.now();
+    function selesai() { if (menutup !== token) return; menutup = 0; $('inputModal').hidden = true; if (G) G.bersih($('inputModal')); if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); lastFocus = null; }
+    if (!G) return selesai();
+    G.pudar($('inputModal'), false); G.jalan($('inputModal').querySelector('.modal-c'), G.balik(asalIn), false).then(selesai);
+  }
   document.addEventListener('click', function (e) { var t = e.target; if (!t.closest) return; if (t.closest('#inputModal [data-tutup]') || t === $('inputModal')) tutup(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('inputModal').hidden) tutup(); });
 
