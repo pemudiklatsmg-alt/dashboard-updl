@@ -49,6 +49,7 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 3. **Tahun baru:** salin tab Konman menjadi "Konman 2027", tambah baris `RENDIKLAT_2027` (ID file) di tab Pengaturan, tambah baris tahun baru di Jumlah Pegawai dan Kepatuhan.
 
 ## Input lewat website
+- Header berisi judul, Tahun & Bulan, **＋ Input Data** (Admin), dan tombol **☰ Menu** (Struktur Organisasi, Panduan, tampilan Terang/Gelap, Muat ulang, Export Excel, Google Sheets, Keluar). Di HP menu muncul dari bawah layar.
 - Tombol **＋ Input Data** (hanya akun Admin) → pilih jenis data → isi → periksa → simpan.
 - 9 jenis data: Jumlah Pegawai, Realisasi Konman, Kepatuhan, L3, L4, ROTI, Tindak Lanjut (ubah Status & Keterangan), Koreksi Rendiklat, Penyesuaian HOP. Data evaluasi mentah (tab "Data - …") ditempel langsung di spreadsheet.
 - Data ditulis ke tab yang sudah ada, dengan kolom yang sama. Tidak ada tab atau kolom baru. Setiap isian diberi catatan "(input web: akun, tanggal)" di kolom Keterangan, atau di kolom "Diisi Oleh" bila ada.

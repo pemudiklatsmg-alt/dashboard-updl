@@ -831,6 +831,7 @@
     S.peran = peran === 'admin' ? 'admin' : 'lihat';
     document.body.classList.toggle('peran-admin', S.peran === 'admin');
     $('who').textContent = (user ? user + ' · ' : '') + (S.peran === 'admin' ? 'Admin' : 'Akun Lihat');
+    $('avatar').textContent = (user || 'U').charAt(0).toUpperCase();
   }
   function tampilLogin(pesan) {
     S.data = null; S.cache = null; S.tahun = null; S.bulan = null; S.riskOn = null;
@@ -869,23 +870,6 @@
       $('warn').hidden = false; $('warn').className = 'warnbox'; $('warn').textContent = 'Data tidak bisa dimuat: ' + (e.message || e);
     });
   }
-  /* header mengecil saat digulir */
-  /* Header mengecil saat digulir. Tinggi yang hilang diganti ruang kosong di bawahnya supaya isi halaman
-     tidak melompat (lompatan itu membuat header bolak-balik membesar-mengecil). Ada jeda 60/20 px. */
-  var top = $('top'), kecil = false, antri = false;
-  function aturHeader() {
-    antri = false;
-    var y = window.scrollY, mau = kecil ? y > 20 : y > 60;
-    if (mau === kecil) return;
-    var tinggiAwal = top.offsetHeight;
-    top.style.transition = 'none';
-    top.classList.toggle('kecil', mau); kecil = mau;
-    top.style.marginBottom = mau ? (tinggiAwal - top.offsetHeight) + 'px' : '';
-    void top.offsetHeight; top.style.transition = '';
-  }
-  window.addEventListener('scroll', function () { if (!antri) { antri = true; requestAnimationFrame(aturHeader); } }, { passive: true });
-  window.addEventListener('resize', function () { if (kecil) { kecil = false; top.classList.remove('kecil'); top.style.marginBottom = ''; } aturHeader(); });
-
   /* ---------- events ---------- */
   $('tahunSel').addEventListener('change', function (e) { var y = +e.target.value; setPeriode(y, S.cache.konman[y] ? bulanBawaan(y) : S.bulan); });
   $('bulanSel').addEventListener('change', function (e) { setPeriode(S.tahun, +e.target.value); });
