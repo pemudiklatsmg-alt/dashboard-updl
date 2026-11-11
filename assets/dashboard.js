@@ -616,17 +616,17 @@
   function openPbList() {
     var L = kPihak();
     openModal('<div class="modal-h"><div><h3>Matriks Pihak Berkepentingan ' + esc(String(S.tahun)) + '</h3><div class="desc">File Profil Risiko · tab 2b. Pihak Berkepentingan · ketuk baris untuk rincian</div></div><button class="btn" data-close>Tutup</button></div>' +
-      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pihak</th><th>Kategori</th><th>PIC</th><th class="r">Prioritas</th><th class="r">Progres</th><th>Status</th><th>Risiko</th></tr></thead><tbody>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pihak</th><th>Kategori</th><th>PIC</th><th class="r">Prioritas</th><th class="r">Progres</th><th>Status</th><th>Risiko</th></tr></thead><tbody id="pbT">' +
       L.map(function (x) {
         return '<tr class="klik" tabindex="0" data-pb="' + esc(x.kode) + '"><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.kode) + '</div></td><td>' + esc(x.kat) + '</td><td>' + esc(x.pic) + '</td><td class="r">' + esc(x.prio || '–') + '</td>' +
           '<td class="r">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</td><td><span class="kx-st ' + kStatus(x.st) + '">' + esc(x.st) + '</span></td><td>' + chipRisiko(x.rk) + '</td></tr>';
       }).join('') + '</tbody></table></div>', 'wide');
   }
-  function openPihak(kode) {
+  function openPihak(kode, kembali) {
     var x = kPihak().filter(function (p) { return p.kode === kode; })[0]; if (!x) return;
     var r = x.r, isu = kIsu().filter(function (i) { return daftar(i.pb).indexOf(kode) >= 0; }), k = kStatus(x.st), w = x.pr === null ? 0 : Math.max(0, Math.min(100, x.pr));
     function f(lbl, awal) { var v = kCol(r, awal); return v ? '<div class="kx-f"><span class="sub-h">' + lbl + '</span><div>' + baris(v) + '</div></div>' : ''; }
-    openModal('<div class="modal-h"><div><h3>' + esc(x.nama) + '</h3><div class="desc">' + esc([x.kode, x.kat, 'PIC ' + (x.pic || '–'), 'prioritas ' + (x.prio || '–'), 'target ' + (kCol(r, 'Target') || '–')].join(' · ')) + '</div></div><button class="btn" data-close>Tutup</button></div>' +
+    openModal('<div class="modal-h"><div><h3>' + esc(x.nama) + '</h3><div class="desc">' + esc([x.kode, x.kat, 'PIC ' + (x.pic || '–'), 'prioritas ' + (x.prio || '–'), 'target ' + (kCol(r, 'Target') || '–')].join(' · ')) + '</div></div><div class="row-gap">' + (kembali ? '<button class="btn kx-back" type="button" data-kembali="' + kembali + '">← Kembali</button>' : '') + '<button class="btn" data-close>Tutup</button></div></div>' +
       '<div class="kx-head"><span class="kx-st ' + k + '">' + esc(x.st) + '</span><span class="kx-bar big"><span><i class="' + k + '" style="width:' + w + '%"></i></span><b class="num">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</b></span></div>' +
       '<div class="kx-grid">' + f('Kebutuhan', 'Kebutuhan') + f('Harapan', 'Harapan') + f('Strategi / media pemenuhan', 'Strategi') + f('Sasaran kinerja (KPI) terkait', 'Sasaran Kinerja') + f('Manfaat', 'Manfaat') +
       '<div class="kx-f"><span class="sub-h">Risiko</span><div>' + baris(kCol(r, 'Risiko')) + '<div class="kx-chips" style="margin-top:6px">' + chipRisiko(x.rk) + '</div></div></div>' +
@@ -1030,7 +1030,8 @@
     var t = e.target; if (!t.closest) return;
     var ind = t.closest('[data-ind]'); if (ind) return openInd(ind.getAttribute('data-ind'));
     var rkc = t.closest('[data-rk]'); if (rkc) { var no = rkc.getAttribute('data-rk'); if (!$('modal').hidden) closeModal(); return sorotRisiko(no); }
-    var pbc = t.closest('[data-pb]'); if (pbc) return openPihak(pbc.getAttribute('data-pb'));
+    var kb = t.closest('[data-kembali]'); if (kb) return kb.getAttribute('data-kembali') === 'isu' ? openIsu() : openPbList();
+    var pbc = t.closest('[data-pb]'); if (pbc) return openPihak(pbc.getAttribute('data-pb'), pbc.closest('#pbT') ? 'pb' : pbc.closest('#kxT') ? 'isu' : '');
     var act = t.closest('[data-act]');
     if (act) {
       var a = act.getAttribute('data-act');

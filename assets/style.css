@@ -778,3 +778,9 @@ html.glass .kx-row,html.glass .kx-pb,html.glass .kx-f{background:var(--g-btn);bo
  .kx-pb{grid-template-columns:minmax(0,1fr) auto}.kx-pb .kx-bar{grid-column:1/-1;grid-row:2}
  .kx-grid{grid-template-columns:1fr}
 }
+
+/* daftar pihak mengisi tinggi panel (tinggi baris ditentukan panel isu di sebelahnya) */
+@media (min-width: 1041px) {
+  #pbBody .kx-list { flex: 1 1 0; max-height: none; min-height: 220px; }
+}
+.kx-back { margin-right: 8px; }
