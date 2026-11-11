@@ -64,7 +64,7 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, IDP, Inovasi, serta Struktur Organisasi dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
 
 ## Tampilan
-- Menu dan jendela pop-up memakai efek genie (±0,3 detik); otomatis mati bila perangkat diatur "kurangi gerakan".
+- Menu dan jendela pop-up membesar dari tombol/kartu asalnya (zoom, ±0,2 detik); otomatis mati bila perangkat diatur "kurangi gerakan".
 
 ## Font
 Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.
