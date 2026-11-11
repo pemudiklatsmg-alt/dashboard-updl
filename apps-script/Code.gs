@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 4 (login dua akun)
+ *  DASHBOARD KINERJA UPDL SEMARANG — Apps Script versi 5 (login, pengingat email, pemeriksa data)
  *  Dipasang pada spreadsheet "Data Dashboard UPDL Semarang".
  * --------------------------------------------------------------------------
  *  Sumber yang dibaca:
@@ -14,7 +14,10 @@
  *   - Profil Risiko    : sheet "4. Peta Risiko" (versi Google Sheets)
  *
  *  Menu di spreadsheet: Dashboard > Tarik daftar kelas tanpa realisasi
+ *                      Dashboard > Periksa isian data
  *                      Dashboard > Atur akun Admin / Atur akun Lihat
+ *                      Dashboard > Akun pribadi (opsional)
+ *                      Dashboard > Pengingat email bulanan
  *
  *  Seluruh data hanya dikirim setelah login (doPost aksi "data").
  *  Akun Admin: lihat + input + export. Akun Lihat: hanya melihat.
@@ -26,7 +29,7 @@
  * ==========================================================================
  */
 
-var VERSI = 4;
+var VERSI = 5;
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -45,7 +48,7 @@ var TAB = {
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
   SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
-  LOG: 'Log Login'
+  LOG: 'Log Login', AKUN: 'Akun Pribadi'
 };
 /* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
 var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
@@ -61,9 +64,18 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('Dashboard')
     .addItem('Tarik daftar kelas tanpa realisasi', 'tarikKelasTanpaRealisasi')
     .addItem('Cek koneksi sumber data', 'cekKoneksi')
+    .addItem('Periksa isian data', 'periksaData')
     .addSeparator()
     .addItem('Atur akun Admin (input & export)', 'aturAkunAdmin')
     .addItem('Atur akun Lihat (hanya melihat)', 'aturAkunLihat')
+    .addSubMenu(SpreadsheetApp.getUi().createMenu('Akun pribadi (opsional)')
+      .addItem('Tambah akun / ganti password', 'aturAkunPribadi')
+      .addItem('Nonaktifkan akun', 'nonaktifkanAkunPribadi'))
+    .addSeparator()
+    .addSubMenu(SpreadsheetApp.getUi().createMenu('Pengingat email bulanan')
+      .addItem('Aktifkan (tiap tanggal di Pengaturan)', 'pasangPengingat')
+      .addItem('Kirim percobaan sekarang', 'cobaKirimPengingat')
+      .addItem('Matikan', 'hapusPengingat'))
     .addToUi();
 }
 
@@ -362,6 +374,10 @@ function doPost(e) {
       var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
       return json_(d);
     }
+    if (req.aksi === 'log') {
+      if (sesi.peran !== 'admin') throw new Error('Ringkasan login hanya untuk akun Admin.');
+      return json_({ ok: true, log: ringkasLog_(30) });
+    }
     if (req.aksi === 'simpan') {
       if (sesi.peran !== 'admin') throw new Error('Akun Lihat tidak bisa mengisi data. Masuk dengan akun Admin.');
       var lock = LockService.getScriptLock();
@@ -378,7 +394,7 @@ function doPost(e) {
 
 function login_(req) {
   var p = PropertiesService.getScriptProperties();
-  var adaAkun = Object.keys(AKUN).some(function (k) { return p.getProperty(AKUN[k].kunci + '_PASS_HASH'); });
+  var adaAkun = Object.keys(AKUN).some(function (k) { return p.getProperty(AKUN[k].kunci + '_PASS_HASH'); }) || Object.keys(akunPribadi_()).length > 0;
   if (!adaAkun) throw new Error('Akun belum diatur. Di spreadsheet, pilih menu Dashboard → Atur akun Admin.');
   var c = CacheService.getScriptCache(), gagal = Number(c.get('login_gagal') || 0);
   if (gagal >= 10) { if (!c.get('log_kunci')) { c.put('log_kunci', '1', 900); catatLogin_(req.username, '', 'Ditolak (login terkunci 15 menit)', req.perangkat); } throw new Error('Terlalu banyak percobaan gagal. Coba lagi 15 menit lagi.'); }
@@ -388,6 +404,15 @@ function login_(req) {
     var a = AKUN[k], u = p.getProperty(a.kunci + '_USER'), h = p.getProperty(a.kunci + '_PASS_HASH');
     return u && h && u.toLowerCase() === nama && hash_(p.getProperty(a.kunci + '_SALT'), pw) === h;
   })[0];
+  if (!cocok) {
+    var pr = cocokPribadi_(nama, pw);
+    if (pr) {
+      var tp = Utilities.getUuid();
+      c.put('tok_' + tp, [pr.user, pr.peran, pr.ver, 'p'].join('|'), 21600);
+      catatLogin_(pr.user, pr.peran, 'Berhasil', req.perangkat);
+      return { ok: true, token: tp, user: pr.user, peran: pr.peran, berlakuDetik: 21600 };
+    }
+  }
   if (!cocok) { c.put('login_gagal', String(gagal + 1), 900); catatLogin_(req.username, '', 'Gagal (password/username salah)', req.perangkat); throw new Error('Username atau password salah.'); }
   var a = AKUN[cocok], t = Utilities.getUuid(), u = p.getProperty(a.kunci + '_USER');
   c.put('tok_' + t, [u, cocok, p.getProperty(a.kunci + '_VER') || '0'].join('|'), 21600); // 6 jam
@@ -417,6 +442,11 @@ function cekToken_(t) {
   if (!v) throw new Error('LOGIN: Sesi sudah berakhir. Silakan masuk lagi.');
   var x = v.split('|'), peran = x[1], a = AKUN[peran];
   if (!a) throw new Error('LOGIN: Sesi tidak valid. Silakan masuk lagi.');
+  if (x[3] === 'p') {   // akun pribadi: berlaku selama password tidak diganti dan akun tidak dinonaktifkan
+    var rec = rekPribadi_(x[0]);
+    if (!rec || String(rec.v) !== x[2]) throw new Error('LOGIN: Akun sudah diganti atau dinonaktifkan. Silakan masuk lagi.');
+    return { user: x[0], peran: peran };
+  }
   if (x[2] !== (PropertiesService.getScriptProperties().getProperty(a.kunci + '_VER') || '0')) throw new Error('LOGIN: Akun sudah diganti. Silakan masuk lagi.');
   return { user: x[0], peran: peran };
 }
@@ -808,3 +838,229 @@ function angka_(v) { var n = Number(String(v).replace(',', '.')); return v === '
 function bulat_(n) { return Math.round(n * 10000) / 10000; }
 function safeAlert_(msg) { try { SpreadsheetApp.getUi().alert(msg); } catch (e) { Logger.log(msg); } }
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
+
+/* ======================================================================== */
+/*  AKUN PRIBADI (OPSIONAL)                                                  */
+/* ======================================================================== */
+/* Selain dua akun bersama, tiap orang boleh punya akun sendiri. Daftar akun ada di
+   tab "Akun Pribadi" (Username, Nama, Peran, Aktif); password hanya disimpan
+   sebagai hash di Script Properties. Akun bersama tetap berfungsi seperti biasa.
+   Peran dan Aktif boleh diubah langsung di tab; berlaku pada login berikutnya.
+   Untuk mengeluarkan seseorang saat itu juga, pakai menu "Nonaktifkan akun". */
+function akunPribadi_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.AKUN), o = {};
+  if (!sh || sh.getLastRow() < 2) return o;
+  var v = sh.getRange(1, 1, sh.getLastRow(), Math.max(4, sh.getLastColumn())).getValues(), h = v[0].map(String);
+  var iU = kol_(h, 'Username'), iN = kol_(h, 'Nama'), iP = kol_(h, 'Peran'), iA = kol_(h, 'Aktif');
+  if (iU < 0) return o;
+  v.slice(1).forEach(function (r, i) {
+    var u = teks_(r[iU]); if (!u) return;
+    o[u.toLowerCase()] = { user: u, nama: iN >= 0 ? teks_(r[iN]) : '', peran: iP >= 0 && /admin/i.test(r[iP]) ? 'admin' : 'lihat', aktif: iA < 0 || !/^(tidak|no|n|false|0)$/i.test(teks_(r[iA])), baris: i + 2 };
+  });
+  return o;
+}
+function rekPribadi_(u) {
+  var t = PropertiesService.getScriptProperties().getProperty('PRIBADI_' + String(u).toLowerCase());
+  if (!t) return null;
+  try { return JSON.parse(t); } catch (e) { return null; }
+}
+function cocokPribadi_(nama, pw) {
+  var a = akunPribadi_()[nama], rec = a && a.aktif ? rekPribadi_(nama) : null;
+  if (!rec || hash_(rec.s, pw) !== rec.h) return null;
+  return { user: a.user, nama: a.nama, peran: a.peran, ver: String(rec.v) };
+}
+function tabAkun_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.AKUN);
+  if (sh) return sh;
+  sh = ss.insertSheet(TAB.AKUN, ss.getSheets().length);
+  sh.getRange(1, 1, 1, 5).setValues([['Username', 'Nama', 'Peran', 'Aktif', 'Terakhir Diubah']]).setFontWeight('bold').setBackground('#18233F').setFontColor('#FFFFFF');
+  sh.setFrozenRows(1); sh.setColumnWidths(1, 5, 160); sh.setTabColor('#8A93A6');
+  sh.getRange(2, 3, 199, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Admin', 'Lihat'], true).build());
+  sh.getRange(2, 4, 199, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Ya', 'Tidak'], true).build());
+  sh.getRange(1, 6).setValue('Password tidak disimpan di sini. Tambah akun / ganti password lewat menu Dashboard → Akun pribadi.').setFontStyle('italic').setFontColor('#6B7385');
+  return sh;
+}
+function aturAkunPribadi() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var r1 = ui.prompt('Akun pribadi (1 dari 4)', 'Username (3–40 karakter: huruf, angka, titik, minus, garis bawah).\nIsi username yang sudah ada untuk mengganti password-nya.', ui.ButtonSet.OK_CANCEL);
+  if (r1.getSelectedButton() !== ui.Button.OK) return;
+  var u = r1.getResponseText().trim();
+  if (!/^[A-Za-z0-9._-]{3,40}$/.test(u)) { ui.alert('Username tidak valid. Akun belum diubah.'); return; }
+  var bersama = Object.keys(AKUN).map(function (k) { return (p.getProperty(AKUN[k].kunci + '_USER') || '').toLowerCase(); });
+  if (bersama.indexOf(u.toLowerCase()) >= 0) { ui.alert('Username ini dipakai akun bersama. Pakai username lain.'); return; }
+  var ada = akunPribadi_()[u.toLowerCase()];
+  var r2 = ui.prompt('Akun pribadi (2 dari 4)', 'Nama lengkap' + (ada ? ' (kosongkan bila tetap "' + ada.nama + '")' : '') + ':', ui.ButtonSet.OK_CANCEL);
+  if (r2.getSelectedButton() !== ui.Button.OK) return;
+  var nama = r2.getResponseText().trim() || (ada ? ada.nama : '');
+  var r3 = ui.prompt('Akun pribadi (3 dari 4)', 'Peran: ketik ADMIN (lihat, input, export) atau LIHAT (hanya melihat).' + (ada ? '\nSekarang: ' + (ada.peran === 'admin' ? 'ADMIN' : 'LIHAT') : ''), ui.ButtonSet.OK_CANCEL);
+  if (r3.getSelectedButton() !== ui.Button.OK) return;
+  var pr = r3.getResponseText().trim().toUpperCase();
+  if (pr !== 'ADMIN' && pr !== 'LIHAT') { ui.alert('Peran harus ADMIN atau LIHAT. Akun belum diubah.'); return; }
+  var r4 = ui.prompt('Akun pribadi (4 dari 4)', 'Password, minimal 8 karakter. Sampaikan langsung ke pemilik akun; password tidak bisa dilihat lagi.', ui.ButtonSet.OK_CANCEL);
+  if (r4.getSelectedButton() !== ui.Button.OK) return;
+  var pw = r4.getResponseText();
+  if (pw.length < 8) { ui.alert('Password minimal 8 karakter. Akun belum diubah.'); return; }
+  var lama = rekPribadi_(u), salt = Utilities.getUuid(), o = {};
+  o['PRIBADI_' + u.toLowerCase()] = JSON.stringify({ s: salt, h: hash_(salt, pw), v: (lama ? Number(lama.v) || 0 : 0) + 1 });
+  p.setProperties(o);
+  var sh = tabAkun_(), isi = [[ada ? ada.user : u, nama, pr === 'ADMIN' ? 'Admin' : 'Lihat', 'Ya', new Date()]];
+  if (ada) sh.getRange(ada.baris, 1, 1, 5).setValues(isi); else sh.getRange(sh.getLastRow() + 1, 1, 1, 5).setValues(isi);
+  ui.alert('Akun pribadi tersimpan.\n\nUsername: ' + u + '\nPeran: ' + (pr === 'ADMIN' ? 'Admin' : 'Lihat') + (lama ? '\n\nPassword lama tidak berlaku lagi.' : ''));
+}
+function nonaktifkanAkunPribadi() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var r = ui.prompt('Nonaktifkan akun pribadi', 'Username yang dinonaktifkan (orang ini langsung keluar dari dashboard):', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var u = r.getResponseText().trim().toLowerCase(), a = akunPribadi_()[u];
+  if (!a) { ui.alert('Username tidak ada di tab ' + TAB.AKUN + '.'); return; }
+  var o = {}; o['PRIBADI_' + u] = ''; p.setProperties(o);
+  tabAkun_().getRange(a.baris, 4, 1, 2).setValues([['Tidak', new Date()]]);
+  ui.alert('Akun ' + a.user + ' dinonaktifkan. Untuk mengaktifkan lagi, pakai menu Tambah akun / ganti password.');
+}
+
+/* ======================================================================== */
+/*  RINGKASAN LOG LOGIN (untuk Admin di website)                             */
+/* ======================================================================== */
+function ringkasLog_(hari) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.LOG), batas = new Date(Date.now() - hari * 864e5);
+  var out = { hari: hari, total: 0, akun: [], gagal: { n: 0, daftar: [] }, harian: [] };
+  if (!sh || sh.getLastRow() < 2) return out;
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues(), per = {}, hr = {};
+  v.forEach(function (r) {
+    var w = r[0] instanceof Date ? r[0] : new Date(r[0]); if (isNaN(w) || w < batas) return;
+    var hasil = teks_(r[3]), akun = teks_(r[1]), iso = w.toISOString();
+    if (/^berhasil/i.test(hasil)) {
+      out.total++;
+      var k = akun.toLowerCase(); per[k] = per[k] || { akun: akun, peran: teks_(r[2]), n: 0, terakhir: '', perangkat: '' };
+      per[k].n++; if (iso >= per[k].terakhir) { per[k].terakhir = iso; per[k].perangkat = teks_(r[4]); per[k].peran = teks_(r[2]); }
+      var d = Utilities.formatDate(w, Session.getScriptTimeZone(), 'yyyy-MM-dd'); hr[d] = (hr[d] || 0) + 1;
+    } else if (/gagal|ditolak/i.test(hasil)) {
+      out.gagal.n++; out.gagal.daftar.push([iso, akun, hasil, teks_(r[4])]);
+    }
+  });
+  out.akun = Object.keys(per).map(function (k) { return per[k]; }).sort(function (a, b) { return a.terakhir < b.terakhir ? 1 : -1; });
+  out.gagal.daftar = out.gagal.daftar.sort(function (a, b) { return a[0] < b[0] ? 1 : -1; }).slice(0, 10);
+  for (var i = hari - 1; i >= 0; i--) { var t = Utilities.formatDate(new Date(Date.now() - i * 864e5), Session.getScriptTimeZone(), 'yyyy-MM-dd'); out.harian.push([t, hr[t] || 0]); }
+  return out;
+}
+
+/* ======================================================================== */
+/*  PEMERIKSAAN ISIAN DATA                                                   */
+/* ======================================================================== */
+/* Kelengkapan isian bulanan (dipakai pemeriksa data dan pengingat email) */
+function cekBulanan_(y, m) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), Bn = BULAN_[m - 1], kurang = [], sudah = [];
+  try {
+    var P = bacaMentah_(ss, TAB.PEGAWAI), iT = kol_(P.head, 'Tahun'), iB = kol_(P.head, 'Bulan'), iJ = kol_(P.head, 'Jumlah Pegawai');
+    var ok = P.rows.some(function (r) { return teks_(r[iT]) === String(y) && teks_(r[iB]).toUpperCase() === Bn && nilai_(r[iJ]) !== null; });
+    (ok ? sudah : kurang).push('Jumlah Pegawai ' + cap_(Bn) + ' ' + y);
+  } catch (e) { kurang.push('Tab ' + TAB.PEGAWAI + ' tidak terbaca'); }
+  try {
+    var K = bacaMentah_(ss, TAB.KEPATUHAN), iA = kol_(K.head, 'Aspek Kepatuhan'), iTh = kol_(K.head, 'Tahun'), iM = kol_(K.head, Bn);
+    var asp = K.rows.filter(function (r) { return teks_(r[iA]) && (iTh < 0 || !teks_(r[iTh]) || teks_(r[iTh]) === String(y)); });
+    var kos = iM < 0 ? asp : asp.filter(function (r) { return teks_(r[iM]) === ''; });
+    if (!asp.length) kurang.push('Kepatuhan: belum ada aspek untuk tahun ' + y);
+    else (kos.length ? kurang : sudah).push('Kepatuhan ' + cap_(Bn) + (kos.length ? ' (' + kos.length + ' dari ' + asp.length + ' aspek kosong)' : ''));
+  } catch (e) { kurang.push('Tab ' + TAB.KEPATUHAN + ' tidak terbaca'); }
+  var cfg = getConfig_(), kon = ss.getSheetByName(String(cfg.KONMAN_TAB_AWALAN || 'Konman ') + y);
+  if (!kon) kurang.push('Tab Konman ' + y + ' belum ada');
+  var tl = 0;
+  try {
+    var T = bacaMentah_(ss, TAB.TINDAKLANJUT), iK = kol_(T.head, 'Komentar'), iS = kol_(T.head, 'Status');
+    tl = T.rows.filter(function (r) { return teks_(r[iK]) && (!teks_(r[iS]) || /^belum/i.test(teks_(r[iS]))); }).length;
+  } catch (e) { /* abaikan */ }
+  return { kurang: kurang, sudah: sudah, tlBelum: tl, bulan: cap_(Bn) + ' ' + y };
+}
+function cap_(s) { s = String(s).toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); }
+function bulanLalu_() { var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return [d.getFullYear(), d.getMonth() + 1]; }
+
+/* Menu Dashboard > Periksa isian data: daftar isian yang kosong atau formatnya salah */
+function periksaData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), msg = [], now = new Date(), y = now.getFullYear();
+  function catat(tab, baris, teks) { msg.push('• ' + tab + (baris ? ' baris ' + baris : '') + ': ' + teks); }
+  // 1. kelengkapan bulanan Januari s.d. bulan lalu
+  var bl = bulanLalu_();
+  for (var m = 1; m <= (bl[0] === y ? bl[1] : 12); m++) {
+    cekBulanan_(bl[0] === y ? y : bl[0], m).kurang.forEach(function (k) { if (msg.indexOf('• ' + k) < 0) msg.push('• ' + k); });
+  }
+  // 2. rekap L3/L4/ROTI: tanggal dan nilai
+  [[TAB.L3, 'Tanggal Evaluasi', 'Skor (0-100)', 100], [TAB.L4, 'Tanggal Evaluasi', 'Skor (0-100)', 100], [TAB.ROTI, 'Tanggal', 'Nilai ROTI (%)', null]].forEach(function (c) {
+    try {
+      var T = bacaMentah_(ss, c[0]), iT = kol_(T.head, c[1]), iN = kol_(T.head, c[2]);
+      T.rows.forEach(function (r, i) {
+        if (!isoTgl_(r[iT])) catat(c[0], i + 2, 'tanggal kosong / bukan tanggal');
+        var n = nilai_(r[iN]);
+        if (n === null) catat(c[0], i + 2, c[2] + ' kosong / bukan angka');
+        else if (c[3] !== null && (n < 0 || n > c[3])) catat(c[0], i + 2, c[2] + ' di luar 0–' + c[3]);
+      });
+    } catch (e) { catat(c[0], 0, e.message); }
+  });
+  // 3. tindak lanjut: status dan PIC
+  try {
+    var T = bacaMentah_(ss, TAB.TINDAKLANJUT), iK = kol_(T.head, 'Komentar'), iS = kol_(T.head, 'Status'), iP = kol_(T.head, 'PIC');
+    T.rows.forEach(function (r, i) {
+      if (!teks_(r[iK])) return;
+      var st = teks_(r[iS]);
+      if (st && STATUS_TL.indexOf(st) < 0) catat(TAB.TINDAKLANJUT, i + 2, 'status "' + st + '" tidak dikenal');
+      if (iP >= 0 && !teks_(r[iP])) catat(TAB.TINDAKLANJUT, i + 2, 'PIC kosong');
+    });
+  } catch (e) { catat(TAB.TINDAKLANJUT, 0, e.message); }
+  // 4. inovasi: tahap, progres, tanggal
+  try {
+    var I = bacaMentah_(ss, TAB.INOVASI), c = function (n) { return kol_(I.head, n); };
+    var iJ = c('Judul Inovasi'), iTp = c('Tahap'), iPg = c('Progres (%)'), iTg = c('Target Selesai'), iRs = c('Realisasi Selesai'), iSt = c('Status');
+    I.rows.forEach(function (r, i) {
+      if (!teks_(r[iJ])) return;
+      var tp = parseInt(teks_(r[iTp]), 10), pg = nilai_(r[iPg]);
+      if (!(tp >= 1 && tp <= 5)) catat(TAB.INOVASI, i + 2, 'Tahap harus 1–5');
+      if (pg !== null && (pg < 0 || pg > 100)) catat(TAB.INOVASI, i + 2, 'Progres di luar 0–100');
+      if (teks_(r[iTg]) && !isoTgl_(r[iTg])) catat(TAB.INOVASI, i + 2, 'Target Selesai bukan tanggal');
+      if (/selesai/i.test(teks_(r[iSt])) && !isoTgl_(r[iRs])) catat(TAB.INOVASI, i + 2, 'status Selesai tapi Realisasi Selesai kosong');
+    });
+  } catch (e) { catat(TAB.INOVASI, 0, e.message); }
+  // 5. penyesuaian HOP: alasan wajib
+  try {
+    var H = bacaMentah_(ss, TAB.PENYESUAIAN), iAl = kol_(H.head, 'Alasan');
+    H.rows.forEach(function (r, i) { if (iAl >= 0 && !teks_(r[iAl])) catat(TAB.PENYESUAIAN, i + 2, 'Alasan kosong'); });
+  } catch (e) { /* tab opsional */ }
+  var teks = msg.length ? msg.length + ' hal perlu diperiksa:\n\n' + msg.slice(0, 40).join('\n') + (msg.length > 40 ? '\n… dan ' + (msg.length - 40) + ' lainnya' : '')
+    : 'Semua isian yang diperiksa sudah lengkap dan formatnya benar.';
+  safeAlert_(teks);
+  return msg;
+}
+
+/* ======================================================================== */
+/*  PENGINGAT EMAIL BULANAN                                                  */
+/* ======================================================================== */
+/* Pengaturan: EMAIL_PENGINGAT (pisahkan dengan koma), TANGGAL_PENGINGAT (default 5),
+   URL_DASHBOARD (opsional, ditautkan di email). Email hanya dikirim bila ada isian
+   bulan lalu yang belum lengkap atau tindak lanjut yang belum dimulai. */
+function penerima_() { return String(getConfig_().EMAIL_PENGINGAT || '').split(/[,;\s]+/).filter(function (x) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x); }); }
+function kirimPengingat() { return kirimPengingat_(false); }
+function kirimPengingat_(paksa) {
+  var to = penerima_(); if (!to.length) return 'Alamat email belum diisi (Pengaturan → EMAIL_PENGINGAT).';
+  var bl = bulanLalu_(), c = cekBulanan_(bl[0], bl[1]), cfg = getConfig_();
+  if (!paksa && !c.kurang.length && !c.tlBelum) return 'Semua isian ' + c.bulan + ' lengkap; email tidak dikirim.';
+  var url = SpreadsheetApp.getActiveSpreadsheet().getUrl(), dash = String(cfg.URL_DASHBOARD || '').trim();
+  var li = function (a, ikon) { return a.map(function (x) { return '<li>' + ikon + ' ' + x.replace(/</g, '&lt;') + '</li>'; }).join(''); };
+  var html = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#18233F;max-width:560px">' +
+    '<p>Halo, berikut pengingat isian <b>Dashboard Kinerja UPDL Semarang</b> untuk <b>' + c.bulan + '</b>.</p>' +
+    (c.kurang.length ? '<p style="margin-bottom:4px"><b>Belum lengkap:</b></p><ul style="margin-top:0">' + li(c.kurang, '✗') + '</ul>' : '<p>Semua isian bulanan sudah lengkap. ✓</p>') +
+    (c.sudah.length ? '<p style="margin-bottom:4px;color:#5B6478">Sudah terisi:</p><ul style="margin-top:0;color:#5B6478">' + li(c.sudah, '✓') + '</ul>' : '') +
+    (c.tlBelum ? '<p>Ada <b>' + c.tlBelum + '</b> tindak lanjut evaluasi berstatus Belum Dimulai.</p>' : '') +
+    '<p>Jangan lupa memperbarui realisasi Konman ' + c.bulan + '.</p>' +
+    '<p><a href="' + url + '">Buka spreadsheet data</a>' + (dash ? ' · <a href="' + dash + '">Buka dashboard</a>' : '') + '</p>' +
+    '<p style="color:#8A93A6;font-size:12px">Email otomatis dari Apps Script dashboard. Ubah penerima di tab Pengaturan (EMAIL_PENGINGAT).</p></div>';
+  var plain = 'Pengingat isian Dashboard UPDL Semarang, ' + c.bulan + '\n\nBelum lengkap:\n' + (c.kurang.join('\n') || '-') + (c.tlBelum ? '\n\nTindak lanjut Belum Dimulai: ' + c.tlBelum : '') + '\n\nSpreadsheet: ' + url;
+  MailApp.sendEmail({ to: to.join(','), subject: '[Dashboard UPDL] Pengingat isian data ' + c.bulan, htmlBody: html, body: plain, name: 'Dashboard UPDL Semarang' });
+  return 'Email terkirim ke ' + to.join(', ') + '.';
+}
+function cobaKirimPengingat() { safeAlert_(kirimPengingat_(true)); }
+function pasangPengingat() {
+  if (!penerima_().length) { safeAlert_('Isi dulu alamat email di tab Pengaturan, baris EMAIL_PENGINGAT (pisahkan dengan koma).'); return; }
+  hapusPengingat_(); var tgl = Math.min(28, Math.max(1, Number(getConfig_().TANGGAL_PENGINGAT) || 5));
+  ScriptApp.newTrigger('kirimPengingat').timeBased().onMonthDay(tgl).atHour(7).create();
+  safeAlert_('Pengingat aktif: tiap tanggal ' + tgl + ' sekitar pukul 07.00 ke ' + penerima_().join(', ') + '.\nEmail hanya dikirim bila ada isian bulan lalu yang belum lengkap.');
+}
+function hapusPengingat_() { var n = 0; ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'kirimPengingat') { ScriptApp.deleteTrigger(t); n++; } }); return n; }
+function hapusPengingat() { var n = hapusPengingat_(); safeAlert_(n ? 'Pengingat email dimatikan.' : 'Pengingat email memang belum aktif.'); }

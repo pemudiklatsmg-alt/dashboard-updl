@@ -1,4 +1,4 @@
-# Dashboard Kinerja UPDL Semarang (versi 4)
+# Dashboard Kinerja UPDL Semarang (versi 5)
 
 Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya tampil setelah login** (akun Admin atau akun Lihat). Data diisi lewat Google Sheets **atau** lewat tombol **Input Data** di website (akun Admin). Keduanya menulis ke tab yang sama. Dashboard mengambil, mengolah, dan menampilkannya otomatis (dimuat ulang tiap 5 menit). Tombol **Export Excel** mengunduh laporan periode terpilih.
 
@@ -47,10 +47,11 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 ## Rutin
 1. **Tiap bulan:** isi tab *Jumlah Pegawai*, isi Konman, lalu di spreadsheet pilih menu **Dashboard → Tarik daftar kelas tanpa realisasi** dan isi kolom *Realisasi Peserta (koreksi)* bila perlu.
 2. **Tiap ada tarikan data evaluasi:** tempel (paste) di tab "Data - …" yang sesuai, di bawah baris terakhir, dengan urutan kolom sama seperti template. L3, L4, ROTI tetap satu baris per pengukuran di tab rekapnya.
-3. **Tahun baru:** salin tab Konman menjadi "Konman 2027", tambah baris `RENDIKLAT_2027` (ID file) di tab Pengaturan, tambah baris tahun baru di Jumlah Pegawai dan Kepatuhan.
+3. **Sebelum rapat / akhir bulan:** di spreadsheet pilih **Dashboard → Periksa isian data** untuk melihat isian yang kosong atau salah format (dengan nama tab dan nomor baris).
+4. **Tahun baru:** salin tab Konman menjadi "Konman 2027", tambah baris `RENDIKLAT_2027` (ID file) di tab Pengaturan, tambah baris tahun baru di Jumlah Pegawai dan Kepatuhan.
 
 ## Input lewat website
-- Header berisi judul, Tahun & Bulan, **＋ Input Data** (Admin), dan tombol **☰ Menu** (Struktur Organisasi, Panduan, tampilan Terang/Gelap, Muat ulang, Export Excel, Google Sheets, Keluar). Di HP menu muncul dari bawah layar.
+- Header berisi judul, Tahun & Bulan, **＋ Input Data** (Admin), dan tombol **☰ Menu** (Struktur Organisasi, Panduan, tampilan Terang/Gelap, Lompat ke bagian, Mode presentasi, Cetak ringkasan / PDF, Status data per sumber, Muat ulang, Export Excel, Ringkasan login, Google Sheets, Keluar). Di HP menu muncul dari bawah layar.
 - Tombol **＋ Input Data** (hanya akun Admin) → pilih jenis data → isi → periksa → simpan.
 - 9 jenis data: Jumlah Pegawai, Realisasi Konman, Kepatuhan, L3, L4, ROTI, Tindak Lanjut (ubah Status & Keterangan), Koreksi Rendiklat, Penyesuaian HOP. Data evaluasi mentah (tab "Data - …") ditempel langsung di spreadsheet.
 - Data ditulis ke tab yang sudah ada, dengan kolom yang sama. Tidak ada tab atau kolom baru. Setiap isian diberi catatan "(input web: akun, tanggal)" di kolom Keterangan, atau di kolom "Diisi Oleh" bila ada.
@@ -59,16 +60,26 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
   - **Dashboard → Atur akun Admin**: melihat dashboard, input data, export Excel.
   - **Dashboard → Atur akun Lihat**: hanya melihat dashboard (tanpa Input, Export, dan tautan Google Sheets).
 -  Password disimpan sebagai hash di Script Properties, tidak di spreadsheet dan tidak di kode website. Mengganti password membuat semua sesi login berakhir. Sesi login berlaku 6 jam; 10 kali salah password mengunci login selama 15 menit.
-- Setiap login (berhasil, gagal, terkunci) dan keluar dicatat di tab **Log Login** (dibuat otomatis): waktu, akun, peran, hasil, jenis perangkat & browser. Password tidak pernah dicatat. Berguna untuk mengukur pemakaian dashboard.
+- **Akun pribadi (opsional):** selain dua akun bersama, tiap orang bisa diberi akun sendiri lewat **Dashboard → Akun pribadi → Tambah akun / ganti password** (username, nama, peran ADMIN/LIHAT, password). Daftarnya di tab **Akun Pribadi** (Username, Nama, Peran, Aktif); password hanya disimpan sebagai hash di Script Properties. Peran dan Aktif boleh diubah langsung di tab (berlaku pada login berikutnya); **Nonaktifkan akun** mengeluarkan orang itu saat itu juga. Akun bersama tetap berfungsi.
+- Setiap login (berhasil, gagal, terkunci) dan keluar dicatat di tab **Log Login** (dibuat otomatis): waktu, akun, peran, hasil, jenis perangkat & browser. Password tidak pernah dicatat. Akun Admin bisa melihat rangkumannya di website: **☰ → Ringkasan login** (30 hari: login per hari, per akun, percobaan gagal).
 
 ## Export Excel
 Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, IDP, Inovasi, serta Struktur Organisasi dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
 
 ## Tampilan
+- **Perlu perhatian** (paling atas): indikator < 95% atau 95–99%, pengurang kepatuhan, data bulan terpilih yang belum diisi, kelas selesai tanpa realisasi peserta, tindak lanjut Belum Dimulai, inovasi lewat target, dan pihak berkepentingan prioritas tinggi dengan progres < 50%. Ketuk untuk membuka rinciannya.
+- Kartu utama menampilkan **▲▼ dibanding bulan sebelumnya** (hijau/merah untuk skor dan nilai evaluasi; netral untuk angka kumulatif).
+- **Status data per sumber** (☰): tanggal/bulan terakhir tiap sumber terisi, dibandingkan dengan bulan terpilih.
+- **Tautan ke bagian:** `#ringkasan`, `#bulanan`, `#indikator`, `#kepatuhan`, `#pengembangan`, `#isu`, `#risiko`, `#organisasi`. Contoh: alamat website + `#risiko` langsung bergulir ke Peta Risiko setelah masuk.
+- **Mode presentasi** (☰): layar penuh, pindah bagian tiap 20 detik. Tombol ‹ ❚❚ › ✕; keyboard ← → spasi, P (jeda), Esc (keluar).
+- **Cetak ringkasan / PDF** (☰): satu halaman A4 mendatar, selalu tema terang (Perlu perhatian, kartu utama, grafik per bulan, evaluasi, indikator).
 - Menu dan jendela pop-up membesar dari tombol/kartu asalnya (zoom, ±0,2 detik); otomatis mati bila perangkat diatur "kurangi gerakan".
 
 ## Font
 Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.
+
+## Pengingat email bulanan
+Isi di tab **Pengaturan**: `EMAIL_PENGINGAT` (alamat, pisahkan dengan koma), `TANGGAL_PENGINGAT` (1–28, bawaan 5), dan `URL_DASHBOARD` (opsional, ditautkan di email). Lalu **Dashboard → Pengingat email bulanan → Aktifkan**. Tiap tanggal itu sekitar pukul 07.00, Apps Script memeriksa isian bulan lalu (Jumlah Pegawai, Kepatuhan, tab Konman) dan tindak lanjut Belum Dimulai; email hanya dikirim bila ada yang kurang. **Kirim percobaan sekarang** selalu mengirim email; **Matikan** menghapus jadwalnya.
 
 ## Apps Script
 Kode ada di [`apps-script/Code.gs`](apps-script/Code.gs), terpasang di spreadsheet gabungan (Ekstensi → Apps Script). Setelah mengganti kode: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. URL `/exec` tetap sama, jadi `config.js` tidak perlu diubah.

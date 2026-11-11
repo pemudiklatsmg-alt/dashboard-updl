@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261111c">
+<link rel="stylesheet" href="assets/style.css?v=20261111d">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -47,19 +47,28 @@
     <div class="mtheme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Tampilan</span>
       <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap"><button type="button" data-th="light" aria-pressed="false">Terang</button><button type="button" data-th="dark" aria-pressed="false">Gelap</button></span></div>
     <div class="msep"></div>
+    <div class="mcap">Lompat ke bagian</div>
+    <nav class="mjump" aria-label="Bagian dashboard"><a href="#ringkasan">Ringkasan</a><a href="#bulanan">Per bulan</a><a href="#indikator">Indikator</a><a href="#kepatuhan">Kepatuhan</a><a href="#pengembangan">IDP &amp; Inovasi</a><a href="#isu">Isu &amp; Pihak</a><a href="#risiko">Risiko</a></nav>
+    <button class="mi" role="menuitem" type="button" id="presBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8.5v4l3.5-2z"/></svg>Mode presentasi<span class="mhint">layar penuh</span></button>
+    <button class="mi" role="menuitem" type="button" id="printBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Cetak ringkasan / PDF<span class="mhint">1 halaman</span></button>
+    <div class="msep"></div>
     <div class="mcap">Data</div>
+    <button class="mi" role="menuitem" type="button" data-act="segar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Status data per sumber</button>
     <button class="mi" role="menuitem" type="button" id="refreshBtn" title="Ambil data terbaru dari Google Sheets"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Muat ulang<span class="mhint">otomatis tiap 5 mnt</span></button>
     <button class="mi adm" role="menuitem" type="button" id="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export Excel</button>
+    <button class="mi adm" role="menuitem" type="button" id="logBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Ringkasan login<span class="mhint">30 hari</span></button>
     <a class="mi adm" role="menuitem" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/></svg>Buka Google Sheets<span class="mhint">↗</span></a>
     <div class="msep"></div>
     <button class="mi out" role="menuitem" type="button" id="logoutBtn" title="Keluar dan hapus data dari browser ini"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Keluar</button>
   </div>
 
+  <div class="print-h" aria-hidden="true"><b id="printJudul">Dashboard Kinerja UPDL Semarang</b><span id="printInfo"></span></div>
   <div id="warn" hidden></div>
 
-  <section class="kpis" id="kpis" aria-label="Ringkasan utama"></section>
+  <section class="perhatian" id="perhatian" aria-label="Perlu perhatian" aria-live="polite" hidden></section>
+  <section class="kpis" id="kpis" aria-label="Ringkasan utama" data-bagian="ringkasan"></section>
 
-  <section class="row2">
+  <section class="row2" data-bagian="bulanan">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Capaian Kinerja per Bulan</h2><div class="desc">Total skor Kontrak Manajemen setelah pengurang kepatuhan. Klik batang untuk memilih bulan.</div></div>
@@ -70,7 +79,7 @@
   </section>
 
   <!-- Baris berpasangan: tinggi kedua kartu selalu sama -->
-  <section class="pair" aria-label="Indikator kinerja dan maturity">
+  <section class="pair" aria-label="Indikator kinerja dan maturity" data-bagian="indikator">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Indikator Kinerja</h2><div class="desc">Pencapaian per indikator Konman. Klik untuk melihat target, realisasi, dan keterangan.</div></div>
@@ -93,7 +102,7 @@
     </div>
   </section>
 
-  <section class="pair" aria-label="Kepatuhan dan tindak lanjut">
+  <section class="pair" aria-label="Kepatuhan dan tindak lanjut" data-bagian="kepatuhan">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek. Lingkaran penuh = patuh.</div></div>
@@ -110,7 +119,7 @@
     </div>
   </section>
 
-  <section class="pair" aria-label="Pengembangan pegawai dan inovasi">
+  <section class="pair" aria-label="Pengembangan pegawai dan inovasi" data-bagian="pengembangan">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Pengembangan Pegawai (IDP)</h2><div class="desc">Tab Data - IDP · tidak mengikuti filter bulan · selesai = semua jalur yang direncanakan sudah ada realisasinya</div></div>
@@ -126,7 +135,7 @@
     </div>
   </section>
 
-  <section class="pair" aria-label="Isu dan pihak berkepentingan">
+  <section class="pair" aria-label="Isu dan pihak berkepentingan" data-bagian="isu">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Isu Internal &amp; Eksternal</h2><div class="desc">File Profil Risiko · tab 2c · dikaitkan ke sasaran strategis dan risiko</div></div>
@@ -141,7 +150,7 @@
     </div>
   </section>
 
-  <section class="panel" id="riskPanel">
+  <section class="panel" id="riskPanel" data-bagian="risiko">
     <div class="panel-h">
       <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang · klik nomor atau baris untuk menyorot</div></div>
       <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
@@ -184,12 +193,13 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261111c"></script>
-<script src="assets/common.js?v=20261111c"></script>
-<script src="assets/genie.js?v=20261111c"></script>
-<script src="assets/dashboard.js?v=20261111c"></script>
-<script src="assets/input.js?v=20261111c"></script>
-<script src="assets/export.js?v=20261111c"></script>
+<script src="config.js?v=20261111d"></script>
+<script src="assets/common.js?v=20261111d"></script>
+<script src="assets/genie.js?v=20261111d"></script>
+<script src="assets/dashboard.js?v=20261111d"></script>
+<script src="assets/input.js?v=20261111d"></script>
+<script src="assets/export.js?v=20261111d"></script>
+<script src="assets/fitur.js?v=20261111d"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -237,6 +247,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261111c"></script>
+<script src="assets/panduan.js?v=20261111d"></script>
 </body>
 </html>
