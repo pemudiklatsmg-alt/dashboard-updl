@@ -12,6 +12,7 @@
     ['maturity', 'Maturity & Risiko', 'Skor per key element dan daftar risiko', 1],
     ['idp', 'Pengembangan Pegawai (IDP)', 'Realisasi jalur 10-20-70 per pegawai', 1],
     ['inovasi', 'Pengembangan Inovasi', 'Daftar inovasi tahun terpilih, tahap, status, nilai manfaat', 1],
+    ['konteks', 'Isu & Pihak Berkepentingan', 'Isu internal/eksternal dengan kaitan risiko, dan matriks pihak berkepentingan', 1],
     ['organisasi', 'Struktur Organisasi', 'Pegawai PLN per jabatan dan tenaga alih daya', 0],
     ['kelas', 'Lampiran: Daftar Kelas', 'Semua kelas Selesai (ratusan baris)', 0]
   ];
@@ -500,6 +501,26 @@
       if (L.length) baris(ws, ['Total ' + L.length + ' inovasi', '', '', '', '', '', '', '', rumus('SUM(I' + (hr + 1) + ':I' + (ws._r - 1) + ')', L.reduce(function (s, x) { return s + (x.nilai || 0); }, 0))], { 9: '#,##0' }, { tebal: true, latar: C.soft });
       else catatan(ws, 'Belum ada inovasi untuk tahun ' + a.S.tahun + ' di tab Data - Inovasi.');
       bekukan(ws, hr, 1); ws.pageSetup.printTitlesRow = hr + ':' + hr;
+    },
+    konteks: function (wb) {
+      var a = A(), I = a.kIsu(), P = a.kPihak(), SS = a.kSasaran();
+      var ws = lembar(wb, 'Isu & Pihak', [10, 46, 22, 18, 26, 14, 14, 30], { judul: 'Isu Internal & Eksternal dan Pihak Berkepentingan ' + a.S.tahun });
+      catatan(ws, 'Sumber: file Profil Risiko, tab 2c. Isu & Kaitan Risiko dan 2b. Pihak Berkepentingan. No. risiko merujuk kolom No di RISK REGISTER.'); ws._r++;
+      seksi(ws, 'Isu · ' + I.length + ' isu');
+      var h1 = judulKolom(ws, ['Kode', 'Isu', 'Jenis', 'Sasaran strategis', 'No. risiko terkait', 'Pihak terkait', '', 'Keterangan']);
+      I.forEach(function (x, j) { baris(ws, [x.kode, x.isu, x.jenis, x.sas, x.rk, x.pb, '', x.ket], {}, { bungkus: [2, 4, 5, 6, 8], zebra: j % 2 === 1, tengah: [1] }); });
+      if (!I.length) catatan(ws, 'Data isu belum terbaca.');
+      var ks = Object.keys(SS);
+      if (ks.length) { ws._r++; seksi(ws, 'Sasaran strategis'); ks.forEach(function (k, j) { baris(ws, [k, SS[k], '', '', '', '', '', ''], {}, { zebra: j % 2 === 1, tengah: [1] }); }); }
+      ws._r++;
+      seksi(ws, 'Pihak berkepentingan · ' + P.length + ' pihak');
+      var h2 = judulKolom(ws, ['Kode', 'Pihak berkepentingan', 'Kategori', 'PIC', 'Risiko terkait', 'Progres', 'Status', 'Tinjauan pemenuhan']);
+      P.forEach(function (x, j) {
+        var r = baris(ws, [x.kode, x.nama, x.kat, x.pic, x.rk, x.pr === null ? null : x.pr / 100, null, String(x.r['Tinjauan Pemenuhan'] || '')], { 6: '0%' }, { bungkus: [2, 5, 8], zebra: j % 2 === 1, tengah: [1] });
+        tandai(ws, r, 7, /tercapai/i.test(x.st) ? 'Tercapai' : /berjalan/i.test(x.st) ? 'Berjalan' : 'Belum Dimulai');
+      });
+      if (!P.length) catatan(ws, 'Data pihak berkepentingan belum terbaca.');
+      void h1; void h2; bekukan(ws, 0, 0);
     },
     organisasi: function (wb) {
       var a = A(), O = a.S.data.org || {}, jn = a.judulNama;

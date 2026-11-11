@@ -533,6 +533,114 @@
     $('inT').addEventListener('click', buka); $('inT').addEventListener('keydown', buka);
   }
 
+  /* ---------- Tahap 3: isu internal & eksternal, pihak berkepentingan ---------- */
+  function kCol(o, awal) { var k = Object.keys(o).filter(function (x) { return x.indexOf(awal) === 0; })[0]; return k ? String(o[k] || '').trim() : ''; }
+  function kIsu() {
+    var K = S.data.konteks; if (!K || !K.isu) return [];
+    return D.rows(K.isu).map(function (r) { return { kode: kCol(r, 'Kode'), jenis: kCol(r, 'Jenis'), isu: kCol(r, 'Isu'), sas: kCol(r, 'Sasaran'), rk: kCol(r, 'No. Risiko'), pb: kCol(r, 'Pihak'), ket: kCol(r, 'Keterangan') }; }).filter(function (x) { return x.kode; });
+  }
+  function kPihak() {
+    var K = S.data.konteks; if (!K || !K.pihak) return [];
+    return D.rows(K.pihak).map(function (r) {
+      var st = kCol(r, 'Status'), pr = D.num(String(kCol(r, 'Progres')).replace('%', ''));
+      return { r: r, kode: kCol(r, 'Kode'), nama: kCol(r, 'Pihak'), kat: kCol(r, 'Kategori'), pic: kCol(r, 'PIC'), prio: kCol(r, 'Prioritas'), rk: kCol(r, 'No. Risiko'), st: st || 'Belum Dimulai', pr: pr };
+    }).filter(function (x) { return x.kode; });
+  }
+  function kSasaran() { var o = {}; ((S.data.konteks && S.data.konteks.sasaran) || []).forEach(function (s) { o[String(s[0]).trim()] = s[1]; }); return o; }
+  function daftar(t) { return String(t || '').split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  /* daftar risiko di Peta Risiko: nomor dan ID */
+  function petaRisiko() { return (S.data.risiko && S.data.risiko.rows) ? D.rows(S.data.risiko.rows).map(function (r) { return { no: String(r['No']).trim(), id: String(r['ID Risk'] || ''), des: r['Deskripsi Risiko'] }; }) : []; }
+  function chipRisiko(t) {
+    var P = petaRisiko(), L = daftar(t);
+    if (!L.length) return '<span class="desc">–</span>';
+    return L.map(function (x) {
+      var m = x.match(/([A-Z]\.\d{2}\.\d{2}\.\d{3})/), lab = x, hit = null;
+      if (/^\d+$/.test(x)) { var n = String(parseInt(x, 10)); hit = P.filter(function (p) { return p.no === n; })[0]; lab = n; }
+      else if (m) { hit = P.filter(function (p) { return p.id.slice(-m[1].length) === m[1]; })[0]; var lk = x.match(/\(([^)]+)\)/); lab = lk ? lk[1] : m[1]; }
+      return hit ? '<button type="button" class="rchip" data-rk="' + esc(hit.no) + '" title="' + esc('Risiko ' + hit.no + ': ' + hit.des + ' · ketuk untuk menyorot di Peta Risiko') + '">R' + esc(lab) + '</button>'
+        : '<span class="rchip off" title="' + esc(x + ' · tidak ada di Peta Risiko (cek tab 4. Peta Risiko di file Profil Risiko)') + '">R' + esc(lab) + '</span>';
+    }).join('');
+  }
+  function kStatus(st) { return /tercapai|selesai/i.test(st) ? 'good' : /berjalan|progress/i.test(st) ? 'warn' : 'idle'; }
+  function baris(t) { return esc(t || '–').replace(/\n/g, '<br>'); }
+  function kosongKonteks(el) {
+    el.innerHTML = '<div class="empty">Data isu &amp; pihak berkepentingan belum terbaca. Pastikan Apps Script sudah versi terbaru (Deploy versi baru) dan tab <b>2b. Pihak Berkepentingan</b> serta <b>2c. Isu &amp; Kaitan Risiko</b> ada di file Profil Risiko.</div>';
+  }
+  function renderIsu() {
+    var el = $('isuBody'); if (!el) return;
+    if (!S.data.konteks) return kosongKonteks(el);
+    var L = kIsu(), SS = kSasaran();
+    if (!L.length) { el.innerHTML = '<div class="empty">Belum ada isu di tab 2c. Isu &amp; Kaitan Risiko.</div>'; return; }
+    var nI = L.filter(function (x) { return /intern/i.test(x.jenis); }).length, nR = L.filter(function (x) { return daftar(x.rk).length; }).length;
+    var per = Object.keys(SS).map(function (k) { return [k, SS[k], L.filter(function (x) { return daftar(x.sas).indexOf(k) >= 0; }).length]; });
+    var mx = Math.max.apply(null, per.map(function (x) { return x[2]; }).concat([1]));
+    el.innerHTML = '<div class="mini-sum"><div><b class="num">' + L.length + '</b><span>isu ' + esc(String(S.tahun)) + '</span></div><div><b class="num">' + nI + ' · ' + (L.length - nI) + '</b><span>internal · eksternal</span></div><div><b class="num ' + (nR < L.length ? 'warn' : 'good') + '">' + nR + '</b><span>terkait risiko</span></div></div>' +
+      (per.length ? '<div class="sub-h">Per sasaran strategis</div><div class="bars">' + per.map(function (x) { return '<div class="r" title="' + esc(x[0] + '. ' + x[1]) + '"><span>' + esc(x[0] + '. ' + x[1]) + '</span><span class="t"><i style="width:' + (x[2] / mx * 100) + '%;background:var(--bar)"></i></span><span class="num">' + x[2] + '</span></div>'; }).join('') + '</div>' : '') +
+      '<div class="sub-h">Isu dan risiko terkait · ketuk R untuk menyorot di Peta Risiko</div><div class="kx-list">' +
+      L.map(function (x) { return '<div class="kx-row"><span class="kx-kode ' + (/intern/i.test(x.jenis) ? 'i' : 'e') + '">' + esc(x.kode) + '</span><span class="kx-t">' + esc(x.isu) + '</span><span class="kx-chips">' + chipRisiko(x.rk) + '</span></div>'; }).join('') + '</div>' +
+      '<button class="btn" type="button" data-act="isu">Lihat tabel isu →</button>';
+  }
+  function renderPihak() {
+    var el = $('pbBody'); if (!el) return;
+    if (!S.data.konteks) return kosongKonteks(el);
+    var L = kPihak();
+    if (!L.length) { el.innerHTML = '<div class="empty">Belum ada data di tab 2b. Pihak Berkepentingan.</div>'; return; }
+    var c = { good: 0, warn: 0, idle: 0 }; L.forEach(function (x) { c[kStatus(x.st)]++; });
+    var pr = L.filter(function (x) { return x.pr !== null; }), rata = pr.length ? pr.reduce(function (s, x) { return s + x.pr; }, 0) / pr.length : null;
+    el.innerHTML = '<div class="mini-sum"><div><b class="num">' + L.length + '</b><span>pihak · rata-rata progres ' + (rata === null ? '–' : D.fmt(rata, 0) + '%') + '</span></div><div><b class="num good">' + c.good + '</b><span>tercapai</span></div><div><b class="num ' + (c.warn ? 'warn' : '') + '">' + (c.warn + c.idle) + '</b><span>berjalan / belum</span></div></div>' +
+      '<div class="sub-h">Progres pemenuhan kebutuhan & harapan · ketuk untuk rincian</div><div class="kx-list">' +
+      L.map(function (x) {
+        var k = kStatus(x.st), w = x.pr === null ? 0 : Math.max(0, Math.min(100, x.pr));
+        return '<button type="button" class="kx-pb" data-pb="' + esc(x.kode) + '"><span class="kx-n"><b>' + esc(x.nama) + '</b><small>' + esc([x.kat, x.pic].filter(Boolean).join(' · ')) + '</small></span>' +
+          '<span class="kx-bar"><span><i class="' + k + '" style="width:' + w + '%"></i></span><b class="num">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</b></span><span class="kx-st ' + k + '">' + esc(x.st) + '</span></button>';
+      }).join('') + '</div>' +
+      '<button class="btn" type="button" data-act="pb">Lihat matriks lengkap →</button>';
+  }
+  function openIsu() {
+    var L = kIsu(), SS = kSasaran(), PB = {}, f = '';
+    kPihak().forEach(function (p) { PB[p.kode] = p.nama; });
+    openModal('<div class="modal-h"><div><h3>Isu Internal &amp; Eksternal ' + esc(String(S.tahun)) + '</h3><div class="desc">File Profil Risiko · tab 2c. Isu &amp; Kaitan Risiko · arahkan kursor ke nomor sasaran atau kode pihak untuk melihat namanya</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tabs" role="tablist"><button type="button" data-kf="" aria-selected="true">Semua (' + L.length + ')</button><button type="button" data-kf="i" aria-selected="false">Internal</button><button type="button" data-kf="e" aria-selected="false">Eksternal</button></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Kode</th><th>Isu</th><th>Sasaran</th><th>Risiko</th><th>Pihak berkepentingan</th><th>Keterangan</th></tr></thead><tbody id="kxT"></tbody></table></div>', 'wide');
+    function fill() {
+      $('kxT').innerHTML = L.filter(function (x) { return !f || (f === 'i') === /intern/i.test(x.jenis); }).map(function (x) {
+        return '<tr><td><span class="kx-kode ' + (/intern/i.test(x.jenis) ? 'i' : 'e') + '">' + esc(x.kode) + '</span></td><td>' + esc(x.isu) + '</td>' +
+          '<td>' + (daftar(x.sas).map(function (s) { return '<span class="kx-tag" title="' + esc(SS[s] || 'Sasaran ' + s) + '">' + esc(s) + '</span>'; }).join('') || '–') + '</td>' +
+          '<td>' + chipRisiko(x.rk) + '</td><td>' + (daftar(x.pb).map(function (p) { return PB[p] ? '<button type="button" class="kx-tag link" data-pb="' + esc(p) + '" title="' + esc(PB[p]) + '">' + esc(p) + '</button>' : '<span class="kx-tag">' + esc(p) + '</span>'; }).join('') || '–') + '</td>' +
+          '<td class="desc">' + esc(x.ket) + '</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="desc">Tidak ada.</td></tr>';
+    }
+    fill();
+    Array.prototype.forEach.call($('modalC').querySelectorAll('[data-kf]'), function (b) { b.addEventListener('click', function () { f = b.getAttribute('data-kf'); Array.prototype.forEach.call($('modalC').querySelectorAll('[data-kf]'), function (x) { x.setAttribute('aria-selected', x === b); }); fill(); }); });
+  }
+  function openPbList() {
+    var L = kPihak();
+    openModal('<div class="modal-h"><div><h3>Matriks Pihak Berkepentingan ' + esc(String(S.tahun)) + '</h3><div class="desc">File Profil Risiko · tab 2b. Pihak Berkepentingan · ketuk baris untuk rincian</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pihak</th><th>Kategori</th><th>PIC</th><th class="r">Prioritas</th><th class="r">Progres</th><th>Status</th><th>Risiko</th></tr></thead><tbody>' +
+      L.map(function (x) {
+        return '<tr class="klik" tabindex="0" data-pb="' + esc(x.kode) + '"><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.kode) + '</div></td><td>' + esc(x.kat) + '</td><td>' + esc(x.pic) + '</td><td class="r">' + esc(x.prio || '–') + '</td>' +
+          '<td class="r">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</td><td><span class="kx-st ' + kStatus(x.st) + '">' + esc(x.st) + '</span></td><td>' + chipRisiko(x.rk) + '</td></tr>';
+      }).join('') + '</tbody></table></div>', 'wide');
+  }
+  function openPihak(kode) {
+    var x = kPihak().filter(function (p) { return p.kode === kode; })[0]; if (!x) return;
+    var r = x.r, isu = kIsu().filter(function (i) { return daftar(i.pb).indexOf(kode) >= 0; }), k = kStatus(x.st), w = x.pr === null ? 0 : Math.max(0, Math.min(100, x.pr));
+    function f(lbl, awal) { var v = kCol(r, awal); return v ? '<div class="kx-f"><span class="sub-h">' + lbl + '</span><div>' + baris(v) + '</div></div>' : ''; }
+    openModal('<div class="modal-h"><div><h3>' + esc(x.nama) + '</h3><div class="desc">' + esc([x.kode, x.kat, 'PIC ' + (x.pic || '–'), 'prioritas ' + (x.prio || '–'), 'target ' + (kCol(r, 'Target') || '–')].join(' · ')) + '</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="kx-head"><span class="kx-st ' + k + '">' + esc(x.st) + '</span><span class="kx-bar big"><span><i class="' + k + '" style="width:' + w + '%"></i></span><b class="num">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</b></span></div>' +
+      '<div class="kx-grid">' + f('Kebutuhan', 'Kebutuhan') + f('Harapan', 'Harapan') + f('Strategi / media pemenuhan', 'Strategi') + f('Sasaran kinerja (KPI) terkait', 'Sasaran Kinerja') + f('Manfaat', 'Manfaat') +
+      '<div class="kx-f"><span class="sub-h">Risiko</span><div>' + baris(kCol(r, 'Risiko')) + '<div class="kx-chips" style="margin-top:6px">' + chipRisiko(x.rk) + '</div></div></div>' +
+      f('Mitigasi risiko', 'Mitigasi') + f('Uraian progres', 'Uraian') + f('Media komunikasi / pelaporan', 'Media') + f('Tinjauan pemenuhan', 'Tinjauan') +
+      (isu.length ? '<div class="kx-f"><span class="sub-h">Isu terkait</span><div>' + isu.map(function (i) { return '<div><span class="kx-kode ' + (/intern/i.test(i.jenis) ? 'i' : 'e') + '">' + esc(i.kode) + '</span> ' + esc(i.isu) + '</div>'; }).join('') + '</div></div>' : '') +
+      '</div>', 'wide');
+  }
+  function sorotRisiko(no) {
+    var ada = petaRisiko().some(function (p) { return p.no === no; });
+    if (!ada) return toast('Risiko ' + no + ' tidak ada di Peta Risiko.');
+    S.riskOn = no; renderRisk();
+    var p = $('riskPanel'); if (p) p.scrollIntoView({ behavior: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
   /* ---------- struktur organisasi ---------- */
   function judulNama(t) {   // HURUF BESAR -> Huruf Awal Besar, singkatan tetap
     return String(t || '').toLowerCase().replace(/(^|[\s(\/,.-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); })
@@ -802,7 +910,7 @@
   function renderAll() {
     var gagal = [];
     [['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['Struktur organisasi', renderOrg]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -921,6 +1029,8 @@
   document.addEventListener('click', function (e) {
     var t = e.target; if (!t.closest) return;
     var ind = t.closest('[data-ind]'); if (ind) return openInd(ind.getAttribute('data-ind'));
+    var rkc = t.closest('[data-rk]'); if (rkc) { var no = rkc.getAttribute('data-rk'); if (!$('modal').hidden) closeModal(); return sorotRisiko(no); }
+    var pbc = t.closest('[data-pb]'); if (pbc) return openPihak(pbc.getAttribute('data-pb'));
     var act = t.closest('[data-act]');
     if (act) {
       var a = act.getAttribute('data-act');
@@ -933,6 +1043,8 @@
       if (a === 'cc') return openCc();
       if (a === 'sert') return openSert();
       if (a === 'org') return openOrg();
+      if (a === 'isu') return openIsu();
+      if (a === 'pb') return openPbList();
       if (a === 'idp') return openIdp();
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
@@ -946,7 +1058,7 @@
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !$('modal').hidden) return closeModal();
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.card.click')) { e.preventDefault(); e.target.click(); }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.card.click, tr.klik[data-pb]')) { e.preventDefault(); e.target.click(); }
   });
 
   /* dipakai input.js dan export.js */
@@ -954,7 +1066,7 @@
     S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
-    idpRows: idpRows, inoRows: inoRows, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama
+    idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 

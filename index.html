@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261111z">
+<link rel="stylesheet" href="assets/style.css?v=20261111b">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -126,7 +126,22 @@
     </div>
   </section>
 
-  <section class="panel">
+  <section class="pair" aria-label="Isu dan pihak berkepentingan">
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Isu Internal &amp; Eksternal</h2><div class="desc">File Profil Risiko · tab 2c · dikaitkan ke sasaran strategis dan risiko</div></div>
+      </div>
+      <div id="isuBody" class="dev-body"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h">
+        <div><h2>Pihak Berkepentingan</h2><div class="desc">File Profil Risiko · tab 2b · pemenuhan kebutuhan &amp; harapan</div></div>
+      </div>
+      <div id="pbBody" class="dev-body"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="riskPanel">
     <div class="panel-h">
       <div><h2>Peta Risiko</h2><div class="desc">Profil Risiko UPDL Semarang · klik nomor atau baris untuk menyorot</div></div>
       <div class="seg" role="group" aria-label="Tingkat risiko" id="riskSeg"><button type="button" data-rv="inheren" aria-pressed="false">Inheren</button><button type="button" data-rv="residual" aria-pressed="false">Residual</button><button type="button" data-rv="target" aria-pressed="true">Target</button></div>
@@ -169,12 +184,12 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261111z"></script>
-<script src="assets/common.js?v=20261111z"></script>
-<script src="assets/genie.js?v=20261111z"></script>
-<script src="assets/dashboard.js?v=20261111z"></script>
-<script src="assets/input.js?v=20261111z"></script>
-<script src="assets/export.js?v=20261111z"></script>
+<script src="config.js?v=20261111b"></script>
+<script src="assets/common.js?v=20261111b"></script>
+<script src="assets/genie.js?v=20261111b"></script>
+<script src="assets/dashboard.js?v=20261111b"></script>
+<script src="assets/input.js?v=20261111b"></script>
+<script src="assets/export.js?v=20261111b"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -222,6 +237,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261111z"></script>
+<script src="assets/panduan.js?v=20261111b"></script>
 </body>
 </html>

@@ -194,6 +194,10 @@ function buildData_() {
   try { out.risiko = bacaRisiko_(cfg); }
   catch (e) { out.warnings.push('Profil Risiko tidak bisa dibaca: ' + e.message); out.risiko = { tampilan: '', rows: [] }; }
 
+  // Tahap 3: isu internal & eksternal dan pihak berkepentingan (file Profil Risiko, tab 2b & 2c)
+  try { out.konteks = bacaKonteks_(cfg); }
+  catch (e) { out.warnings.push('Isu & pihak berkepentingan tidak bisa dibaca: ' + e.message); out.konteks = null; }
+
   return out;
 }
 
@@ -269,6 +273,46 @@ function bacaRisiko_(cfg) {
     rows.push([r[cNo], id, des, inh, res, tgt]);
   }
   return { tampilan: tampilan, rows: [['No', 'ID Risk', 'Deskripsi Risiko', 'Inheren', 'Residual', 'Target']].concat(rows) };
+}
+
+/* ---------- Tahap 3: isu & pihak berkepentingan ---------- */
+/* Baris judul dicari lewat isi kolom (bukan nomor baris), jadi baris boleh ditambah di atas/bawah.
+   Baris nomor kolom (1, 2, 3, ...) dilewati. Data berhenti di baris pertama yang kolom Kode-nya kosong. */
+function bacaTabKonteks_(ss, tab, kunci) {
+  var sh = ss.getSheetByName(tab);
+  if (!sh) throw new Error('tab "' + tab + '" tidak ditemukan di file Profil Risiko');
+  var d = sh.getRange(1, 1, Math.max(1, Math.min(sh.getLastRow(), 400)), Math.max(1, Math.min(sh.getLastColumn(), 40))).getDisplayValues();
+  var hr = -1;
+  for (var i = 0; i < Math.min(d.length, 30) && hr < 0; i++) if (d[i].some(function (x) { return x.trim() === 'Kode'; }) && d[i].some(function (x) { return x.trim().indexOf(kunci) === 0; })) hr = i;
+  if (hr < 0) throw new Error('baris judul (Kode, ' + kunci + ') tidak ditemukan di tab "' + tab + '"');
+  var H = d[hr].map(function (x) { return x.trim(); }), cK = H.indexOf('Kode'), n = H.length;
+  while (n && !H[n - 1]) n--;
+  var rows = [], j = hr + 1;
+  if (d[j] && d[j][0].trim() === '1' && (d[j][1] || '').trim() === '2') j++;
+  for (; j < d.length; j++) {
+    var kode = (d[j][cK] || '').trim();
+    if (!kode) break;
+    rows.push(d[j].slice(0, n).map(function (x) { return String(x).trim(); }));
+  }
+  return { head: H.slice(0, n), rows: rows, d: d, akhir: j };
+}
+function bacaKonteks_(cfg) {
+  if (!cfg.PROFIL_RISIKO_ID) throw new Error('PROFIL_RISIKO_ID belum diisi di Pengaturan');
+  var ss = SpreadsheetApp.openById(String(cfg.PROFIL_RISIKO_ID).trim());
+  var P = bacaTabKonteks_(ss, cfg.PIHAK_TAB || '2b. Pihak Berkepentingan', 'Pihak Berkepentingan');
+  var I = bacaTabKonteks_(ss, cfg.ISU_TAB || '2c. Isu & Kaitan Risiko', 'Jenis');
+  var sasaran = [];
+  for (var j = I.akhir; j < I.d.length; j++) {
+    if (/SASARAN STRATEGIS/i.test(I.d[j][0])) {
+      for (var k = j + 1; k < I.d.length; k++) {
+        var no = (I.d[k][0] || '').trim(), t = (I.d[k][1] || '').trim();
+        if (!no || !t) break;
+        sasaran.push([no, t]);
+      }
+      break;
+    }
+  }
+  return { pihak: [P.head].concat(P.rows), isu: [I.head].concat(I.rows), sasaran: sasaran };
 }
 
 /* ======================================================================== */

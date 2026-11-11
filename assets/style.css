@@ -742,3 +742,39 @@ html.glass .og-adc{background:var(--g-card);border-color:var(--g-border)}
  .og-adwrap{grid-template-columns:1fr}
  .og-cari{width:100%}
 }
+
+/* ===================== TAHAP 3: ISU & PIHAK BERKEPENTINGAN ===================== */
+.kx-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;padding-right:2px}
+.kx-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);border-radius:10px}
+.kx-t{line-height:1.4}
+.kx-kode{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+.kx-kode.i{background:var(--accent-soft);color:var(--accent)}
+.kx-kode.e{background:var(--idle-bg);color:var(--bar)}
+.kx-chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.rchip{font:inherit;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;border:1px solid var(--warn);background:var(--warn-bg);color:var(--ink);cursor:pointer;line-height:1.4;white-space:nowrap}
+.rchip:hover,.rchip:focus-visible{background:var(--warn);color:var(--sheet);outline:none}
+.rchip.off{border-style:dashed;border-color:var(--line);background:transparent;color:var(--ink-3);cursor:help}
+.kx-tag{display:inline-block;font:inherit;font-size:11px;font-weight:600;padding:1px 7px;margin:0 3px 3px 0;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.kx-tag.link{cursor:pointer}.kx-tag.link:hover{border-color:var(--accent);color:var(--accent)}
+.kx-pb{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,30%) auto;gap:10px;align-items:center;width:100%;text-align:left;font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:10px;padding:7px 10px;cursor:pointer}
+.kx-pb:hover,.kx-pb:focus-visible{border-color:var(--accent);outline:none}
+.kx-n{display:grid;min-width:0}.kx-n b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kx-n small{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kx-bar{display:grid;grid-template-columns:minmax(0,1fr) 38px;gap:6px;align-items:center;font-size:12px}
+.kx-bar>span{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
+.kx-bar i{display:block;height:100%;border-radius:4px;background:var(--idle)}
+.kx-bar i.good{background:var(--good)}.kx-bar i.warn{background:var(--warn)}
+.kx-bar .num{text-align:right}
+.kx-bar.big{flex:1;grid-template-columns:minmax(0,1fr) 48px}.kx-bar.big>span{height:10px}
+.kx-st{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;background:var(--idle-bg);color:var(--ink-3)}
+.kx-st.good{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.kx-st.warn{background:var(--warn-bg);color:var(--warn)}
+.kx-head{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.kx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kx-f{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5;min-width:0}
+.kx-f .sub-h{display:block;margin-bottom:4px}
+html.glass .kx-row,html.glass .kx-pb,html.glass .kx-f{background:var(--g-btn);border-color:var(--g-border)}
+@media (max-width:640px){
+ .kx-row{grid-template-columns:auto minmax(0,1fr)}.kx-row .kx-chips{grid-column:2;justify-content:flex-start}
+ .kx-pb{grid-template-columns:minmax(0,1fr) auto}.kx-pb .kx-bar{grid-column:1/-1;grid-row:2}
+ .kx-grid{grid-template-columns:1fr}
+}
