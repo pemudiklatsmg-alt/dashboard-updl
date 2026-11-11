@@ -1029,7 +1029,7 @@ function periksaData() {
 /*  PENGINGAT EMAIL BULANAN                                                  */
 /* ======================================================================== */
 /* Pengaturan: EMAIL_PENGINGAT (pisahkan dengan koma), TANGGAL_PENGINGAT (default 5),
-   URL_DASHBOARD (opsional, ditautkan di email). Email hanya dikirim bila ada isian
+   DASHBOARD_URL (alamat website, ditautkan di email). Email hanya dikirim bila ada isian
    bulan lalu yang belum lengkap atau tindak lanjut yang belum dimulai. */
 function penerima_() { return String(getConfig_().EMAIL_PENGINGAT || '').split(/[,;\s]+/).filter(function (x) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x); }); }
 function kirimPengingat() { return kirimPengingat_(false); }
@@ -1037,7 +1037,7 @@ function kirimPengingat_(paksa) {
   var to = penerima_(); if (!to.length) return 'Alamat email belum diisi (Pengaturan → EMAIL_PENGINGAT).';
   var bl = bulanLalu_(), c = cekBulanan_(bl[0], bl[1]), cfg = getConfig_();
   if (!paksa && !c.kurang.length && !c.tlBelum) return 'Semua isian ' + c.bulan + ' lengkap; email tidak dikirim.';
-  var url = SpreadsheetApp.getActiveSpreadsheet().getUrl(), dash = String(cfg.URL_DASHBOARD || '').trim();
+  var url = SpreadsheetApp.getActiveSpreadsheet().getUrl(), dash = String(cfg.DASHBOARD_URL || cfg.URL_DASHBOARD || '').trim();
   var li = function (a, ikon) { return a.map(function (x) { return '<li>' + ikon + ' ' + x.replace(/</g, '&lt;') + '</li>'; }).join(''); };
   var html = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#18233F;max-width:560px">' +
     '<p>Halo, berikut pengingat isian <b>Dashboard Kinerja UPDL Semarang</b> untuk <b>' + c.bulan + '</b>.</p>' +

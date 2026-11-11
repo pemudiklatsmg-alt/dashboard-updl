@@ -79,7 +79,7 @@ Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka E
 Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.
 
 ## Pengingat email bulanan
-Isi di tab **Pengaturan**: `EMAIL_PENGINGAT` (alamat, pisahkan dengan koma), `TANGGAL_PENGINGAT` (1–28, bawaan 5), dan `URL_DASHBOARD` (opsional, ditautkan di email). Lalu **Dashboard → Pengingat email bulanan → Aktifkan**. Tiap tanggal itu sekitar pukul 07.00, Apps Script memeriksa isian bulan lalu (Jumlah Pegawai, Kepatuhan, tab Konman) dan tindak lanjut Belum Dimulai; email hanya dikirim bila ada yang kurang. **Kirim percobaan sekarang** selalu mengirim email; **Matikan** menghapus jadwalnya.
+Isi di tab **Pengaturan**: `EMAIL_PENGINGAT` (alamat, pisahkan dengan koma), `TANGGAL_PENGINGAT` (1–28, bawaan 5); alamat website diambil dari `DASHBOARD_URL`. Lalu **Dashboard → Pengingat email bulanan → Aktifkan**. Tiap tanggal itu sekitar pukul 07.00, Apps Script memeriksa isian bulan lalu (Jumlah Pegawai, Kepatuhan, tab Konman) dan tindak lanjut Belum Dimulai; email hanya dikirim bila ada yang kurang. **Kirim percobaan sekarang** selalu mengirim email; **Matikan** menghapus jadwalnya.
 
 ## Apps Script
 Kode ada di [`apps-script/Code.gs`](apps-script/Code.gs), terpasang di spreadsheet gabungan (Ekstensi → Apps Script). Setelah mengganti kode: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. URL `/exec` tetap sama, jadi `config.js` tidak perlu diubah.
