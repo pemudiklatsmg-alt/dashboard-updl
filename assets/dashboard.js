@@ -879,6 +879,12 @@
     $('uPass').value = ''; setTimeout(function () { ($('uName').value ? $('uPass') : $('uName')).focus(); }, 30);
   }
   function tampilApp() { $('loginGate').hidden = true; $('app').hidden = false; window.scrollTo(0, 0); }
+  /* label perangkat untuk tab Log Login (tanpa data pribadi): jenis perangkat + browser */
+  function perangkat() {
+    var ua = navigator.userAgent || '', jenis = /iPad|Tablet/i.test(ua) ? 'Tablet' : /Mobi|iPhone|Android/i.test(ua) ? 'HP' : 'Komputer';
+    var br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Browser lain';
+    return jenis + ' · ' + br;
+  }
   function keluar(pesan) {
     var s0 = D.sesi(); if (s0) D.api({ aksi: 'keluar', token: s0.token }).catch(function () {});
     D.hapusSesi(); tampilLogin(pesan);
@@ -890,7 +896,7 @@
     $('uName').classList.toggle('err', !u); $('uPass').classList.toggle('err', !pw);
     if (!u || !pw) { $('loginErr').hidden = false; $('loginErr').textContent = 'Isi username dan password.'; return; }
     var b = $('loginBtn'); b.disabled = true; b.textContent = 'Memeriksa…'; $('loginErr').hidden = true;
-    D.api({ aksi: 'login', username: u, password: pw }).then(function (d) {
+    D.api({ aksi: 'login', username: u, password: pw, perangkat: perangkat() }).then(function (d) {
       D.simpanSesi({ token: d.token, user: d.user, peran: d.peran, exp: Date.now() + (d.berlakuDetik || 21600) * 1000 - 60000 });
       $('uPass').value = ''; aturPeran(d.peran, d.user); tampilApp(); return load();
     }).catch(function (er) { $('loginErr').hidden = false; $('loginErr').textContent = er.message; $('uPass').select(); })
@@ -947,7 +953,8 @@
   window.DashApp = {
     S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
-    tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal
+    tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
+    idpRows: idpRows, inoRows: inoRows, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 

@@ -44,7 +44,8 @@ var TAB = {
   INSTRUKTUR: 'Data - Instruktur EL1',
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
-  SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi'
+  SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
+  LOG: 'Log Login'
 };
 /* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
 var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
@@ -312,7 +313,7 @@ function doPost(e) {
     if (req.aksi === 'login') return json_(login_(req));
     var sesi = cekToken_(req.token);
     if (req.aksi === 'cek') return json_({ ok: true, user: sesi.user, peran: sesi.peran });
-    if (req.aksi === 'keluar') { CacheService.getScriptCache().remove('tok_' + req.token); return json_({ ok: true }); }
+    if (req.aksi === 'keluar') { CacheService.getScriptCache().remove('tok_' + req.token); catatLogin_(sesi.user, sesi.peran, 'Keluar', ''); return json_({ ok: true }); }
     if (req.aksi === 'data') {
       var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
       return json_(d);
@@ -336,17 +337,35 @@ function login_(req) {
   var adaAkun = Object.keys(AKUN).some(function (k) { return p.getProperty(AKUN[k].kunci + '_PASS_HASH'); });
   if (!adaAkun) throw new Error('Akun belum diatur. Di spreadsheet, pilih menu Dashboard → Atur akun Admin.');
   var c = CacheService.getScriptCache(), gagal = Number(c.get('login_gagal') || 0);
-  if (gagal >= 10) throw new Error('Terlalu banyak percobaan gagal. Coba lagi 15 menit lagi.');
+  if (gagal >= 10) { if (!c.get('log_kunci')) { c.put('log_kunci', '1', 900); catatLogin_(req.username, '', 'Ditolak (login terkunci 15 menit)', req.perangkat); } throw new Error('Terlalu banyak percobaan gagal. Coba lagi 15 menit lagi.'); }
   Utilities.sleep(300);
   var nama = String(req.username || '').trim().toLowerCase(), pw = String(req.password || '');
   var cocok = Object.keys(AKUN).filter(function (k) {
     var a = AKUN[k], u = p.getProperty(a.kunci + '_USER'), h = p.getProperty(a.kunci + '_PASS_HASH');
     return u && h && u.toLowerCase() === nama && hash_(p.getProperty(a.kunci + '_SALT'), pw) === h;
   })[0];
-  if (!cocok) { c.put('login_gagal', String(gagal + 1), 900); throw new Error('Username atau password salah.'); }
+  if (!cocok) { c.put('login_gagal', String(gagal + 1), 900); catatLogin_(req.username, '', 'Gagal (password/username salah)', req.perangkat); throw new Error('Username atau password salah.'); }
   var a = AKUN[cocok], t = Utilities.getUuid(), u = p.getProperty(a.kunci + '_USER');
   c.put('tok_' + t, [u, cocok, p.getProperty(a.kunci + '_VER') || '0'].join('|'), 21600); // 6 jam
+  catatLogin_(u, cocok, 'Berhasil', req.perangkat);
   return { ok: true, token: t, user: u, peran: cocok, berlakuDetik: 21600 };
+}
+
+/* Catatan login ke tab "Log Login" (dibuat otomatis). Tidak pernah mencatat password.
+   Kegagalan menulis log tidak menggagalkan login. */
+function catatLogin_(user, peran, hasil, perangkat) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.LOG);
+    if (!sh) {
+      sh = ss.insertSheet(TAB.LOG, ss.getSheets().length);
+      sh.getRange(1, 1, 1, 5).setValues([['Waktu', 'Akun', 'Peran', 'Hasil', 'Perangkat']]).setFontWeight('bold').setBackground('#18233F').setFontColor('#FFFFFF');
+      sh.setFrozenRows(1); sh.setColumnWidths(1, 5, 170); sh.setColumnWidth(4, 230); sh.setTabColor('#8A93A6');
+      sh.getRange('A:A').setNumberFormat('dd/MM/yyyy HH:mm:ss');
+    }
+    var nama = String(user || '').replace(/[^\w.@ -]/g, '').slice(0, 40) || '(kosong)';
+    var lab = peran === 'admin' ? 'Admin' : peran === 'lihat' ? 'Lihat' : '–';
+    sh.appendRow([new Date(), nama, lab, String(hasil), String(perangkat || '').replace(/[^\w ·.-]/g, '').slice(0, 40)]);
+  } catch (e) { /* abaikan */ }
 }
 
 function cekToken_(t) {

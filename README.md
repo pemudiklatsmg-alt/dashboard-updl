@@ -58,9 +58,10 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
   - **Dashboard → Atur akun Admin**: melihat dashboard, input data, export Excel.
   - **Dashboard → Atur akun Lihat**: hanya melihat dashboard (tanpa Input, Export, dan tautan Google Sheets).
 -  Password disimpan sebagai hash di Script Properties, tidak di spreadsheet dan tidak di kode website. Mengganti password membuat semua sesi login berakhir. Sesi login berlaku 6 jam; 10 kali salah password mengunci login selama 15 menit.
+- Setiap login (berhasil, gagal, terkunci) dan keluar dicatat di tab **Log Login** (dibuat otomatis): waktu, akun, peran, hasil, jenis perangkat & browser. Password tidak pernah dicatat. Berguna untuk mengukur pemakaian dashboard.
 
 ## Export Excel
-Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
+Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, IDP, Inovasi, serta Struktur Organisasi dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
 
 ## Tampilan
 - Menu dan jendela pop-up memakai efek genie (±0,3 detik); otomatis mati bila perangkat diatur "kurangi gerakan".

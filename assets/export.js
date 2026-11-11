@@ -10,6 +10,9 @@
     ['evaluasi', 'Evaluasi Pembelajaran', 'Kepuasan, instruktur, KSA, C&C, L3, L4, ROTI, sertifikat', 1],
     ['kepatuhan', 'Kepatuhan & Tindak Lanjut', 'Pengurang per aspek dan status temuan', 1],
     ['maturity', 'Maturity & Risiko', 'Skor per key element dan daftar risiko', 1],
+    ['idp', 'Pengembangan Pegawai (IDP)', 'Realisasi jalur 10-20-70 per pegawai', 1],
+    ['inovasi', 'Pengembangan Inovasi', 'Daftar inovasi tahun terpilih, tahap, status, nilai manfaat', 1],
+    ['organisasi', 'Struktur Organisasi', 'Pegawai PLN per jabatan dan tenaga alih daya', 0],
     ['kelas', 'Lampiran: Daftar Kelas', 'Semua kelas Selesai (ratusan baris)', 0]
   ];
   $('expChk').innerHTML = PILIHAN.map(function (p) { return '<label><input type="checkbox" value="' + p[0] + '"' + (p[3] ? ' checked' : '') + '><span>' + esc(p[1]) + '<small>' + esc(p[2]) + '</small></span></label>'; }).join('');
@@ -77,7 +80,10 @@
     'Tercapai': ['FFE3F4EA', 'FF1F8A4C'], 'Patuh': ['FFE3F4EA', 'FF1F8A4C'], 'Selesai': ['FFE3F4EA', 'FF1F8A4C'], 'Rendah': ['FF8FD19E', 'FF18233F'],
     'Hampir tercapai': ['FFFBF0DC', 'FFB7791F'], 'Berjalan': ['FFFBF0DC', 'FFB7791F'], 'OFI': ['FFFBF0DC', 'FFB7791F'], 'Proses Tindak Lanjut': ['FFFBF0DC', 'FFB7791F'], 'Sudah Dilaporkan': ['FFE3F4EA', 'FF1F8A4C'], 'Moderat': ['FFB5EBEE', 'FF18233F'], 'Ada pengurang': ['FFFBE5E5', 'FFC53030'],
     'Di bawah target': ['FFFBE5E5', 'FFC53030'], 'Belum Dimulai': ['FFFBE5E5', 'FFC53030'], 'Tinggi': ['FFF5D66B', 'FF18233F'], 'Sangat Tinggi': ['FFF4A259', 'FF18233F'], 'Ekstrem': ['FFE5625E', 'FFFFFFFF'],
-    'Belum ada data': ['FFEEF0F4', 'FF7C8399'], 'Tanpa target': ['FFEEF0F4', 'FF7C8399'], 'Belum diisi': ['FFEEF0F4', 'FF7C8399']
+    'Belum ada data': ['FFEEF0F4', 'FF7C8399'], 'Tanpa target': ['FFEEF0F4', 'FF7C8399'], 'Belum diisi': ['FFEEF0F4', 'FF7C8399'],
+    'Selesai tepat waktu': ['FFE3F4EA', 'FF1F8A4C'], 'Selesai terlambat': ['FFFBF0DC', 'FFB7791F'], 'Lewat target, belum selesai': ['FFFBE5E5', 'FFC53030'],
+    'Tertunda': ['FFFBF0DC', 'FFB7791F'], 'Belum dimulai': ['FFEEF0F4', 'FF7C8399'], 'Dihentikan': ['FFEEF0F4', 'FF7C8399'], 'Belum lengkap': ['FFFBF0DC', 'FFB7791F'],
+    'Struktural': ['FFEEF1F8', 'FF3A4F8C'], 'Fungsional': ['FFF3EFF8', 'FF6B5B95']
   };
   var FONT = 'Arial', tipis = { style: 'thin', color: { argb: C.line } }, KOTAK = { top: tipis, left: tipis, bottom: tipis, right: tipis };
   function isi(argb) { return { type: 'pattern', pattern: 'solid', fgColor: { argb: argb } }; }
@@ -459,6 +465,68 @@
         tandai(ws, r, 6, m ? m[1].trim() : 'Belum ada data');
       });
       if (!R.length) catatan(ws, 'File Profil Risiko belum terbaca.');
+    },
+    idp: function (wb) {
+      var a = A(), L = a.idpRows(), J = a.JALUR, jn = a.judulNama;
+      var ws = lembar(wb, 'IDP', [30, 24, 11, 32, 32, 32, 15], { judul: 'Pengembangan Pegawai (IDP)' });
+      catatan(ws, 'Selesai = semua jalur yang direncanakan sudah ada realisasinya. Data IDP tidak mengikuti filter bulan.'); ws._r++;
+      seksi(ws, 'Ringkasan per jalur');
+      var h1 = judulKolom(ws, ['Jalur', 'Pegawai direncanakan', 'Sudah realisasi', 'Persen', '', '', '']);
+      J.forEach(function (x, i) {
+        var ren = L.filter(function (p) { return p.j[i].ren; }).length, done = L.filter(function (p) { return p.j[i].ren && p.j[i].real; }).length, r = ws._r;
+        baris(ws, [x[0], ren, done, rumus('IF(B' + r + '=0,"",C' + r + '/B' + r + ')', ren ? done / ren : null), '', '', ''], { 4: '0%' }, { zebra: i % 2 === 1 });
+      });
+      void h1; ws._r++;
+      seksi(ws, 'Per pegawai · ' + L.length + ' pegawai · ' + L.filter(function (p) { return p.selesai; }).length + ' selesai');
+      var hr = judulKolom(ws, ['Pegawai', 'Unit / Bidang', 'Kelompok', J[0][0], J[1][0], J[2][0], 'Status']);
+      L.slice().sort(function (x, y) { return String(x.r[0]).localeCompare(String(y.r[0]), 'id'); }).forEach(function (p, j) {
+        var sel = J.map(function (x, i) { var q = p.j[i]; if (!q.ren) return '–'; return q.real ? 'Sudah: ' + p.r[x[2]] + (q.tg ? ' (' + tglTeks(q.tg) + ')' : '') : 'Belum · rencana: ' + p.r[x[1]]; });
+        var r = baris(ws, [jn(p.r[0]), p.r[1] || p.r[2], p.kel].concat(sel).concat([null]), {}, { bungkus: [4, 5, 6], zebra: j % 2 === 1, tengah: [3] });
+        tandai(ws, r, 7, !p.ada ? 'Belum diisi' : p.selesai ? 'Selesai' : 'Belum lengkap');
+      });
+      if (!L.length) catatan(ws, 'Tab Data - IDP masih kosong.');
+      bekukan(ws, hr, 1); ws.pageSetup.printTitlesRow = hr + ':' + hr;
+    },
+    inovasi: function (wb) {
+      var a = A(), L = a.inoRows(), T = a.TAHAP;
+      var ws = lembar(wb, 'Inovasi', [40, 11, 20, 20, 22, 10, 12, 22, 17], { judul: 'Pengembangan Inovasi · ' + a.S.tahun });
+      catatan(ws, 'Kategori Kinerja = dihitung untuk Konman no. 9; UPDL = inovasi internal. Persen Konman no. 9 tetap diambil dari tab Konman.'); ws._r++;
+      var hr = judulKolom(ws, ['Judul Inovasi', 'Kategori', 'Bidang / PIC', 'Ketua Tim', 'Tahap', 'Progres', 'Target Selesai', 'Status', 'Nilai Manfaat (Rp/tahun)']);
+      L.forEach(function (x, j) {
+        var r0 = x.r, pr = D.num(r0['Progres (%)']);
+        var r = baris(ws, [r0['Judul Inovasi'], x.kinerja ? 'Kinerja' : 'UPDL', r0['Bidang / PIC'], r0['Ketua Tim'], x.tahap ? T[x.tahap - 1] : '–', pr === null ? null : pr / 100, x.tgt ? tglTeks(x.tgt) : '–', null, x.nilai || null], { 6: '0%', 9: '#,##0' }, { bungkus: [1, 3, 4, 5], zebra: j % 2 === 1, tengah: [2, 7] });
+        tandai(ws, r, 8, x.w[0]);
+      });
+      if (L.length) baris(ws, ['Total ' + L.length + ' inovasi', '', '', '', '', '', '', '', rumus('SUM(I' + (hr + 1) + ':I' + (ws._r - 1) + ')', L.reduce(function (s, x) { return s + (x.nilai || 0); }, 0))], { 9: '#,##0' }, { tebal: true, latar: C.soft });
+      else catatan(ws, 'Belum ada inovasi untuk tahun ' + a.S.tahun + ' di tab Data - Inovasi.');
+      bekukan(ws, hr, 1); ws.pageSetup.printTitlesRow = hr + ':' + hr;
+    },
+    organisasi: function (wb) {
+      var a = A(), O = a.S.data.org || {}, jn = a.judulNama;
+      var ws = lembar(wb, 'Struktur Organisasi', [6, 44, 30, 40, 14], { judul: 'Struktur Organisasi PLN UPDL Semarang' + (O.periode ? ' · ' + O.periode : '') });
+      var P = (O.pegawai || []).map(function (r) { return { nama: String(r[0] || '').trim(), jab: String(r[1] || '').trim(), atas: String(r[2] || '').trim(), lvl: String(r[3] || '') }; }).filter(function (p) { return p.nama || p.jab; });
+      seksi(ws, 'Pegawai PLN · ' + P.length + ' orang (urut menurut garis atasan, lalu abjad jabatan dan nama)');
+      var hr = judulKolom(ws, ['No', 'Jabatan', 'Nama', 'Atasan Langsung', 'Level']);
+      var ada = {}; P.forEach(function (p) { ada[p.jab.toUpperCase()] = 1; });
+      function urut(x, y) { return x.jab.localeCompare(y.jab, 'id') || x.nama.localeCompare(y.nama, 'id'); }
+      var dipakai = [], no = 0;
+      function tulis(p, d) {
+        if (dipakai.indexOf(p) >= 0) return; dipakai.push(p);
+        var r = baris(ws, [++no, jn(p.jab), jn(p.nama), p.atas && p.atas !== '-' ? jn(p.atas) : '–', null], {}, { zebra: no % 2 === 0, tengah: [1] });
+        ws.getCell(r, 2).alignment = { vertical: 'top', wrapText: true, indent: Math.min(d * 2, 8) };
+        tandai(ws, r, 5, /FUNGSIONAL/i.test(p.lvl) ? 'Fungsional' : 'Struktural');
+        P.filter(function (q) { return q !== p && q.atas.toUpperCase() === p.jab.toUpperCase(); }).sort(urut).forEach(function (q) { tulis(q, d + 1); });
+      }
+      P.filter(function (p) { return !ada[p.atas.toUpperCase()]; }).sort(urut).forEach(function (p) { tulis(p, 0); });
+      P.filter(function (p) { return dipakai.indexOf(p) < 0; }).sort(urut).forEach(function (p) { tulis(p, 0); });
+      if (!P.length) catatan(ws, 'Tab Data - Pegawai belum terbaca.');
+      ws._r++;
+      var AD = (O.alihDaya || []).slice().sort(function (x, y) { return String(x[1]).localeCompare(String(y[1]), 'id') || String(x[2]).localeCompare(String(y[2]), 'id') || String(x[0]).localeCompare(String(y[0]), 'id'); });
+      seksi(ws, 'Tenaga alih daya · ' + AD.length + ' orang (urut perusahaan, bagian, nama)');
+      judulKolom(ws, ['No', 'Perusahaan', 'Bagian', 'Nama', 'Lokasi']);
+      AD.forEach(function (r, j) { baris(ws, [j + 1, jn(r[1]), jn(r[2]), jn(r[0]), jn(r[3])], {}, { zebra: j % 2 === 1, tengah: [1] }); });
+      if (!AD.length) catatan(ws, 'Tab Data - Alih Daya belum terbaca.');
+      bekukan(ws, hr, 0);
     },
     kelas: function (wb) {
       var a = A(), S = a.S, r = D.hitungRendiklat(a.kelas(), S.tahun, S.bulan, a.set());
