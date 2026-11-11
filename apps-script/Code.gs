@@ -16,7 +16,7 @@
  *  Menu di spreadsheet: Dashboard > Tarik daftar kelas tanpa realisasi
  *                      Dashboard > Periksa isian data
  *                      Dashboard > Atur akun Admin / Atur akun Lihat
- *                      Dashboard > Akun pribadi (opsional)
+ *                      Dashboard > Akun Lihat tambahan (opsional)
  *                      Dashboard > Pengingat email bulanan
  *
  *  Seluruh data hanya dikirim setelah login (doPost aksi "data").
@@ -48,7 +48,7 @@ var TAB = {
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
   SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
-  LOG: 'Log Login', AKUN: 'Akun Pribadi'
+  LOG: 'Log Login', AKUN: 'Akun Lihat'
 };
 /* Urutan status sertifikat (paling jauh ke paling awal); terbit = Finish TTE GM */
 var STATUS_SERT = ['Finish TTE GM', 'Proses TTE GM', 'Finish TTE UPDL', 'Proses TTE UPDL', 'Draft Sertifikat', 'Gagal Generate', 'Belum Generate'];
@@ -68,9 +68,9 @@ function onOpen() {
     .addSeparator()
     .addItem('Atur akun Admin (input & export)', 'aturAkunAdmin')
     .addItem('Atur akun Lihat (hanya melihat)', 'aturAkunLihat')
-    .addSubMenu(SpreadsheetApp.getUi().createMenu('Akun pribadi (opsional)')
-      .addItem('Tambah akun / ganti password', 'aturAkunPribadi')
-      .addItem('Nonaktifkan akun', 'nonaktifkanAkunPribadi'))
+    .addSubMenu(SpreadsheetApp.getUi().createMenu('Akun Lihat tambahan (opsional)')
+      .addItem('Tambah akun Lihat / ganti password', 'aturAkunPribadi')
+      .addItem('Nonaktifkan akun Lihat', 'nonaktifkanAkunPribadi'))
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu('Pengingat email bulanan')
       .addItem('Aktifkan (tiap tanggal di Pengaturan)', 'pasangPengingat')
@@ -840,22 +840,23 @@ function safeAlert_(msg) { try { SpreadsheetApp.getUi().alert(msg); } catch (e) 
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 
 /* ======================================================================== */
-/*  AKUN PRIBADI (OPSIONAL)                                                  */
+/*  AKUN LIHAT TAMBAHAN (OPSIONAL)                                           */
 /* ======================================================================== */
-/* Selain dua akun bersama, tiap orang boleh punya akun sendiri. Daftar akun ada di
-   tab "Akun Pribadi" (Username, Nama, Peran, Aktif); password hanya disimpan
-   sebagai hash di Script Properties. Akun bersama tetap berfungsi seperti biasa.
-   Peran dan Aktif boleh diubah langsung di tab; berlaku pada login berikutnya.
-   Untuk mengeluarkan seseorang saat itu juga, pakai menu "Nonaktifkan akun". */
+/* Hanya ada dua jenis akun: Admin (satu akun, lewat "Atur akun Admin") dan Lihat.
+   Selain akun Lihat bersama, akun Lihat bisa ditambah sesuai kebutuhan, satu per orang.
+   Daftarnya di tab "Akun Lihat" (Username, Nama, Aktif, Terakhir Diubah); password hanya
+   disimpan sebagai hash di Script Properties. Akun tambahan selalu berperan Lihat.
+   Kolom Aktif boleh diubah langsung di tab (berlaku pada login berikutnya); untuk
+   mengeluarkan seseorang saat itu juga, pakai menu "Nonaktifkan akun Lihat". */
 function akunPribadi_() {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.AKUN), o = {};
   if (!sh || sh.getLastRow() < 2) return o;
-  var v = sh.getRange(1, 1, sh.getLastRow(), Math.max(4, sh.getLastColumn())).getValues(), h = v[0].map(String);
-  var iU = kol_(h, 'Username'), iN = kol_(h, 'Nama'), iP = kol_(h, 'Peran'), iA = kol_(h, 'Aktif');
+  var v = sh.getRange(1, 1, sh.getLastRow(), Math.max(3, sh.getLastColumn())).getValues(), h = v[0].map(String);
+  var iU = kol_(h, 'Username'), iN = kol_(h, 'Nama'), iA = kol_(h, 'Aktif');
   if (iU < 0) return o;
   v.slice(1).forEach(function (r, i) {
     var u = teks_(r[iU]); if (!u) return;
-    o[u.toLowerCase()] = { user: u, nama: iN >= 0 ? teks_(r[iN]) : '', peran: iP >= 0 && /admin/i.test(r[iP]) ? 'admin' : 'lihat', aktif: iA < 0 || !/^(tidak|no|n|false|0)$/i.test(teks_(r[iA])), baris: i + 2 };
+    o[u.toLowerCase()] = { user: u, nama: iN >= 0 ? teks_(r[iN]) : '', peran: 'lihat', aktif: iA < 0 || !/^(tidak|no|n|false|0)$/i.test(teks_(r[iA])), baris: i + 2 };
   });
   return o;
 }
@@ -867,55 +868,50 @@ function rekPribadi_(u) {
 function cocokPribadi_(nama, pw) {
   var a = akunPribadi_()[nama], rec = a && a.aktif ? rekPribadi_(nama) : null;
   if (!rec || hash_(rec.s, pw) !== rec.h) return null;
-  return { user: a.user, nama: a.nama, peran: a.peran, ver: String(rec.v) };
+  return { user: a.user, nama: a.nama, peran: 'lihat', ver: String(rec.v) };
 }
 function tabAkun_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.AKUN);
   if (sh) return sh;
   sh = ss.insertSheet(TAB.AKUN, ss.getSheets().length);
-  sh.getRange(1, 1, 1, 5).setValues([['Username', 'Nama', 'Peran', 'Aktif', 'Terakhir Diubah']]).setFontWeight('bold').setBackground('#18233F').setFontColor('#FFFFFF');
-  sh.setFrozenRows(1); sh.setColumnWidths(1, 5, 160); sh.setTabColor('#8A93A6');
-  sh.getRange(2, 3, 199, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Admin', 'Lihat'], true).build());
-  sh.getRange(2, 4, 199, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Ya', 'Tidak'], true).build());
-  sh.getRange(1, 6).setValue('Password tidak disimpan di sini. Tambah akun / ganti password lewat menu Dashboard → Akun pribadi.').setFontStyle('italic').setFontColor('#6B7385');
+  sh.getRange(1, 1, 1, 4).setValues([['Username', 'Nama', 'Aktif', 'Terakhir Diubah']]).setFontWeight('bold').setBackground('#18233F').setFontColor('#FFFFFF');
+  sh.setFrozenRows(1); sh.setColumnWidths(1, 4, 170); sh.setTabColor('#8A93A6');
+  sh.getRange(2, 3, 199, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Ya', 'Tidak'], true).build());
+  sh.getRange(1, 6).setValue('Semua akun di sini berperan Lihat. Password tidak disimpan di sini: tambah akun / ganti password lewat menu Dashboard → Akun Lihat tambahan.').setFontStyle('italic').setFontColor('#6B7385');
   return sh;
 }
 function aturAkunPribadi() {
   var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
-  var r1 = ui.prompt('Akun pribadi (1 dari 4)', 'Username (3–40 karakter: huruf, angka, titik, minus, garis bawah).\nIsi username yang sudah ada untuk mengganti password-nya.', ui.ButtonSet.OK_CANCEL);
+  var r1 = ui.prompt('Akun Lihat tambahan (1 dari 3)', 'Username (3–40 karakter: huruf, angka, titik, minus, garis bawah).\nIsi username yang sudah ada untuk mengganti password-nya.', ui.ButtonSet.OK_CANCEL);
   if (r1.getSelectedButton() !== ui.Button.OK) return;
   var u = r1.getResponseText().trim();
   if (!/^[A-Za-z0-9._-]{3,40}$/.test(u)) { ui.alert('Username tidak valid. Akun belum diubah.'); return; }
   var bersama = Object.keys(AKUN).map(function (k) { return (p.getProperty(AKUN[k].kunci + '_USER') || '').toLowerCase(); });
-  if (bersama.indexOf(u.toLowerCase()) >= 0) { ui.alert('Username ini dipakai akun bersama. Pakai username lain.'); return; }
+  if (bersama.indexOf(u.toLowerCase()) >= 0) { ui.alert('Username ini dipakai akun Admin atau akun Lihat bersama. Pakai username lain.'); return; }
   var ada = akunPribadi_()[u.toLowerCase()];
-  var r2 = ui.prompt('Akun pribadi (2 dari 4)', 'Nama lengkap' + (ada ? ' (kosongkan bila tetap "' + ada.nama + '")' : '') + ':', ui.ButtonSet.OK_CANCEL);
+  var r2 = ui.prompt('Akun Lihat tambahan (2 dari 3)', 'Nama pemilik akun' + (ada ? ' (kosongkan bila tetap "' + ada.nama + '")' : '') + ':', ui.ButtonSet.OK_CANCEL);
   if (r2.getSelectedButton() !== ui.Button.OK) return;
   var nama = r2.getResponseText().trim() || (ada ? ada.nama : '');
-  var r3 = ui.prompt('Akun pribadi (3 dari 4)', 'Peran: ketik ADMIN (lihat, input, export) atau LIHAT (hanya melihat).' + (ada ? '\nSekarang: ' + (ada.peran === 'admin' ? 'ADMIN' : 'LIHAT') : ''), ui.ButtonSet.OK_CANCEL);
+  var r3 = ui.prompt('Akun Lihat tambahan (3 dari 3)', 'Password, minimal 8 karakter. Sampaikan langsung ke pemilik akun; password tidak bisa dilihat lagi.', ui.ButtonSet.OK_CANCEL);
   if (r3.getSelectedButton() !== ui.Button.OK) return;
-  var pr = r3.getResponseText().trim().toUpperCase();
-  if (pr !== 'ADMIN' && pr !== 'LIHAT') { ui.alert('Peran harus ADMIN atau LIHAT. Akun belum diubah.'); return; }
-  var r4 = ui.prompt('Akun pribadi (4 dari 4)', 'Password, minimal 8 karakter. Sampaikan langsung ke pemilik akun; password tidak bisa dilihat lagi.', ui.ButtonSet.OK_CANCEL);
-  if (r4.getSelectedButton() !== ui.Button.OK) return;
-  var pw = r4.getResponseText();
+  var pw = r3.getResponseText();
   if (pw.length < 8) { ui.alert('Password minimal 8 karakter. Akun belum diubah.'); return; }
   var lama = rekPribadi_(u), salt = Utilities.getUuid(), o = {};
   o['PRIBADI_' + u.toLowerCase()] = JSON.stringify({ s: salt, h: hash_(salt, pw), v: (lama ? Number(lama.v) || 0 : 0) + 1 });
   p.setProperties(o);
-  var sh = tabAkun_(), isi = [[ada ? ada.user : u, nama, pr === 'ADMIN' ? 'Admin' : 'Lihat', 'Ya', new Date()]];
-  if (ada) sh.getRange(ada.baris, 1, 1, 5).setValues(isi); else sh.getRange(sh.getLastRow() + 1, 1, 1, 5).setValues(isi);
-  ui.alert('Akun pribadi tersimpan.\n\nUsername: ' + u + '\nPeran: ' + (pr === 'ADMIN' ? 'Admin' : 'Lihat') + (lama ? '\n\nPassword lama tidak berlaku lagi.' : ''));
+  var sh = tabAkun_(), isi = [[ada ? ada.user : u, nama, 'Ya', new Date()]];
+  if (ada) sh.getRange(ada.baris, 1, 1, 4).setValues(isi); else sh.getRange(sh.getLastRow() + 1, 1, 1, 4).setValues(isi);
+  ui.alert('Akun Lihat tersimpan.\n\nUsername: ' + u + (lama ? '\n\nPassword lama tidak berlaku lagi.' : ''));
 }
 function nonaktifkanAkunPribadi() {
   var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
-  var r = ui.prompt('Nonaktifkan akun pribadi', 'Username yang dinonaktifkan (orang ini langsung keluar dari dashboard):', ui.ButtonSet.OK_CANCEL);
+  var r = ui.prompt('Nonaktifkan akun Lihat', 'Username yang dinonaktifkan (orang ini langsung keluar dari dashboard):', ui.ButtonSet.OK_CANCEL);
   if (r.getSelectedButton() !== ui.Button.OK) return;
   var u = r.getResponseText().trim().toLowerCase(), a = akunPribadi_()[u];
   if (!a) { ui.alert('Username tidak ada di tab ' + TAB.AKUN + '.'); return; }
   var o = {}; o['PRIBADI_' + u] = ''; p.setProperties(o);
-  tabAkun_().getRange(a.baris, 4, 1, 2).setValues([['Tidak', new Date()]]);
-  ui.alert('Akun ' + a.user + ' dinonaktifkan. Untuk mengaktifkan lagi, pakai menu Tambah akun / ganti password.');
+  tabAkun_().getRange(a.baris, 3, 1, 2).setValues([['Tidak', new Date()]]);
+  ui.alert('Akun ' + a.user + ' dinonaktifkan. Untuk mengaktifkan lagi, pakai menu Tambah akun Lihat / ganti password.');
 }
 
 /* ======================================================================== */

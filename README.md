@@ -51,7 +51,7 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
 4. **Tahun baru:** salin tab Konman menjadi "Konman 2027", tambah baris `RENDIKLAT_2027` (ID file) di tab Pengaturan, tambah baris tahun baru di Jumlah Pegawai dan Kepatuhan.
 
 ## Input lewat website
-- Header berisi judul, Tahun & Bulan, **＋ Input Data** (Admin), dan tombol **☰ Menu** (Struktur Organisasi, Panduan, tampilan Terang/Gelap, Lompat ke bagian, Mode presentasi, Cetak ringkasan / PDF, Status data per sumber, Muat ulang, Export Excel, Ringkasan login, Google Sheets, Keluar). Di HP menu muncul dari bawah layar.
+- Header berisi judul, Tahun & Bulan, **＋ Input Data** (Admin), lonceng **Perlu perhatian**, dan tombol **☰ Menu** (Struktur Organisasi, Panduan, tampilan Terang/Gelap, Lompat ke bagian, Mode presentasi (Admin), Cetak ringkasan / PDF, Status data per sumber, Muat ulang, Export Excel, Ringkasan login, Google Sheets, Keluar). Di HP menu muncul dari bawah layar.
 - Tombol **＋ Input Data** (hanya akun Admin) → pilih jenis data → isi → periksa → simpan.
 - 9 jenis data: Jumlah Pegawai, Realisasi Konman, Kepatuhan, L3, L4, ROTI, Tindak Lanjut (ubah Status & Keterangan), Koreksi Rendiklat, Penyesuaian HOP. Data evaluasi mentah (tab "Data - …") ditempel langsung di spreadsheet.
 - Data ditulis ke tab yang sudah ada, dengan kolom yang sama. Tidak ada tab atau kolom baru. Setiap isian diberi catatan "(input web: akun, tanggal)" di kolom Keterangan, atau di kolom "Diisi Oleh" bila ada.
@@ -60,18 +60,18 @@ Sakelar aturan HOP dan target evaluasi ada di tab **Pengaturan**.
   - **Dashboard → Atur akun Admin**: melihat dashboard, input data, export Excel.
   - **Dashboard → Atur akun Lihat**: hanya melihat dashboard (tanpa Input, Export, dan tautan Google Sheets).
 -  Password disimpan sebagai hash di Script Properties, tidak di spreadsheet dan tidak di kode website. Mengganti password membuat semua sesi login berakhir. Sesi login berlaku 6 jam; 10 kali salah password mengunci login selama 15 menit.
-- **Akun pribadi (opsional):** selain dua akun bersama, tiap orang bisa diberi akun sendiri lewat **Dashboard → Akun pribadi → Tambah akun / ganti password** (username, nama, peran ADMIN/LIHAT, password). Daftarnya di tab **Akun Pribadi** (Username, Nama, Peran, Aktif); password hanya disimpan sebagai hash di Script Properties. Peran dan Aktif boleh diubah langsung di tab (berlaku pada login berikutnya); **Nonaktifkan akun** mengeluarkan orang itu saat itu juga. Akun bersama tetap berfungsi.
+- Hanya ada dua jenis akun: **Admin** dan **Lihat**. Akun Lihat bisa ditambah sesuai kebutuhan, satu per orang, lewat **Dashboard → Akun Lihat tambahan → Tambah akun Lihat / ganti password** (username, nama, password). Daftarnya di tab **Akun Lihat** (Username, Nama, Aktif); semuanya berperan Lihat, dan password hanya disimpan sebagai hash di Script Properties. Kolom Aktif boleh diubah langsung di tab (berlaku pada login berikutnya); **Nonaktifkan akun Lihat** mengeluarkan orang itu saat itu juga. Akun Lihat bersama tetap berfungsi.
 - Setiap login (berhasil, gagal, terkunci) dan keluar dicatat di tab **Log Login** (dibuat otomatis): waktu, akun, peran, hasil, jenis perangkat & browser. Password tidak pernah dicatat. Akun Admin bisa melihat rangkumannya di website: **☰ → Ringkasan login** (30 hari: login per hari, per akun, percobaan gagal).
 
 ## Export Excel
 Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka ExcelJS) dari data periode terpilih (Tahun & Bulan di header): Ringkasan (gambar tampilan dashboard + tabel status), Indikator Kinerja, Tren Bulanan, Evaluasi Pembelajaran, Kepatuhan & Tindak Lanjut, Maturity & Risiko, IDP, Inovasi, serta Struktur Organisasi dan lampiran Daftar Kelas (opsional). Siap cetak: A4 mendatar, pas selebar halaman, nomor halaman di kaki.
 
 ## Tampilan
-- **Perlu perhatian** (paling atas): indikator < 95% atau 95–99%, pengurang kepatuhan, data bulan terpilih yang belum diisi, kelas selesai tanpa realisasi peserta, tindak lanjut Belum Dimulai, inovasi lewat target, dan pihak berkepentingan prioritas tinggi dengan progres < 50%. Ketuk untuk membuka rinciannya.
+- **Perlu perhatian** (paling atas, seperti notifikasi; bisa diperkecil – atau ditutup ✕, dibuka lagi lewat ikon lonceng 🔔 di header yang menampilkan jumlahnya; pilihan ini diingat di browser sampai isinya berubah): indikator < 95% atau 95–99%, pengurang kepatuhan, data bulan terpilih yang belum diisi, kelas selesai tanpa realisasi peserta, tindak lanjut Belum Dimulai, inovasi lewat target, dan pihak berkepentingan prioritas tinggi dengan progres < 50%. Ketuk untuk membuka rinciannya.
 - Kartu utama menampilkan **▲▼ dibanding bulan sebelumnya** (hijau/merah untuk skor dan nilai evaluasi; netral untuk angka kumulatif).
 - **Status data per sumber** (☰): tanggal/bulan terakhir tiap sumber terisi, dibandingkan dengan bulan terpilih.
 - **Tautan ke bagian:** `#ringkasan`, `#bulanan`, `#indikator`, `#kepatuhan`, `#pengembangan`, `#isu`, `#risiko`, `#organisasi`. Contoh: alamat website + `#risiko` langsung bergulir ke Peta Risiko setelah masuk.
-- **Mode presentasi** (☰): layar penuh, pindah bagian tiap 20 detik. Tombol ‹ ❚❚ › ✕; keyboard ← → spasi, P (jeda), Esc (keluar).
+- **Mode presentasi** (☰, akun Admin): layar penuh, pindah bagian tiap 20 detik. Tombol ‹ ❚❚ › ✕; keyboard ← → spasi, P (jeda), Esc (keluar).
 - **Cetak ringkasan / PDF** (☰): satu halaman A4 mendatar, selalu tema terang (Perlu perhatian, kartu utama, grafik per bulan, evaluasi, indikator).
 - Menu dan jendela pop-up membesar dari tombol/kartu asalnya (zoom, ±0,2 detik); otomatis mati bila perangkat diatur "kurangi gerakan".
 

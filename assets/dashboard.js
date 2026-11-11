@@ -308,13 +308,32 @@
     }
     return L.sort(function (a, b) { return (a.c === 'bad' ? 0 : 1) - (b.c === 'bad' ? 0 : 1); });
   }
+  /* Ditampilkan seperti notifikasi: bisa diperkecil (–) atau ditutup (✕); tombol lonceng di header membukanya lagi.
+     Pilihan disimpan di browser ini dan berlaku sampai isi notifikasinya berubah. */
+  var PH_KEY = 'updl_perhatian';
+  function phSidik(L) { var t = S.tahun + '-' + S.bulan + '|' + L.map(function (x) { return x.t; }).join('|'), h = 0; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return String(h); }
+  function phBaca() { try { return JSON.parse(localStorage.getItem(PH_KEY) || '{}'); } catch (e) { return {}; } }
+  function phSimpan(o) { try { localStorage.setItem(PH_KEY, JSON.stringify(o)); } catch (e) { /* abaikan */ } }
+  function phMode(m) {
+    var el = $('perhatian'), L = S.phL || [];
+    if (!L.length) { el.classList.toggle('lihat', m === 'buka'); return; }
+    phSimpan({ sidik: phSidik(L), mode: m });
+    el.classList.toggle('kecil', m === 'kecil'); el.classList.toggle('tutup', m === 'tutup');
+    var b = el.querySelector('[data-ph="kecil"]'); if (b) { b.setAttribute('aria-expanded', m !== 'kecil'); b.title = m === 'kecil' ? 'Perbesar' : 'Perkecil'; }
+    if (m === 'buka') el.classList.remove('kecil', 'tutup');
+  }
   function renderPerhatian() {
     var el = $('perhatian'); if (!el) return;
-    var L = perhatian(), bl = namaBulan(S.bulan) + ' ' + S.tahun;
-    el.hidden = false;
-    if (!L.length) { el.className = 'perhatian ok'; el.innerHTML = '<span class="ph-ok" aria-hidden="true">✓</span><span>Tidak ada yang perlu perhatian untuk ' + bl + '.</span>'; return; }
-    el.className = 'perhatian' + (L.length > 2 ? ' ringkas' : '');
-    el.innerHTML = '<div class="ph-h"><b>Perlu perhatian</b><span>' + L.length + ' hal · ' + bl + ' · ketuk untuk melihat</span></div><div class="ph-list">' +
+    var L = perhatian(), bl = namaBulan(S.bulan) + ' ' + S.tahun, nb = L.filter(function (x) { return x.c === 'bad'; }).length;
+    S.phL = L; el.hidden = false;
+    var btn = $('notifBtn'), n = $('notifN');
+    if (btn) { btn.hidden = false; n.hidden = !L.length; n.textContent = L.length; n.className = 'nbadge' + (nb ? ' bad' : ''); btn.title = btn.ariaLabel = L.length ? 'Perlu perhatian: ' + L.length + ' hal' : 'Tidak ada yang perlu perhatian'; }
+    if (!L.length) { el.className = 'perhatian ok'; el.innerHTML = '<span class="ph-ok" aria-hidden="true">✓</span><span>Tidak ada yang perlu perhatian untuk ' + bl + '.</span><button type="button" class="ph-x" data-ph="tutup" aria-label="Tutup" title="Tutup">✕</button>'; return; }
+    var st = phBaca(), mode = st.sidik === phSidik(L) ? st.mode : 'buka';
+    el.className = 'perhatian' + (L.length > 2 ? ' ringkas' : '') + (mode === 'kecil' ? ' kecil' : mode === 'tutup' ? ' tutup' : '');
+    el.innerHTML = '<div class="ph-h"><button type="button" class="ph-judul" data-ph="kecil" aria-expanded="' + (mode !== 'kecil') + '"><b>Perlu perhatian</b><span class="ph-n' + (nb ? ' bad' : '') + '">' + L.length + '</span><span class="ph-sub">' + bl + '</span></button>' +
+      '<span class="ph-ctl"><button type="button" class="ph-x" data-ph="kecil" aria-label="Perkecil" title="Perkecil"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 12h12"/><path class="v" d="M12 6v12"/></svg></button>' +
+      '<button type="button" class="ph-x" data-ph="tutup" aria-label="Tutup notifikasi" title="Tutup (buka lagi lewat ikon lonceng)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div><div class="ph-list">' +
       L.map(function (x) { return '<button type="button" class="ph-i ' + x.c + '"' + (x.act ? ' data-act="' + x.act + '"' : ' data-loncat="' + x.go + '"') + '><i aria-hidden="true"></i><span>' + x.t + '</span><em aria-hidden="true">→</em></button>'; }).join('') + '</div>' +
       (L.length > 2 ? '<button type="button" class="ph-more" data-phmore aria-expanded="false">Tampilkan semua (' + L.length + ')</button>' : '');
   }
@@ -1159,6 +1178,14 @@
       if (a === 'idp') return openIdp();
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
+    }
+    var phx = t.closest('[data-ph]');
+    if (phx) { var pe = $('perhatian'); if (phx.getAttribute('data-ph') === 'tutup') { if (pe.classList.contains('ok')) pe.classList.remove('lihat'); else phMode('tutup'); } else phMode(pe.classList.contains('kecil') ? 'buka' : 'kecil'); return; }
+    if (t.closest('#notifBtn')) {
+      var pn = $('perhatian'), tertutup = pn.classList.contains('tutup') || pn.classList.contains('kecil') || (pn.classList.contains('ok') && !pn.classList.contains('lihat'));
+      phMode(tertutup ? 'buka' : 'tutup');
+      if (tertutup) window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
     var phm = t.closest('[data-phmore]'); if (phm) { var bk = $('perhatian').classList.toggle('buka'); phm.setAttribute('aria-expanded', bk); phm.textContent = bk ? 'Ringkas' : 'Tampilkan semua (' + $('perhatian').querySelectorAll('.ph-i').length + ')'; return; }
     var kl = t.closest('[data-kl]'); if (kl) { S.mlKlausul = kl.getAttribute('data-kl'); return renderMl(); }
