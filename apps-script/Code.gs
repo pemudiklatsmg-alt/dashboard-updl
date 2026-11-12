@@ -699,6 +699,11 @@ function bacaMentah_(ss, nama, kolom) {
 }
 /* Data evaluasi dari file Google Sheets terpisah di Drive (Pengaturan EL1_ID / EL2_ID, tab EL1_TAB / EL2_TAB,
    bawaan = tab pertama). Bila ID kosong, dibaca dari tab di spreadsheet ini seperti biasa. */
+/* DOC 2 ekspor sistem kadang memuat entitas HTML (&amp;, &#39;) — dibersihkan sebelum dipecah per '#' */
+function entitas_(v) {
+  return String(v || '').replace(/&#(\d+);/g, function (_, n) { return String.fromCharCode(+n); })
+    .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+}
 function bacaEval_(ss, jenis, tabLokal, kolom) {
   var cfg = getConfig_(), id = String(cfg[jenis + '_ID'] || '').trim();
   if (!id) return bacaMentah_(ss, tabLokal, kolom);
@@ -1439,7 +1444,7 @@ function tambahKomentarEl2_() {
     if (!teks_(r[c('Judul')])) return;
     [[cH, 'Hambatan'], [cD, 'Dukungan']].forEach(function (x) {
       if (x[0] < 0) return;
-      String(r[x[0]] || '').split('#').forEach(function (kom) {
+      entitas_(r[x[0]]).split('#').forEach(function (kom) {
         kom = kom.replace(/\s+/g, ' ').replace(/^[\s\-.\t]+|[\s\-.\t]+$/g, '');
         var kl = kom.toLowerCase();
         if (kom.length < 12 || TRIV.test(kl) || kl.split(' ').length < 3) return;
