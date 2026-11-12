@@ -40,7 +40,7 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
   - *KSA* = rata-rata Nilai, hanya baris Kehadiran = Hadir dan Kelulusan = Lulus.
   - *C&C* = rata-rata Confidence Level dan Commitment Level (skala di Pengaturan `SKALA_CC`).
   - *Sertifikat terbit* = status **Finish TTE GM**, dihitung dari Tgl.Terbit. Yang belum terbit ditempatkan menurut Tgl.Selesai. Ditampilkan: jumlah terbit s.d. bulan, terbit di bulan itu saja, % terbit, dan jumlah per status.
-- **Perbaikan Berkelanjutan**: *OFI* = masukan membangun/pujian/netral (tidak perlu tindakan). Persen tuntas = (*Selesai* + *Sudah Dilaporkan*) ÷ masukan selain OFI. *Belum Dimulai* masuk notifikasi Perlu perhatian. PIC dan Status bisa diubah lewat Input Data.
+- **Perbaikan Berkelanjutan**: *OFI* = masukan membangun/pujian/netral (tidak perlu tindakan). Persen tuntas = (*Selesai* + *Sudah Dilaporkan*) ÷ masukan selain OFI. *Belum Dimulai* masuk notifikasi Perlu perhatian. PIC dan Status bisa diubah lewat Input Data. Menu spreadsheet **Dashboard → Perbaikan Berkelanjutan**: *Isi PIC & Status otomatis* (hanya sel kosong, berdasarkan kata kunci) dan *Tambah komentar EL2* (hambatan & dukungan dari tab Data - C&C EL2; aman diulang).
 - **KRI**: Maks = hijau ≥ batas atas, kuning ≥ batas bawah, merah di bawahnya; Min kebalikannya. KRI merah bulan terpilih masuk notifikasi.
 - **L3, L4, ROTI** = rata-rata baris bertanggal di tab rekapnya, tahun terpilih s.d. bulan terpilih.
 - **Maturity** = jumlah kolom *Level SA* / *Level Verifikasi* per key element di sheet SMG; skor total = rata-rata semua key element.

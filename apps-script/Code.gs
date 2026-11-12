@@ -29,7 +29,7 @@
  * ==========================================================================
  */
 
-var VERSI = 6;
+var VERSI = 6;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -74,6 +74,9 @@ function onOpen() {
     .addItem('Tarik daftar kelas tanpa realisasi', 'tarikKelasTanpaRealisasi')
     .addItem('Cek koneksi sumber data', 'cekKoneksi')
     .addItem('Periksa isian data', 'periksaData')
+    .addSubMenu(SpreadsheetApp.getUi().createMenu('Perbaikan Berkelanjutan')
+      .addItem('Isi PIC & Status otomatis (yang masih kosong)', 'isiPicStatus')
+      .addItem('Tambah komentar EL2 dari tab Data - C&C EL2', 'tambahKomentarEl2'))
     .addItem('Segarkan data dashboard sekarang', 'segarkanData')
     .addItem('Percepat dashboard (aktifkan pembaruan otomatis tiap jam)', 'pasangPercepatan')
     .addSeparator()
@@ -1321,4 +1324,116 @@ function ringkasFra_(R, aksi) {
   });
   (aksi || []).forEach(function (a) { var s = /selesai/i.test(a[7]) ? 'Selesai' : /proses/i.test(a[7]) ? 'Proses' : 'Belum'; o.aksi[s]++; });
   return o;
+}
+
+/* ======================================================================== */
+/*  PERBAIKAN BERKELANJUTAN: ISI PIC & STATUS OTOMATIS, KOMENTAR EL2          */
+/* ======================================================================== */
+/* Aturan umum (berdasarkan kata kunci; hasilnya tetap perlu dicek tim):
+   - OFI: pujian, netral, kosong, atau tidak berisi masukan.
+   - Masukan untuk REN/ACD Pusdiklat -> Sudah Dilaporkan; masukan internal lain -> Belum Dimulai.
+   - PIC dari isi komentar; bila tidak ada kata kunci, dari kategori butir (Ins/Dig -> JAR, Mat -> ACD, Sarpras -> PKU YAN).
+   Hanya sel PIC/Status yang masih kosong yang diisi; isian manual tidak ditimpa. */
+var KLAS_NETRAL_ = [/tidak ada gangguan/g, /tanpa gangguan/g, /(sangat )?perlu (untuk|bagi|dalam|diterapkan|dipelajari|dipahami|diketahui)/g, /(untuk|menjadi) lebih baik/g, /ke ?depan(nya)? akan/g,
+  /(lebih|sangat) (paham|mengerti|semangat|termotivasi)/g, /(me)?nambah(kan)? (pengetahuan|ilmu|wawasan|semangat)/g, /tambah(an)? (pengetahuan|ilmu|wawasan|semangat|paham)/g,
+  /tidak (membosankan|bosan|ngantuk|monoton)/g, /menghilangkan (ngantuk|bosan|kantuk)/g, /tidak (terlalu )?(sulit|susah)/g, /semoga (sukses|bermanfaat|berkah|lancar).*/g, /tidak (ada )?masalah/g,
+  /tidak ada( kendala| masalah| saran| keluhan| komentar| hambatan)?/g, /tidak ada yang perlu/g, /sudah (sangat )?(baik|bagus|sesuai|cukup|memadai|nyaman|lancar|jelas|oke|ok)/g, /tidak (kurang|mengecewakan)/g, /tidak perlu/g, /tanpa kendala/g];
+var KLAS_AKSI_ = /\b(kurang|perlu|sebaiknya|seharusnya|harusnya|mohon|tolong|harap|saran|disarankan|diharapkan|rusak|mati|lambat|lemot|lelet|terlambat|telat|kotor|bau|panas|gerah|dingin|bising|berisik|sempit|ditambah|tambah|diperbaiki|perbaiki|ditingkatkan|tingkatkan|belum|susah|sulit|error|eror|terganggu|koreksi|tersandung|putus|ngelag|lag|nge-lag|buram|tidak jelas|kurang jelas|kecil|terlalu|keluhan|bocor|kurangnya|minim|kekurangan|tidak berfungsi|tidak bisa|tidak dapat|tidak nyaman|tidak sesuai|tidak tersedia|tidak ada (wifi|air|ac|sinyal|internet|proyektor|toilet|tempat|fasilitas|alat|modul|materi)|jauh|antri|antre|repot|mepet|mendadak|padat|monoton|membosankan|bosan|ngantuk|capek|lelah|update|diupdate|diperbarui|diperbaharui|dibuat|disediakan|sediakan|dilengkapi|lengkapi|ganti|diganti|dibersihkan|lebih baik|akan lebih|alangkah|semoga ke ?depan|kedepannya|ke depannya|ke depan)\b/;
+var KLAS_PIC_ = [
+  ['PKU KEU', /\b(pembayaran|bayar|honor|uang saku|uang harian|reimburse|reimburs|klaim|transfer dana|transport(asi)? (diganti|dibayar))/],
+  ['PBJ', /\b(kontrak|vendor|penyedia|pengadaan|lelang|tender)\b/],
+  ['K3L KAM', /\b(k3|keselamatan|apd|safety|kebersihan|bersih|kotor|sampah|keamanan|satpam|security|aman|bahaya|rokok|asap|kebakaran|apar|banjir|lingkungan kerja)\b/],
+  ['JAR MUTU', /((pengisian|isi|mengisi) (evaluasi|kuesioner|kuisioner|survei|survey)|kuesioner|kuisioner|\bsurvei|\bsurvey|form(ulir)? (evaluasi|penilaian)|link (evaluasi|survei|kuesioner)|sertifikat|(post|pre) ?-?test.{0,40}(tidak|error|eror|muncul|akses|nilai|update)|nilai.{0,30}(post|pre) ?-?test)/],
+  ['JAR LAB', /\b(praktik|praktek|praktikum|lab|laboratorium|workshop|simulator|simulasi alat|alat peraga|alat praktik|alat praktek|peralatan praktik|peralatan praktek|alat uji|alat (pengujian|ukur)|pengujian|trafo|rele|relay|kubikel|gardu|tower|pdkb|scada|bengkel|mock ?up|trainer kit|panel)\b/],
+  ['REN Pusdiklat', /\b(off-?line|on-?line|on line|off line|daring|luring|tatap muka|hybrid|blended|zoom only|kuota peserta|alokasi|anggaran|penugasan|metode pelaksanaan)\b/],
+  ['ACD Pusdiklat', /\b(materi|modul|kurikulum|kursil|silabus|bahan ajar|studi kasus|kasus|soal|kuis|quiz|durasi|jp|jam pelajaran|waktu (pembelajaran|pelatihan)? ?(terlalu )?(singkat|kurang|pendek|sedikit)|hari (ditambah|kurang)|e-?book|referensi|template|contoh soal|ppt|slide|tools?)\b/],
+  ['JAR', /\b(instruktur|pengajar|narasumber|widyaiswara|coach|fasilitator)\b/],
+  ['PKU YAN', /\b(fasilitas|sarana|prasarana|sarpras|mess|wisma|kamar|asrama|penginapan|hotel|konsumsi|makan|makanan|snack|kopi|minum|coffee|catering|katering|ac|toilet|wc|kamar mandi|kursi|meja|ruang(an)?|proyektor|projector|lcd|layar|sound|speaker|mic|mikrofon|pencahayaan|lampu|parkir|wifi|wi-fi|wify|wifinya|internet|jaringan|sinyal|musholla|mushola|masjid|laundry|air)\b/],
+  ['JAR', /\b(instruktur|pengajar|narasumber|widyaiswara|admin|panitia|pic|penyelenggara|jadwal|undangan|koordinasi|informasi|komunikasi|lms|zoom|teams|meet|platform|aplikasi|hxms|grup|group|absen|absensi)\b/]
+];
+var KLAS_DEF_ = { Ins: 'JAR', Mat: 'ACD Pusdiklat', Sarpras: 'PKU YAN', Dig: 'JAR' };
+function klasNorm_(s) { return String(s === null || s === undefined ? '' : s).trim().toLowerCase().replace(/\s+/g, ' '); }
+function klasPic_(t) { for (var i = 0; i < KLAS_PIC_.length; i++) if (KLAS_PIC_[i][1].test(t)) return KLAS_PIC_[i][0]; return null; }
+function klasKomentar_(kom, kat) {
+  var t = klasNorm_(kom);
+  var triv = !t || /^([-.\s,0-9]*|ok|oke|okey|baik|bagus|mantap|mantab|cukup|puas|sangat (baik|bagus|puas|memuaskan|membantu|sesuai|setuju)|setuju|sesuai|good|nice|top|ya|tidak|tidak ada|nihil|none|no|aman|lancar|sudah|sip|siap|mantul|luar biasa|terima ?kasih.*|thanks.*)$/.test(t);
+  var t2 = t; KLAS_NETRAL_.forEach(function (r) { t2 = t2.replace(r, ' '); });
+  var aksi = !triv && KLAS_AKSI_.test(t2);
+  var pre = String(kat || '').split('-')[0].split(' ')[0];
+  if (!aksi && !triv && (pre === 'Dig' || pre === 'Sarpras' || /koneksi|jaringan|internet|audio|suara|sinyal/.test(t2)) && /\b(gangguan|kendala|masalah)\b/.test(t2)) aksi = true;
+  var pic = klasPic_(aksi ? t2 : t) || KLAS_DEF_[pre] || 'JAR';
+  var st = !aksi ? 'OFI' : (pic === 'REN Pusdiklat' || pic === 'ACD Pusdiklat') ? 'Sudah Dilaporkan' : 'Belum Dimulai';
+  return { pic: pic, st: st, aksi: aksi };
+}
+/* Komentar EL2 (hambatan/dukungan) kebanyakan tentang kondisi di unit kerja peserta: hanya yang jelas
+   menyangkut pembelajaran yang diarahkan ke PIC; sisanya OFI dengan PIC JAR MUTU (pemilik evaluasi). */
+function klasEl2_(k, kat) {
+  var kl = klasNorm_(k), r = klasKomentar_(k, kat), m = klasPic_(kl);
+  var konteks = /diklat|pelatihan|pembelajaran|materi|modul|instruktur|pengajar|on-?line|off-?line|daring|luring|zoom|jadwal|kelas|udiklat|updl|e-?learning|lms|hxms|catalyst|sertifikat|praktik|praktek/.test(kl);
+  var konteks2 = /udiklat|updl|diklat|pelatihan|pembelajaran|kelas|instruktur|pengajar|jadwal/.test(kl);
+  var umum = /^(hambatan|kendala|dukungan)\b.{0,40}(mungkin|yang|lain)/.test(kl) && !/sebaiknya|saran|agar|mohon|harap|seharusnya|diharapkan|tolong/.test(kl);
+  if (umum || !m || !konteks || (m !== 'ACD Pusdiklat' && m !== 'REN Pusdiklat' && !konteks2)) return { pic: 'JAR MUTU', st: 'OFI' };
+  return r;
+}
+function kolomTl_(sh) {
+  var h = judulKolom_(sh), c = function (n) { return h.indexOf(n); };
+  return { h: h, kom: c('Komentar'), kat: c('Kategori Komentar'), sum: c('Sumber'), pic: c('PIC'), st: c('Status') };
+}
+/* Menu: isi PIC & Status yang masih kosong */
+function isiPicStatus() { safeAlert_(isiPicStatus_().pesan); }
+function isiPicStatus_() {
+  var sh = tab_(TAB.TINDAKLANJUT), k = kolomTl_(sh), n = sh.getLastRow() - 1;
+  if (k.kom < 0 || k.pic < 0 || k.st < 0) throw new Error('Kolom Komentar / PIC / Status tidak ditemukan di tab ' + TAB.TINDAKLANJUT + '.');
+  if (n < 1) return { pesan: 'Tab ' + TAB.TINDAKLANJUT + ' masih kosong.' };
+  var v = sh.getRange(2, 1, n, k.h.length).getValues(), pic = [], st = [], isi = 0, hit = {};
+  v.forEach(function (r) {
+    var p = teks_(r[k.pic]), s = teks_(r[k.st]);
+    if (teks_(r[k.kom]) && (!p || !s)) {
+      var x = /level 2/i.test(teks_(r[k.sum])) ? klasEl2_(r[k.kom], r[k.kat]) : klasKomentar_(r[k.kom], r[k.kat]);
+      if (!p) p = x.pic; if (!s) { s = x.st; hit[s] = (hit[s] || 0) + 1; }
+      isi++;
+    }
+    pic.push([p]); st.push([s]);
+  });
+  sh.getRange(2, k.pic + 1, n, 1).setValues(pic); sh.getRange(2, k.st + 1, n, 1).setValues(st);
+  tandaiUbah_(TAB.TINDAKLANJUT);
+  return { isi: isi, hit: hit, pesan: isi ? isi + ' baris diisi otomatis: ' + Object.keys(hit).map(function (s) { return s + ' ' + hit[s]; }).join(', ') + '.\n\nIsian manual tidak diubah. Periksa terutama yang berstatus Belum Dimulai; PIC dan Status bisa diganti langsung di tab atau lewat Input Data di website.' : 'Semua baris sudah punya PIC dan Status.' };
+}
+/* Menu: tambahkan komentar Hambatan & Dukungan dari tab Data - C&C EL2 (format per jadwal). Aman diulang: komentar yang sudah ada tidak ditambah lagi. */
+function tambahKomentarEl2() { safeAlert_(tambahKomentarEl2_().pesan); }
+function tambahKomentarEl2_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), C = bacaMentah_(ss, TAB.CC), h = C.head, c = function (n) { return kol_(h, n); };
+  var cH = c('Komentar Hambatan Yg Ada Dan Penanganan'), cD = c('Komentar Dukungan Yg Diperlukan');
+  if (cH < 0 && cD < 0) throw new Error('Kolom komentar hambatan/dukungan tidak ditemukan di tab ' + TAB.CC + '.');
+  var sh = tab_(TAB.TINDAKLANJUT), k = kolomTl_(sh), H = k.h, ada = {};
+  var cKd = H.indexOf('Kode Diklat'), cAng = H.indexOf('Angkatan'), cTs = H.indexOf('Tgl Selesai');
+  var kunci = function (kode, ang, tgl, kat, kom) { return [teks_(kode), teks_(ang), isoTgl_(tgl), kat, klasNorm_(kom)].join('|'); };
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, H.length).getValues().forEach(function (r) {
+    if (/level 2/i.test(teks_(r[k.sum]))) ada[kunci(r[cKd], r[cAng], r[cTs], teks_(r[k.kat]), r[k.kom])] = 1;
+  });
+  var TRIV = /^([-.\s,0-9#]*|ok|oke|baik|cukup|cukup baik|tidak ada|tdk ada|belum ada|ada|nihil|none|no|aman|lancar|sudah|sip|siap|mantap|bagus|setuju|ya|tidak|-+|na|n\/a|belum|tidak ada hambatan|tidak ada kendala|dukungan atasan|dukungan manajemen)$/;
+  var UMUM = /^(adanya |perlu |butuh |diperlukan )?(dukungan|support|perhatian|komitmen|motivasi|bimbingan|arahan)( dan [a-z ]+)?( dari| oleh)? ?(atasan|manajemen|pimpinan|rekan( kerja)?|tim|semua pihak|unit)?[a-z ,&\/]*$/;
+  var baru = [], hit = {};
+  C.rows.forEach(function (r) {
+    if (!teks_(r[c('Judul')])) return;
+    [[cH, 'Hambatan'], [cD, 'Dukungan']].forEach(function (x) {
+      if (x[0] < 0) return;
+      String(r[x[0]] || '').split('#').forEach(function (kom) {
+        kom = kom.replace(/\s+/g, ' ').replace(/^[\s\-.\t]+|[\s\-.\t]+$/g, '');
+        var kl = kom.toLowerCase();
+        if (kom.length < 12 || TRIV.test(kl) || kl.split(' ').length < 3) return;
+        if (UMUM.test(kl) && kl.split(' ').length <= 6) return;
+        var key = kunci(r[c('Kode Judul')], r[c('Angkatan')], r[c('Tgl Selesai')], x[1], kom);
+        if (ada[key]) return; ada[key] = 1;
+        var f = klasEl2_(kom, x[1]); hit[f.st] = (hit[f.st] || 0) + 1;
+        var row = H.map(function () { return ''; }), set = function (n, v) { var i = H.indexOf(n); if (i >= 0) row[i] = v; };
+        set('Tgl Mulai', r[c('Tgl Mulai')]); set('Tgl Selesai', r[c('Tgl Selesai')]); set('Kode Diklat', r[c('Kode Judul')]); set('Judul Diklat', r[c('Judul')]);
+        set('Jenis Permintaan Diklat', r[c('Jenis Permintaan Diklat')]); set('Angkatan', r[c('Angkatan')]); set('UPDL Code', r[c('UPDL Code')]); set('UPDL', r[c('UPDL')]);
+        set('Jenis Penyelenggaraan', r[c('Jenis Penyelenggaraan')]); set('Komentar', kom); set('Kategori Komentar', x[1]); set('Sumber', 'Evaluasi Level 2'); set('PIC', f.pic); set('Status', f.st);
+        baru.push(row);
+      });
+    });
+  });
+  if (baru.length) { sh.getRange(barisBaru_(sh), 1, baru.length, H.length).setValues(baru); tandaiUbah_(TAB.TINDAKLANJUT); }
+  return { n: baru.length, hit: hit, pesan: baru.length ? baru.length + ' komentar EL2 ditambahkan ke tab ' + TAB.TINDAKLANJUT + ' (' + Object.keys(hit).map(function (s) { return s + ' ' + hit[s]; }).join(', ') + ').' : 'Tidak ada komentar EL2 baru untuk ditambahkan.' };
 }
