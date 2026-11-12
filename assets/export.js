@@ -8,7 +8,7 @@
     ['indikator', 'Indikator Kinerja', 'Bobot, target, realisasi, pencapaian, skor, status', 1],
     ['tren', 'Tren Bulanan', 'Capaian, kelas, peserta, orang-hari, HOP per bulan', 1],
     ['evaluasi', 'Evaluasi Pembelajaran', 'Kepuasan, instruktur, KSA, C&C, L3, L4, ROTI, sertifikat', 1],
-    ['kepatuhan', 'Kepatuhan & Tindak Lanjut', 'Pengurang per aspek dan status temuan', 1],
+    ['kepatuhan', 'Kepatuhan & Perbaikan Berkelanjutan', 'Pengurang per aspek dan status temuan', 1],
     ['maturity', 'Maturity & Risiko', 'Skor per key element dan daftar risiko', 1],
     ['idp', 'Pengembangan Pegawai (IDP)', 'Realisasi jalur 10-20-70 per pegawai', 1],
     ['inovasi', 'Pengembangan Inovasi', 'Daftar inovasi tahun terpilih, tahap, status, nilai manfaat', 1],
@@ -169,7 +169,7 @@
     var mAvg = mv.length ? mv.reduce(function (s, v) { return s + (v || 0); }, 0) / mv.length : null;
     var itM = a.find(/Pengelolaan Proses Bisnis/i), mT = itM ? (ada ? D.num(itM.target[Bn].v) : null) : null;
     if (itM && mT === null) mT = D.num(S.bulan <= 6 ? itM.target1 : itM.target2);
-    var TL = a.tlRows(), tlS = TL.filter(function (x) { return a.tlStatus(x) === 'Selesai'; }).length;
+    var TL = a.tlRows().filter(function (x) { return a.tlStatus(x) !== 'OFI'; }), tlS = TL.filter(function (x) { return a.tlStatus(x) === 'Selesai'; }).length;
     var kepRows = a.kepRows(), kepIsi = kepRows.filter(function (x) { return a.kepVal(x, Bn) !== null; }).length;
     function n2(o) { return o ? o.nilai : null; }
     return {
@@ -193,7 +193,7 @@
         ]],
         ['Tata Kelola', [
           { n: 'Maturity Level Proses Bisnis', v: mAvg, t: mT, sat: 'skala 0–5', f: '0.00', cat: M.length + ' key element (sheet SMG, verifikasi)' },
-          { n: 'Tindak Lanjut Evaluasi selesai', v: TL.length ? tlS / TL.length * 100 : null, t: TL.length ? 100 : null, sat: '%', f: '0', cat: tlS + ' dari ' + TL.length + ' komentar & temuan (Selesai + Sudah Dilaporkan)' },
+          { n: 'Perbaikan Berkelanjutan selesai', v: TL.length ? tlS / TL.length * 100 : null, t: TL.length ? 100 : null, sat: '%', f: '0', cat: tlS + ' dari ' + TL.length + ' masukan yang perlu tindakan (Selesai + Sudah Dilaporkan; OFI tidak dihitung)' },
           { n: 'Total pengurang kepatuhan', v: ada || kepIsi ? a.pengurang(Bn) : null, t: null, sat: 'poin', f: '0.00', cat: kepIsi ? kepIsi + ' dari ' + kepRows.length + ' aspek terisi' : 'Belum diisi', kep: true }
         ]]
       ],
@@ -341,7 +341,7 @@
       });
       var akhir = ws._r - 1, peng = a.pengurang(Bn);
       var r1 = baris(ws, ['', 'Total skor', '', '', '', '', '', '', rumus('SUM(I' + awal + ':I' + akhir + ')', sk), '', ''], { 9: '0.00' }, { tebal: true });
-      var r2 = baris(ws, ['', 'Pengurang kepatuhan', '', '', '', '', '', '', peng, '', 'Rincian di sheet Kepatuhan & Tindak Lanjut'], { 9: '0.00' });
+      var r2 = baris(ws, ['', 'Pengurang kepatuhan', '', '', '', '', '', '', peng, '', 'Rincian di sheet Kepatuhan & Perbaikan'], { 9: '0.00' });
       baris(ws, ['', 'CAPAIAN KINERJA', '', '', '', '', '', '', rumus('I' + r1 + '-I' + r2, sk - peng), '', ''], { 9: '0.00' }, { tebal: true, latar: C.soft });
       bekukan(ws, hr, 2); ws.pageSetup.printTitlesRow = hr + ':' + hr;
     },
@@ -424,7 +424,7 @@
       }
     },
     kepatuhan: function (wb) {
-      var a = A(), Bn = per().Bn, ws = lembar(wb, 'Kepatuhan & Tindak Lanjut', [6, 50, 16, 14, 16, 16, 42], { judul: 'Kepatuhan & Tindak Lanjut Evaluasi' });
+      var a = A(), Bn = per().Bn, ws = lembar(wb, 'Kepatuhan & Perbaikan', [6, 50, 16, 14, 16, 16, 42], { judul: 'Kepatuhan & Perbaikan Berkelanjutan' });
       seksi(ws, 'Kepatuhan · ' + per().label); judulKolom(ws, ['No', 'Aspek Kepatuhan', 'Maks Pengurang', 'Nilai', 'Status', '', 'Keterangan']);
       var s = ws._r;
       a.kepRows().forEach(function (x, j) {
@@ -434,8 +434,8 @@
       });
       if (ws._r > s) baris(ws, ['', 'Total pengurang', rumus('SUM(C' + s + ':C' + (ws._r - 1) + ')'), rumus('SUM(D' + s + ':D' + (ws._r - 1) + ')', a.pengurang(Bn)), '', '', ''], { 3: '0', 4: '0.00' }, { tebal: true, latar: C.soft });
       ws._r++;
-      seksi(ws, 'Tindak Lanjut Evaluasi'); judulKolom(ws, ['No', 'Komentar / Temuan', 'Pelatihan', 'PIC', 'Status', 'Sumber', 'Keterangan']);
-      var TL = a.tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 };
+      seksi(ws, 'Perbaikan Berkelanjutan'); judulKolom(ws, ['No', 'Komentar / Temuan', 'Pelatihan', 'PIC', 'Status', 'Sumber', 'Keterangan']);
+      var semua = a.tlRows(), TL = semua.filter(function (x) { return a.tlStatus(x) !== 'OFI'; }), c = { 'Selesai': 0, 'Proses': 0, 'Belum Dimulai': 0 };
       TL.forEach(function (x, j) {
         c[a.tlStatus(x)]++;
         var r = baris(ws, [j + 1, x['Komentar'], x['Judul Diklat'], x['PIC'], null, x['Sumber'], String(x['Keterangan'] || '')], {}, { bungkus: [2, 3, 6, 7], zebra: j % 2 === 1, tengah: [1] });
@@ -443,7 +443,7 @@
       });
       if (!TL.length) baris(ws, ['', 'Belum ada komentar atau temuan', '', '', '', '', ''], {});
       ws._r++;
-      catatan(ws, 'Selesai (Selesai + Sudah Dilaporkan) ' + c['Selesai'] + ' · Berjalan (OFI + Proses TL) ' + c['Berjalan'] + ' · Belum dimulai ' + c['Belum Dimulai'] + (TL.length ? ' · ' + D.fmt(c['Selesai'] / TL.length * 100, 0) + '% selesai' : ''));
+      catatan(ws, 'Hanya masukan yang perlu tindakan (' + TL.length + ' dari ' + semua.length + '; OFI tidak ditampilkan). Selesai (Selesai + Sudah Dilaporkan) ' + c['Selesai'] + ' · Proses ' + c['Proses'] + ' · Belum dimulai ' + c['Belum Dimulai'] + (TL.length ? ' · ' + D.fmt(c['Selesai'] / TL.length * 100, 0) + '% tuntas' : ''));
     },
     maturity: function (wb) {
       var a = A(), h = hitung(), ws = lembar(wb, 'Maturity & Risiko', [8, 52, 18, 18, 18, 17], { judul: 'Maturity Level & Peta Risiko' });

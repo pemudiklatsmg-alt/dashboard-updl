@@ -4,6 +4,7 @@
   var D = window.Dash, A = function () { return window.DashApp; }, $ = function (id) { return document.getElementById(id); }, esc = D.esc;
   var BLN = D.BULAN.map(D.cap);
   var STATUS_TL = ['Belum Dimulai', 'OFI', 'Proses Tindak Lanjut', 'Sudah Dilaporkan', 'Selesai'];
+  var PIC_TL = ['MAN', 'JAR', 'JAR LAB', 'JAR MUTU', 'PKU YAN', 'PKU KEU', 'PBJ', 'K3L KAM', 'REN Pusdiklat', 'ACD Pusdiklat'];
 
   /* ---------- definisi formulir (kolom = judul kolom di tab spreadsheet) ---------- */
   // field: [nama kolom, jenis, wajib, petunjuk, min, max]
@@ -24,8 +25,8 @@
     roti: { grp: 'Evaluasi pelatihan', nama: 'ROTI', tab: 'Rekap ROTI', cara: 'Menambah satu baris baru di bawah data terakhir.',
       fields: [['Tanggal', 'tgl', 1], ['Judul / Program', 'judul', 1], ['Unit', 'teks', 0], ['Nilai ROTI (%)', 'angka', 1, 'Tanpa tanda %. Contoh: 125 untuk 125%'], ['Keterangan', 'teks', 0]],
       tips: ['Isi persen tanpa tanda %.'] },
-    tl: { grp: 'Lainnya', nama: 'Tindak Lanjut Evaluasi', tab: 'Tindak Lanjut Evaluasi', cara: 'Mengubah Status dan Keterangan satu komentar/temuan yang sudah ada. Baris baru ditempel langsung di spreadsheet.', khusus: 'tl',
-      tips: ['Pilih baris lewat kotak pencarian: ketik judul pelatihan, komentar, atau PIC.', 'Selesai dan Sudah Dilaporkan dihitung "selesai"; OFI dan Proses Tindak Lanjut dihitung "berjalan".', 'Kolom lain (komentar, PIC, sumber) diubah langsung di Google Sheets.'] },
+    tl: { grp: 'Lainnya', nama: 'Perbaikan Berkelanjutan', tab: 'Perbaikan Berkelanjutan', cara: 'Mengubah Status dan Keterangan satu komentar/temuan yang sudah ada. Baris baru ditempel langsung di spreadsheet.', khusus: 'tl',
+      tips: ['Pilih baris lewat kotak pencarian: ketik judul pelatihan, komentar, atau PIC.', 'Selesai dan Sudah Dilaporkan dihitung tuntas; OFI = masukan yang tidak perlu tindakan (tidak ikut dihitung).', 'PIC bisa diganti di sini bila komentar salah alamat. Kolom lain (komentar, sumber) diubah langsung di Google Sheets.'] },
     koreksi: { grp: 'Lainnya', nama: 'Koreksi Rendiklat', tab: 'Koreksi Rendiklat', cara: 'Mengisi baris kelas yang dipilih. File Rendiklat asli tidak diubah.', khusus: 'koreksi',
       tips: ['Daftar kelas berasal dari tab Koreksi Rendiklat (menu Dashboard → Tarik daftar kelas tanpa realisasi).', 'Kosongkan Hari Kerja kalau hitungan otomatis sudah benar.', 'Kolom "Diisi Oleh" terisi otomatis.'] },
     hop: { grp: 'Lainnya', nama: 'Penyesuaian HOP', tab: 'Penyesuaian HOP', cara: 'Menambah satu baris baru.', salahSatu: ['Penyesuaian Orang-Hari (+/-)', 'HOP Final (timpa)'],
@@ -208,14 +209,14 @@
   var tlMap = {};
   function formUbahTL() {
     var R = A().tlRows(); tlMap = {}; tlTerakhir = null;
-    if (!R.length) return '<div class="errmsg">Tab Tindak Lanjut Evaluasi masih kosong. Tempel komentar & temuan langsung di Google Sheets.</div>';
+    if (!R.length) return '<div class="errmsg">Tab Perbaikan Berkelanjutan masih kosong. Tempel komentar & temuan langsung di Google Sheets.</div>';
     var opts = R.map(function (r) {
       var lbl = '[' + A().tlAsli(r) + '] ' + String(r['Judul Diklat'] || '').trim() + ' — ' + String(r['Komentar']).replace(/\s+/g, ' ').trim().slice(0, 80) + ' · baris ' + r['_baris'];
       tlMap[lbl] = r; return '<option value="' + esc(lbl) + '">';
     }).join('');
     return '<div class="grid2"><div class="field full" data-w="1"><label for="tlSel">Komentar / temuan yang diubah <em>*</em></label><input class="inp" id="tlSel" list="dlTL" placeholder="Ketik judul pelatihan, komentar, atau PIC, lalu pilih" autocomplete="off">' +
-      '<span class="hint2">' + R.length + ' baris di tab Tindak Lanjut Evaluasi.</span><span class="now" id="tlInfo" hidden></span></div>' +
-      inputFor(['Status', 'opsi:' + STATUS_TL.join('|'), 1], 1) + inputFor(['Keterangan', 'teks', 0, 'Contoh: sudah diperbaiki tanggal 3 Nov'], 2) + '</div><datalist id="dlTL">' + opts + '</datalist>';
+      '<span class="hint2">' + R.length + ' baris di tab Perbaikan Berkelanjutan.</span><span class="now" id="tlInfo" hidden></span></div>' +
+      inputFor(['Status', 'opsi:' + STATUS_TL.join('|'), 1], 1) + inputFor(['PIC', 'opsi:' + PIC_TL.join('|'), 1], 3) + inputFor(['Keterangan', 'teks', 0, 'Contoh: sudah diperbaiki tanggal 3 Nov'], 2) + '</div><datalist id="dlTL">' + opts + '</datalist>';
   }
   var tlTerakhir = null;
   function infoTL() {
@@ -223,6 +224,7 @@
     if (!r || r === tlTerakhir) return;   // isi Status/Keterangan hanya saat baris yang dipilih berganti
     tlTerakhir = r;
     var st = A().tlAsli(r); $('fi1').value = STATUS_TL.indexOf(st) >= 0 ? st : 'Belum Dimulai';
+    var pc = String(r['PIC'] || '').trim(); if ($('fi3')) $('fi3').value = PIC_TL.indexOf(pc) >= 0 ? pc : '';
     $('fi2').value = String(r['Keterangan'] || '').replace(/\s*\(input web:[^)]*\)/g, '').trim();
     el.textContent = 'PIC ' + (r['PIC'] || '–') + ' · ' + (r['Sumber'] || '') + ' · status sekarang: ' + st;
   }

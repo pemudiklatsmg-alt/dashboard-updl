@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261111e">
+<link rel="stylesheet" href="assets/style.css?v=20261112a">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -49,7 +49,7 @@
       <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap"><button type="button" data-th="light" aria-pressed="false">Terang</button><button type="button" data-th="dark" aria-pressed="false">Gelap</button></span></div>
     <div class="msep"></div>
     <div class="mcap">Lompat ke bagian</div>
-    <nav class="mjump" aria-label="Bagian dashboard"><a href="#ringkasan">Ringkasan</a><a href="#bulanan">Per bulan</a><a href="#indikator">Indikator</a><a href="#kepatuhan">Kepatuhan</a><a href="#pengembangan">IDP &amp; Inovasi</a><a href="#isu">Isu &amp; Pihak</a><a href="#risiko">Risiko</a></nav>
+    <nav class="mjump" aria-label="Bagian dashboard"><a href="#ringkasan">Ringkasan</a><a href="#bulanan">Per bulan</a><a href="#indikator">Indikator</a><a href="#kepatuhan">Kepatuhan</a><a href="#pengembangan">IDP &amp; Inovasi</a><a href="#isu">Isu &amp; Pihak</a><a href="#risiko">Risiko</a><a href="#kri">KRI</a><a href="#fraud">Fraud</a></nav>
     <button class="mi adm" role="menuitem" type="button" id="presBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8.5v4l3.5-2z"/></svg>Mode presentasi<span class="mhint">layar penuh</span></button>
     <button class="mi" role="menuitem" type="button" id="printBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Cetak ringkasan / PDF<span class="mhint">1 halaman</span></button>
     <div class="msep"></div>
@@ -103,7 +103,7 @@
     </div>
   </section>
 
-  <section class="pair" aria-label="Kepatuhan dan tindak lanjut" data-bagian="kepatuhan">
+  <section class="pair" aria-label="Kepatuhan dan perbaikan berkelanjutan" data-bagian="kepatuhan">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek. Lingkaran penuh = patuh.</div></div>
@@ -114,7 +114,7 @@
     </div>
     <div class="panel">
       <div class="panel-h">
-        <div><h2>Tindak Lanjut Evaluasi</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
+        <div><h2>Perbaikan Berkelanjutan</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
       </div>
       <div id="tlBody" class="tl-body"></div>
     </div>
@@ -159,6 +159,22 @@
     <div class="rk" id="riskBody"></div>
   </section>
 
+  <section class="panel" id="kriPanel" data-bagian="kri">
+    <div class="panel-h">
+      <div><h2>Key Risk Indicator (KRI)</h2><div class="desc" id="kriDesc">Profil Risiko · tab 10. Pemantauan KRI · status per bulan</div></div>
+      <div class="seg" role="group" aria-label="Saring KRI" id="kriSeg"><button type="button" data-kv="semua" aria-pressed="true">Semua</button><button type="button" data-kv="perhatian" aria-pressed="false">Kuning &amp; merah</button></div>
+    </div>
+    <div id="kriBody"></div>
+  </section>
+
+  <section class="panel" id="fraPanel" data-bagian="fraud">
+    <div class="panel-h">
+      <div><h2>Risiko Fraud (FRA)</h2><div class="desc" id="fraDesc">Fraud Risk Assessment UPDL Semarang</div></div>
+      <div class="seg" role="group" aria-label="Tingkat risiko fraud" id="fraSeg"><button type="button" data-fv="inh" aria-pressed="false">Inheren</button><button type="button" data-fv="res" aria-pressed="true">Residual</button></div>
+    </div>
+    <div class="fr" id="fraBody"></div>
+  </section>
+
   <div class="foot-note" id="footNote"></div>
   <div class="credit">Dirancang &amp; dikembangkan oleh Vania Azaria Bonaputri<small>PLN UPDL Semarang · 2026</small></div>
 </main>
@@ -194,13 +210,13 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261111e"></script>
-<script src="assets/common.js?v=20261111e"></script>
-<script src="assets/genie.js?v=20261111e"></script>
-<script src="assets/dashboard.js?v=20261111e"></script>
-<script src="assets/input.js?v=20261111e"></script>
-<script src="assets/export.js?v=20261111e"></script>
-<script src="assets/fitur.js?v=20261111e"></script>
+<script src="config.js?v=20261112a"></script>
+<script src="assets/common.js?v=20261112a"></script>
+<script src="assets/genie.js?v=20261112a"></script>
+<script src="assets/dashboard.js?v=20261112a"></script>
+<script src="assets/input.js?v=20261112a"></script>
+<script src="assets/export.js?v=20261112a"></script>
+<script src="assets/fitur.js?v=20261112a"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -215,7 +231,7 @@
  <section class="g-sec" id="g2"><h4><span class="no">2</span>Siapa mengisi apa (warna = warna tab di spreadsheet)</h4>
   <div class="cats">
    <div class="cat" style="--cc:var(--c-kin)"><b>■ Kinerja</b><ul><li>Konman: Realisasi &amp; Ket bulanan</li><li>Jumlah Pegawai, Kepatuhan</li><li>Koreksi Rendiklat, Penyesuaian HOP</li></ul><span class="pic">PIC Konman · Admin</span></div>
-   <div class="cat" style="--cc:var(--c-eva)"><b>■ Evaluasi pembelajaran</b><ul><li>Tempel tarikan: Kepuasan, Instruktur, KSA, C&amp;C, Sertifikat</li><li>Rekap L3, L4, ROTI: 1 baris per pengukuran</li><li>Tindak Lanjut: status dari dropdown</li></ul><span class="pic">Admin · Bidang evaluasi</span></div>
+   <div class="cat" style="--cc:var(--c-eva)"><b>■ Evaluasi pembelajaran</b><ul><li>Tempel tarikan: Kepuasan, Instruktur, KSA, C&amp;C, Sertifikat</li><li>Rekap L3, L4, ROTI: 1 baris per pengukuran</li><li>Perbaikan Berkelanjutan: PIC &amp; status dari dropdown</li></ul><span class="pic">Admin · Bidang evaluasi</span></div>
    <div class="cat" style="--cc:var(--c-sdm)"><b>■ SDM</b><ul><li>Data - Pegawai &amp; Alih Daya (struktur organisasi)</li><li>Data - IDP</li></ul><span class="pic">Admin</span></div>
    <div class="cat" style="--cc:var(--c-ino)"><b>■ Inovasi</b><ul><li>Data - Inovasi: 1 baris per inovasi, kolom Tahun wajib</li></ul><span class="pic">PIC JAR</span></div>
    <div class="cat" style="--cc:var(--c-pan)"><b>■ Petunjuk &amp; Pengaturan</b><ul><li>Target evaluasi, aturan HOP, ID file sumber</li></ul><span class="pic">Admin saja</span></div>
@@ -227,7 +243,7 @@
   <div class="time">
    <div><b>Tiap bulan (≤ tgl 5)</b>Jumlah Pegawai, Konman, Kepatuhan, tarik kelas tanpa realisasi</div>
    <div><b>Tiap ada tarikan data</b>Tempel di tab "Data - …" yang sesuai</div>
-   <div><b>Saat ada perubahan</b>Status Tindak Lanjut, IDP, Inovasi, mutasi pegawai</div>
+   <div><b>Saat ada perubahan</b>Status Perbaikan Berkelanjutan, IDP, Inovasi, mutasi pegawai</div>
    <div><b>Awal tahun</b>Tab Konman baru, ID Rendiklat baru, baris tahun baru</div>
   </div>
  </section>
@@ -248,6 +264,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261111e"></script>
+<script src="assets/panduan.js?v=20261112a"></script>
 </body>
 </html>

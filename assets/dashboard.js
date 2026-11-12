@@ -259,11 +259,13 @@
     tanggal('Evaluasi Level 3', 'Rekap L3 Perilaku', isoMaks(S.data.l3));
     tanggal('Evaluasi Level 4', 'Rekap L4 Kinerja', isoMaks(S.data.l4));
     tanggal('ROTI', 'Rekap ROTI', isoMaks(S.data.roti));
-    ada('Tindak Lanjut Evaluasi', 'Tindak Lanjut Evaluasi', tlRows().length);
+    ada('Perbaikan Berkelanjutan', 'Perbaikan Berkelanjutan', tlRows().length);
     ada('IDP', 'Data - IDP', S.data.idp ? (S.data.idp || []).length : 0, S.data.idp ? (S.data.idp || []).length + ' pegawai' : null);
     ada('Inovasi', 'Data - Inovasi', D.rows(S.data.inovasi).length);
     ada('Maturity Level (MLI Probis)', 'file MLI Probis', (S.data.maturity || []).length, (S.data.maturity || []).length + ' key element');
     ada('Peta Risiko', 'file Profil Risiko', S.data.risiko && S.data.risiko.rows ? D.rows(S.data.risiko.rows).length : 0, null);
+    ada('Pemantauan KRI', 'file Profil Risiko tab 10', kriRows().length, kriRows().length ? kriRows().length + ' KRI' : null);
+    ada('Fraud Risk Assessment', 'file FRA (FRA_ID di Pengaturan)', fra() && fra().ringkas ? fra().ringkas.n : 0, fra() && fra().ringkas ? fra().ringkas.n + ' risiko' + (fra().periode ? ' · ' + fra().periode : '') : null);
     ada('Isu & Pihak Berkepentingan', 'file Profil Risiko tab 2b/2c', S.data.konteks ? kIsu().length + kPihak().length : 0, S.data.konteks ? kIsu().length + ' isu · ' + kPihak().length + ' pihak' : null);
     return out;
   }
@@ -297,7 +299,7 @@
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set()), nk = r.pakaiRencana || r.tanpaPeserta;
     if (nk) L.push({ c: 'warn', t: '<b>' + nk + ' kelas</b> selesai belum ada realisasi peserta', act: 'kelas' });
     var tb = tlRows().filter(function (x) { return tlStatus(x) === 'Belum Dimulai'; }).length;
-    if (tb) L.push({ c: tb >= 5 ? 'bad' : 'warn', t: '<b>' + tb + ' tindak lanjut</b> evaluasi belum dimulai', act: 'tl' });
+    if (tb) L.push({ c: tb >= 5 ? 'bad' : 'warn', t: '<b>' + tb + ' perbaikan berkelanjutan</b> belum dimulai', act: 'tl' });
     if (S.data.inovasi && S.data.inovasi.length) {
       var lw = inoRows().filter(function (x) { return x.w[1] === 'bad'; });
       if (lw.length) L.push({ c: 'bad', t: '<b>' + lw.length + ' inovasi</b> lewat target, belum selesai: ' + namaSingkat(lw, function (x) { return x.r['Judul Inovasi']; }), act: 'ino' });
@@ -305,6 +307,14 @@
     if (S.data.konteks) {
       var pb = kPihak().filter(function (x) { return /tinggi/i.test(x.prio) && kStatus(x.st) !== 'good' && (x.pr === null || x.pr < 50); });
       if (pb.length) L.push({ c: 'warn', t: '<b>' + pb.length + ' pihak berkepentingan</b> prioritas tinggi, progres &lt; 50%: ' + namaSingkat(pb, function (x) { return x.nama; }), act: 'pb' });
+    }
+    var kriM = kriRows().filter(function (k) { var a = kriAkhir(k); return a && a.st === 'bad'; });
+    if (kriM.length) L.push({ c: 'bad', t: '<b>' + kriM.length + ' KRI merah</b>: ' + namaSingkat(kriM, function (k) { return k.kri; }), go: 'kri' });
+    var G = fra() && fra().ringkas;
+    if (G) {
+      var resT = (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0);
+      if (G.kejadian) L.push({ c: 'bad', t: '<b>' + G.kejadian + ' kejadian fraud</b> tercatat di Monev FRA', go: 'fraud' });
+      if (G.redflag || resT) L.push({ c: 'warn', t: 'FRA: ' + [G.redflag ? '<b>' + G.redflag + ' red flag</b> muncul' : '', resT ? '<b>' + resT + ' risiko</b> residual Tinggi ke atas' : ''].filter(Boolean).join(' · '), go: 'fraud' });
     }
     return L.sort(function (a, b) { return (a.c === 'bad' ? 0 : 1) - (b.c === 'bad' ? 0 : 1); });
   }
@@ -412,51 +422,60 @@
     $('kepNote').innerHTML = isi ? 'Total pengurang ' + namaBulan(S.bulan) + ': <b>' + D.fmt(tot, 2) + '</b> (sudah dikurangkan dari Capaian Kinerja).' : 'Nilai kepatuhan ' + namaBulan(S.bulan) + ' belum diisi. Isi di ' + sheetLink('Google Sheets', 'Kepatuhan') + ' (0 = patuh).';
   }
 
-  /* ---------- tindak lanjut ---------- */
-  /* Status asli 5 pilihan -> 3 kelompok. Selesai = Selesai + Sudah Dilaporkan; Berjalan = OFI + Proses Tindak Lanjut */
-  var TL_GRUP = { 'SELESAI': 'Selesai', 'SUDAH DILAPORKAN': 'Selesai', 'OFI': 'Berjalan', 'PROSES TINDAK LANJUT': 'Berjalan', 'BERJALAN': 'Berjalan' };
-  var TL_KLS = { 'Selesai': 'good', 'Berjalan': 'warn', 'Belum Dimulai': 'bad' };
+  /* ---------- perbaikan berkelanjutan (dulu: tindak lanjut evaluasi) ---------- */
+  /* Status asli 5 pilihan -> 4 kelompok. OFI = masukan membangun/pujian/netral (tidak perlu tindakan).
+     Tingkat penyelesaian dihitung dari masukan yang perlu tindakan saja (selain OFI). */
+  var TL_GRUP = { 'SELESAI': 'Selesai', 'SUDAH DILAPORKAN': 'Selesai', 'OFI': 'OFI', 'PROSES TINDAK LANJUT': 'Proses', 'BERJALAN': 'Proses' };
+  var TL_KLS = { 'Selesai': 'good', 'Proses': 'warn', 'Belum Dimulai': 'bad', 'OFI': 'idle' };
+  function uniq(a) { var o = {}, r = []; a.forEach(function (x) { if (!o[x]) { o[x] = 1; r.push(x); } }); return r; }
   function tlRows() { return D.rows(S.data.tindaklanjut).filter(function (r) { return String(r['Komentar'] || '').trim(); }); }
   function tlAsli(r) { return String(r['Status'] || '').trim() || 'Belum Dimulai'; }
   function tlStatus(r) { return TL_GRUP[tlAsli(r).toUpperCase()] || 'Belum Dimulai'; }
   function renderTL() {
-    var R = tlRows(), c = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0 }, pic = {};
+    var R = tlRows(), c = { 'Selesai': 0, 'Proses': 0, 'Belum Dimulai': 0, 'OFI': 0 }, pic = {};
     R.forEach(function (r) {
       var g = tlStatus(r), k = String(r['PIC'] || '').trim() || '(tanpa PIC)'; c[g]++;
-      if (!pic[k]) pic[k] = { 'Selesai': 0, 'Berjalan': 0, 'Belum Dimulai': 0, n: 0 };
+      if (!pic[k]) pic[k] = { 'Selesai': 0, 'Proses': 0, 'Belum Dimulai': 0, 'OFI': 0, n: 0 };
       pic[k][g]++; pic[k].n++;
     });
     var n = R.length;
     $('tlDesc').textContent = n + ' komentar & temuan (semua periode)';
-    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada komentar atau temuan. Tempel data di ' + sheetLink('Google Sheets', 'Tindak Lanjut Evaluasi') + '.</div>'; return; }
-    var seg = [['Selesai', 'good', 'Selesai + Sudah Dilaporkan'], ['Berjalan', 'warn', 'OFI + Proses TL'], ['Belum Dimulai', 'bad', 'Belum Dimulai']];
-    var mx = Math.max.apply(null, Object.keys(pic).map(function (k) { return pic[k].n; }));
-    var bars = Object.keys(pic).sort(function (a, b) { return pic[b].n - pic[a].n || a.localeCompare(b); }).map(function (k) {
+    if (!n) { $('tlBody').innerHTML = '<div class="empty">Belum ada komentar atau temuan. Tempel data di ' + sheetLink('Google Sheets', 'Perbaikan Berkelanjutan') + '.</div>'; return; }
+    var seg = [['Selesai', 'good', 'Selesai + Sudah Dilaporkan'], ['Proses', 'warn', 'Proses Tindak Lanjut'], ['Belum Dimulai', 'bad', 'Belum Dimulai'], ['OFI', 'idle', 'OFI (tidak perlu tindakan)']];
+    var perlu = n - c['OFI'];
+    var mx = Math.max.apply(null, Object.keys(pic).map(function (k) { return pic[k].n - pic[k]['OFI']; }).concat([1]));
+    var tind = function (x) { return x.n - x['OFI']; };
+    var bars = Object.keys(pic).sort(function (a, b) { return tind(pic[b]) - tind(pic[a]) || pic[b].n - pic[a].n || a.localeCompare(b); }).map(function (k) {
       var x = pic[k];
       return '<div class="r" title="' + esc(k + ': ' + seg.map(function (s) { return s[0] + ' ' + x[s[0]]; }).join(', ')) + '"><span>' + esc(k) + '</span><span class="t">' +
-        seg.map(function (s) { return x[s[0]] ? '<i style="width:' + (x[s[0]] / mx * 100) + '%;background:var(--' + s[1] + ')"></i>' : ''; }).join('') + '</span><span class="num">' + x.n + '</span></div>';
+        seg.slice(0, 3).map(function (s) { return x[s[0]] ? '<i style="width:' + (x[s[0]] / mx * 100) + '%;background:var(--' + s[1] + ')"></i>' : ''; }).join('') + '</span><span class="num">' + tind(x) + '</span></div>';
     }).join('');
-    $('tlBody').innerHTML = '<div class="tl-top">' + donut(seg.map(function (s) { return { n: c[s[0]], c: s[1], t: s[0] }; }), D.fmt(c['Selesai'] / n * 100, 0) + '%', 'selesai') +
+    $('tlBody').innerHTML = '<div class="tl-top">' + donut(seg.slice(0, 3).map(function (s) { return { n: c[s[0]], c: s[1], t: s[0] }; }), perlu ? D.fmt(c['Selesai'] / perlu * 100, 0) + '%' : '–', 'tuntas') +
       '<div class="tl-sum">' + seg.map(function (s) { return '<div><b class="num ' + s[1] + '">' + c[s[0]] + '</b><span>' + s[2] + '</span></div>'; }).join('') + '</div></div>' +
-      '<div class="sub-h">Per PIC</div><div class="bars">' + bars + '</div>' +
-      '<div class="legend"><span><i style="background:var(--good)"></i>Selesai</span><span><i style="background:var(--warn)"></i>Berjalan</span><span><i style="background:var(--bad)"></i>Belum dimulai</span></div>' +
+      '<div class="sub-h">Per PIC · masukan yang perlu tindakan</div><div class="bars">' + bars + '</div>' +
+      '<div class="legend"><span><i style="background:var(--good)"></i>Selesai</span><span><i style="background:var(--warn)"></i>Proses</span><span><i style="background:var(--bad)"></i>Belum dimulai</span></div>' +
+      '<div class="note">Persen tuntas = (Selesai + Sudah Dilaporkan) ÷ ' + D.fmt(perlu, 0) + ' masukan yang perlu tindakan (selain OFI).</div>' +
       '<button class="btn" style="align-self:flex-start" data-act="tl">Lihat daftar lengkap →</button>';
   }
   function openTL() {
     var R = tlRows();
-    openModal('<div class="modal-h"><div><h3>Tindak Lanjut Evaluasi</h3><div class="desc">' + R.length + ' komentar & temuan · ' + (admin() ? 'ubah status lewat Input Data → Tindak Lanjut, atau langsung di Google Sheets' : 'status diperbarui oleh admin') + '</div></div><button class="btn" data-close>Tutup</button></div>' +
-      '<div class="tools"><input class="inp" id="tlQ" type="search" placeholder="Cari komentar, pelatihan, PIC…" aria-label="Cari"><select class="inp" id="tlF" aria-label="Saring status" style="max-width:220px"><option value="">Semua status</option><option>Selesai</option><option>Berjalan</option><option>Belum Dimulai</option></select></div>' +
+    openModal('<div class="modal-h"><div><h3>Perbaikan Berkelanjutan</h3><div class="desc">' + R.length + ' komentar & temuan · ' + (admin() ? 'ubah status lewat Input Data → Perbaikan Berkelanjutan, atau langsung di Google Sheets' : 'status diperbarui oleh admin') + '</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tools"><input class="inp" id="tlQ" type="search" placeholder="Cari komentar, pelatihan, PIC…" aria-label="Cari"><select class="inp" id="tlF" aria-label="Saring status" style="max-width:200px"><option value="">Semua status</option><option value="perlu">Perlu tindakan (selain OFI)</option><option>Belum Dimulai</option><option>Proses</option><option>Selesai</option><option>OFI</option></select>' +
+      '<select class="inp" id="tlP" aria-label="Saring PIC" style="max-width:180px"><option value="">Semua PIC</option>' + uniq(R.map(function (r) { return String(r['PIC'] || '').trim(); }).filter(Boolean)).sort().map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '</select>' +
+      '<select class="inp" id="tlS" aria-label="Saring sumber" style="max-width:180px"><option value="">Semua sumber</option>' + uniq(R.map(function (r) { return String(r['Sumber'] || '').trim(); }).filter(Boolean)).sort().map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Komentar</th><th>Kategori</th><th>Sumber</th><th>PIC</th><th>Status</th><th>Keterangan</th></tr></thead><tbody id="tlT"></tbody></table></div><div class="note" id="tlN"></div>');
     function fill() {
-      var q = $('tlQ').value.toLowerCase(), f = $('tlF').value;
-      var L = R.filter(function (r) { return (!f || tlStatus(r) === f) && (!q || [r['Judul Diklat'], r['Komentar'], r['PIC'], r['Kategori Komentar'], r['Sumber']].join(' ').toLowerCase().indexOf(q) >= 0); });
+      var q = $('tlQ').value.toLowerCase(), f = $('tlF').value, fp = $('tlP').value, fs = $('tlS').value;
+      var L = R.filter(function (r) { return (!f || (f === 'perlu' ? tlStatus(r) !== 'OFI' : tlStatus(r) === f)) && (!fp || String(r['PIC'] || '').trim() === fp) && (!fs || String(r['Sumber'] || '').trim() === fs) && (!q || [r['Judul Diklat'], r['Komentar'], r['PIC'], r['Kategori Komentar'], (arti(r['Kategori Komentar']) || {}).tanya, r['Sumber']].join(' ').toLowerCase().indexOf(q) >= 0); });
+      var MAKS = 300, semua = L.length; L = L.slice(0, MAKS);
       $('tlT').innerHTML = L.map(function (r) {
-        return '<tr><td>' + esc(r['Judul Diklat']) + (r['Angkatan'] ? '<div class="tl-m">Angkatan ' + esc(r['Angkatan']) + '</div>' : '') + '</td><td>' + esc(r['Komentar']) + '</td><td>' + esc(r['Kategori Komentar']) + '</td><td>' + esc(r['Sumber']) + '</td><td>' + esc(r['PIC']) +
+        return '<tr><td>' + esc(r['Judul Diklat']) + (r['Angkatan'] ? '<div class="tl-m">Angkatan ' + esc(r['Angkatan']) + '</div>' : '') + '</td><td>' + esc(r['Komentar']) + '</td><td>' + (arti(r['Kategori Komentar']) ? butirHtml(r['Kategori Komentar']) : esc(r['Kategori Komentar'])) + '</td><td>' + esc(r['Sumber']) + '</td><td>' + esc(r['PIC']) +
           '</td><td><span class="pill ' + TL_KLS[tlStatus(r)] + '">' + esc(tlAsli(r)) + '</span></td><td class="ket">' + esc(String(r['Keterangan'] || '')) + '</td></tr>';
       }).join('') || '<tr><td colspan="7" class="desc">Tidak ada yang cocok.</td></tr>';
-      $('tlN').textContent = L.length + ' dari ' + R.length + ' baris';
+      $('tlN').textContent = (semua > MAKS ? 'Menampilkan ' + MAKS + ' pertama dari ' + semua + ' yang cocok' : semua + ' yang cocok') + ' · total ' + R.length + ' baris. Pakai pencarian atau saringan untuk mempersempit.';
     }
-    $('tlQ').addEventListener('input', fill); $('tlF').addEventListener('change', fill); fill();
+    var tunda; $('tlQ').addEventListener('input', function () { clearTimeout(tunda); tunda = setTimeout(fill, 150); });
+    ['tlF', 'tlP', 'tlS'].forEach(function (id) { $(id).addEventListener('change', fill); }); fill();
   }
 
   /* ---------- maturity (sheet SMG) ---------- */
@@ -534,6 +553,132 @@
     $('riskBody').innerHTML = '<div class="rk-l">' + g + ringkas + '</div>' + daftar;
     var on = S.riskOn && $('rkRows') && $('rkRows').querySelector('.rk-row.on');
     if (on) { var box = $('rkRows'); if (on.offsetTop < box.scrollTop || on.offsetTop > box.scrollTop + box.clientHeight - 30) box.scrollTop = on.offsetTop - 40; }
+  }
+
+  /* ---------- Key Risk Indicator (Profil Risiko tab 10) ---------- */
+  var BLN_KRI = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  function kriRows() { return (S.data.kri && S.data.kri.rows) || []; }
+  /* Maks: hijau >= batas atas, kuning >= batas bawah, merah di bawahnya. Min: kebalikannya. */
+  function kriStatus(k, v) {
+    if (v === null || v === undefined || v === '' || k.bb === null || k.ba === null || k.bb === '' || k.ba === '') return null;
+    if (k.pol === 'Min') return v <= k.bb ? 'good' : v <= k.ba ? 'warn' : 'bad';
+    return v >= k.ba ? 'good' : v >= k.bb ? 'warn' : 'bad';
+  }
+  function kriFmt(k, v) {
+    if (v === null || v === undefined || v === '') return '–';
+    return k.pct ? D.fmt(v * 100, Math.abs(v * 100 - Math.round(v * 100)) > 0.05 ? 1 : 0) + '%' : D.fmt(v, Math.abs(v - Math.round(v)) > 0.001 ? 2 : 0);
+  }
+  /* realisasi terakhir s.d. bulan terpilih (tahun KRI = tahun berjalan file) */
+  function kriAkhir(k) { for (var m = S.bulan - 1; m >= 0; m--) { var v = k.bulan[m]; if (v !== null && v !== undefined && v !== '') return { m: m, v: v, st: kriStatus(k, v) }; } return null; }
+  var KRI_TEKS = { good: 'Hijau', warn: 'Kuning', bad: 'Merah' };
+  function renderKri() {
+    var el = $('kriBody'); if (!el) return;
+    var R = kriRows();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-kv]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-kv') === (S.kriView || 'semua')); });
+    if (!R.length) { el.innerHTML = '<div class="empty">Tab 10. Pemantauan KRI belum terbaca dari file Profil Risiko' + (S.data.kri === null ? '' : '') + '.</div>'; return; }
+    var cnt = { good: 0, warn: 0, bad: 0, nol: 0 };
+    var L = R.map(function (k) { var a = kriAkhir(k); cnt[a && a.st ? a.st : 'nol']++; return { k: k, a: a }; });
+    $('kriDesc').textContent = R.length + ' KRI · status realisasi terakhir s.d. ' + namaBulan(S.bulan) + ' · Profil Risiko tab ' + (S.data.kri.tab || '10');
+    var tampil = S.kriView === 'perhatian' ? L.filter(function (x) { return x.a && (x.a.st === 'bad' || x.a.st === 'warn'); }) : L;
+    var sum = '<div class="kri-sum">' + [['good', 'Hijau'], ['warn', 'Kuning'], ['bad', 'Merah'], ['nol', 'Belum diukur']].map(function (x) {
+      return '<div><b class="num ' + (x[0] === 'nol' ? 'idle' : x[0]) + '">' + cnt[x[0]] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>';
+    var head = '<tr><th>KRI</th><th>Target</th>' + BLN_KRI.map(function (b, i) { return '<th class="c' + (i + 1 > S.bulan ? ' nanti' : '') + '">' + b + '</th>'; }).join('') + '<th class="r">Terakhir</th><th>Status</th><th>PIC</th></tr>';
+    var body = tampil.map(function (x) {
+      var k = x.k, st = x.a && x.a.st;
+      return '<tr><td><b>' + esc(k.kri) + '</b><div class="tl-m">' + esc(k.no + '. ' + k.peristiwa) + (k.jenis === 'Peluang' ? ' · <span class="pill good">Peluang</span>' : '') + '</div></td>' +
+        '<td class="kri-t">' + (k.target === null || k.target === '' ? '–' : (k.pol === 'Min' ? '≤ ' : '≥ ') + kriFmt(k, k.pol === 'Min' ? k.bb : k.ba)) + '<div class="tl-m">' + esc(k.pol === 'Min' ? 'makin rendah makin baik' : 'makin tinggi makin baik') + '</div></td>' +
+        k.bulan.map(function (v, i) { var s2 = kriStatus(k, v); return '<td class="c' + (i + 1 > S.bulan ? ' nanti' : '') + '">' + (v === null || v === '' ? '<i class="kd"></i>' : '<i class="kd ' + (s2 || 'idle') + '" title="' + esc(BLN_KRI[i] + ': ' + kriFmt(k, v) + (s2 ? ' · ' + KRI_TEKS[s2] : '')) + '"></i>') + '</td>'; }).join('') +
+        '<td class="r num"><b>' + (x.a ? kriFmt(k, x.a.v) : '–') + '</b>' + (x.a ? '<div class="tl-m">' + BLN_KRI[x.a.m] + '</div>' : '') + '</td>' +
+        '<td>' + (st ? '<span class="pill ' + st + '">' + KRI_TEKS[st] + '</span>' : '<span class="pill idle">Belum diukur</span>') + '</td><td class="tl-m">' + esc(String(k.pic || '').replace(/\s*\(R\)$/, '')) + '</td></tr>';
+    }).join('') || '<tr><td colspan="17" class="desc">Tidak ada KRI kuning atau merah s.d. ' + namaBulan(S.bulan) + '.</td></tr>';
+    el.innerHTML = sum + '<div class="tbl-wrap scroll kri-tbl"><table class="tbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="legend"><span><i style="background:var(--good)"></i>Hijau</span><span><i style="background:var(--warn)"></i>Kuning</span><span><i style="background:var(--bad)"></i>Merah</span><span><i style="background:var(--track)"></i>Belum diisi</span></div>' +
+      '<div class="note">Realisasi bulanan diisi di file Profil Risiko, ' + (S.data.meta.links && S.data.meta.links.profilRisiko && admin() ? '<a href="' + esc(S.data.meta.links.profilRisiko) + '" target="_blank" rel="noopener">tab ' + esc(S.data.kri.tab || '10. Pemantauan KRI') + '</a>' : 'tab ' + esc(S.data.kri.tab || '10. Pemantauan KRI')) + '. Status dihitung dari batas bawah dan batas atas tiap KRI.</div>';
+  }
+
+  /* ---------- Risiko fraud (FRA) ---------- */
+  var LV_FRA = ['Ekstrem', 'Sangat Tinggi', 'Tinggi', 'Moderat', 'Rendah'];
+  var KM_KODE = { 'Sangat Besar': 'E', 'Besar': 'D', 'Sedang': 'C', 'Kecil': 'B', 'Sangat Kecil': 'A' };
+  function fra() { return S.data.fra || null; }
+  function renderFra() {
+    var el = $('fraBody'); if (!el) return;
+    var F = fra(), v = S.fraView || 'res';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fv]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-fv') === v); });
+    if (!F || !F.ringkas) { el.innerHTML = '<div class="empty">File FRA belum terhubung. Isi <b>FRA_ID</b> di tab Pengaturan.</div>'; $('fraDesc').textContent = 'Fraud Risk Assessment UPDL Semarang'; return; }
+    var G = F.ringkas, nmV = v === 'inh' ? 'inheren' : 'residual';
+    $('fraDesc').textContent = G.n + ' risiko fraud · ' + (F.periode ? 'Monev ' + F.periode + ' · ' : '') + 'peta ' + nmV;
+    // peta 5x5: Admin melihat kode FR, akun Lihat melihat jumlah
+    var peta = v === 'inh' ? G.petaInh : G.petaRes, R = F.risiko || null;
+    var g = '<div class="rk-map fr-map" role="group" aria-label="Peta risiko fraud ' + nmV + '">';
+    ['E', 'D', 'C', 'B', 'A'].forEach(function (k) {
+      g += '<div class="ry">' + KEM[k] + '</div>';
+      for (var d = 1; d <= 5; d++) {
+        var key = KEM[k] + '|' + DAM[d - 1], n = peta[key] || 0, lv = MATRIKS[k][d - 1], isi = '';
+        if (n && R) isi = R.filter(function (r) { return (v === 'inh' ? r.km : (r.kmR || r.km)) === KEM[k] && (v === 'inh' ? r.dm : (r.dmR || r.dm)) === DAM[d - 1]; })
+          .map(function (r) { return '<button type="button" class="rdot fr-dot" data-fr="' + esc(r.id) + '" title="' + esc(r.id + ': ' + r.des) + '">' + esc(r.id.replace(/^FR0?/, '')) + '</button>'; }).join('');
+        else if (n) isi = '<span class="fr-n">' + n + '</span>';
+        g += '<div class="c" data-l="' + LV[lv] + '" title="' + esc(KEM[k] + ' × ' + DAM[d - 1] + ' · ' + lv + (n ? ' · ' + n + ' risiko' : '')) + '">' + isi + '</div>';
+      }
+    });
+    g += '<div></div>';
+    var DSK = ['Tdk sig.', 'Minor', 'Medium', 'Sig.', 'Sgt sig.'];
+    for (var d = 1; d <= 5; d++) g += '<div class="rx"><span class="pj">' + DAM[d - 1] + '</span><span class="pd">' + DSK[d - 1] + '</span></div>';
+    g += '</div><div class="rk-ax"><span>↑ Kemungkinan</span><span>Dampak →</span></div>';
+    // inheren -> residual
+    var mx = Math.max.apply(null, LV_FRA.map(function (l) { return Math.max(G.inh[l] || 0, G.res[l] || 0); }).concat([1]));
+    var geser = '<div class="fr-geser"><div class="sub-h">Sebelum → sesudah mitigasi</div>' + LV_FRA.map(function (l) {
+      return '<div class="fg-r' + (!(G.inh[l] || G.res[l]) ? ' nol' : '') + '"><span class="fg-l"><i style="background:var(--risk-' + LV[l] + ')"></i>' + l + '</span>' +
+        '<span class="fg-b"><i class="inh" style="width:' + ((G.inh[l] || 0) / mx * 100) + '%"></i><b class="num">' + (G.inh[l] || 0) + '</b></span>' +
+        '<span class="fg-b"><i class="res" style="width:' + ((G.res[l] || 0) / mx * 100) + '%;background:var(--risk-' + LV[l] + ')"></i><b class="num">' + (G.res[l] || 0) + '</b></span></div>';
+    }).join('') + '<div class="fg-r fg-k"><span></span><span>Inheren</span><span>Residual</span></div></div>';
+    var aksiN = G.aksi.Belum + G.aksi.Proses + G.aksi.Selesai;
+    var stat = '<div class="fr-stat">' +
+      '<div><b class="num">' + G.n + '</b><span>risiko fraud</span></div>' +
+      '<div><b class="num ' + (G.kejadian ? 'bad' : 'good') + '">' + G.kejadian + '</b><span>kejadian fraud</span></div>' +
+      '<div><b class="num ' + (G.redflag ? 'warn' : 'good') + '">' + G.redflag + '</b><span>red flag muncul</span></div>' +
+      '<div><b class="num">' + (aksiN ? G.aksi.Selesai + '/' + aksiN : '–') + '</b><span>kegiatan mitigasi selesai</span></div></div>';
+    // per proses bisnis
+    var P = Object.keys(G.proses), mp = Math.max.apply(null, P.map(function (p) { return LV_FRA.reduce(function (a, l) { return a + (G.proses[p][v][l] || 0); }, 0); }).concat([1]));
+    var proses = '<div class="sub-h">Per proses bisnis · ' + nmV + '</div><div class="bars fr-pro">' + P.map(function (p) {
+      var x = G.proses[p][v], tot = LV_FRA.reduce(function (a, l) { return a + (x[l] || 0); }, 0);
+      return '<div class="r" title="' + esc(p + ': ' + LV_FRA.filter(function (l) { return x[l]; }).map(function (l) { return l + ' ' + x[l]; }).join(', ')) + '"><span>' + esc(p.replace(/\s*\(.*\)$/, '')) + '</span><span class="t">' +
+        LV_FRA.slice().reverse().map(function (l) { return x[l] ? '<i style="width:' + (x[l] / mp * 100) + '%;background:var(--risk-' + LV[l] + ')"></i>' : ''; }).join('') + '</span><span class="num">' + tot + '</span></div>';
+    }).join('') + '</div>';
+    var SKN = { Corruption: 'Korupsi', AssetMisappropriation: 'Penyalahgunaan aset', FraudulentStatement: 'Kecurangan laporan', ScammingDataTheft: 'Penipuan & pencurian data' };
+    var skema = '<div class="sub-h">Skema fraud</div><div class="fr-skema">' + Object.keys(G.skema).sort(function (a, b) { return G.skema[b] - G.skema[a]; }).map(function (k) {
+      return '<span><b class="num">' + G.skema[k] + '</b>' + esc(SKN[k] || k) + '</span>'; }).join('') + '</div>';
+    var aksi = admin() && R ? '<button class="btn" style="align-self:flex-start" data-act="fra">Daftar risiko fraud →</button>' : '<div class="note">Rincian per risiko fraud hanya dapat dilihat dengan akun Admin.</div>';
+    el.innerHTML = '<div class="fr-l">' + g + '</div><div class="fr-m">' + stat + geser + '</div><div class="fr-r">' + proses + skema + aksi + '</div>';
+  }
+  function frLv(l) { return l ? '<span class="lv" style="background:var(--risk-' + (LV[l] || 1) + ')">' + esc(l) + '</span>' : '–'; }
+  function openFra(fokus) {
+    var F = fra(); if (!F || !F.risiko || !admin()) return;
+    openModal('<div class="modal-h"><div><h3>Risiko Fraud (FRA)</h3><div class="desc">' + F.risiko.length + ' risiko · ' + (F.periode ? 'Monev ' + esc(F.periode) + ' · ' : '') + 'klik baris untuk rincian · khusus Admin</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tools"><input class="inp" id="frQ" type="search" placeholder="Cari risiko, PIC, skema…" aria-label="Cari"><select class="inp" id="frF" aria-label="Saring level residual" style="max-width:220px"><option value="">Semua level residual</option>' + LV_FRA.map(function (l) { return '<option>' + l + '</option>'; }).join('') + '</select></div>' +
+      '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>ID</th><th>Risiko fraud</th><th>Proses</th><th>Inheren</th><th>Residual</th><th>PIC</th></tr></thead><tbody id="frT"></tbody></table></div><div class="note" id="frN"></div>');
+    function fill() {
+      var q = $('frQ').value.toLowerCase(), f = $('frF').value;
+      var L = F.risiko.filter(function (r) { return (!f || (r.res || r.inh) === f) && (!q || [r.id, r.des, r.pic, r.skema, r.tipe, r.proses].join(' ').toLowerCase().indexOf(q) >= 0); });
+      $('frT').innerHTML = L.map(function (r) { return '<tr class="klik" tabindex="0" data-fr="' + esc(r.id) + '"><td><b>' + esc(r.id) + '</b></td><td>' + esc(r.des) + (/^ya/i.test(r.rfMuncul) ? ' <span class="pill warn">red flag</span>' : '') + (/^terjadi/i.test(r.kejadian) ? ' <span class="pill bad">terjadi</span>' : '') + '</td><td class="tl-m">' + esc(r.proses) + '</td><td>' + frLv(r.inh) + '</td><td>' + frLv(r.res || r.inh) + '</td><td class="tl-m">' + esc(r.pic) + '</td></tr>'; }).join('') || '<tr><td colspan="6" class="desc">Tidak ada yang cocok.</td></tr>';
+      $('frN').textContent = L.length + ' dari ' + F.risiko.length + ' risiko';
+    }
+    $('frQ').addEventListener('input', fill); $('frF').addEventListener('change', fill); fill();
+    if (fokus) openFr(fokus, true);
+  }
+  function openFr(id, dariDaftar) {
+    var F = fra(); if (!F || !F.risiko || !admin()) return;
+    var r = F.risiko.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    var A = (F.aksi || []).filter(function (a) { return a[0] === id; });
+    var kv = function (k, v) { return '<div class="kx-f"><span class="sub-h">' + k + '</span><div>' + v + '</div></div>'; };
+    openModal('<div class="modal-h"><div><div class="desc">' + esc(r.id + ' · ' + r.proses + ' · ' + r.sub) + '</div><h3>' + esc(r.des) + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      (dariDaftar !== false ? '<div><button class="btn kx-back" type="button" data-act="fra">← Daftar risiko fraud</button></div>' : '') +
+      '<div class="fr-det"><div class="fr-lv"><div><span>Inheren</span>' + frLv(r.inh) + '<em>' + esc(r.km + ' × ' + r.dm) + '</em></div><div class="arr">→</div><div><span>Residual</span>' + frLv(r.res || r.inh) + '<em>' + esc((r.kmR || r.km) + ' × ' + (r.dmR || r.dm)) + '</em></div>' +
+      '<div><span>Kejadian</span><b class="' + (/^terjadi/i.test(r.kejadian) ? 'bad' : 'good') + '">' + esc(r.kejadian || '–') + '</b></div><div><span>Red flag</span><b class="' + (/^ya/i.test(r.rfMuncul) ? 'warn' : 'good') + '">' + esc(r.rfMuncul || '–') + '</b></div></div><div class="kx-grid">' +
+      kv('Skema', esc(r.skema + (r.tipe ? ' · ' + r.tipe : ''))) + kv('Penyebab', baris(r.penyebab)) + kv('Indikator red flag', baris(r.redflag)) + kv('Kontrol eksisting', baris(r.kontrol)) +
+      kv('Mitigasi', baris(r.mitigasi)) + kv('PIC · target', esc(r.pic + (r.target ? ' · ' + r.target : ''))) + kv('Efektivitas', esc(r.efektif || 'Belum dievaluasi') + (r.catatan ? '<div class="tl-m">' + esc(r.catatan) + '</div>' : '')) +
+      kv('Risiko profil terkait', '<div class="kx-chips">' + chipRisiko([r.profil, r.profilLain].filter(Boolean).join(', ')) + '</div>') + '</div></div>' +
+      (A.length ? '<div class="sub-h">Rencana aksi mitigasi</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>No</th><th>Kegiatan</th><th>Output</th><th>PIC</th><th>Target</th><th>Status</th></tr></thead><tbody>' +
+        A.map(function (a) { var st = /selesai/i.test(a[7]) ? 'good' : /proses/i.test(a[7]) ? 'warn' : 'idle'; return '<tr><td>' + esc(a[1]) + '</td><td>' + esc(a[2]) + '</td><td class="tl-m">' + esc(a[3]) + '</td><td class="tl-m">' + esc(a[4] + (a[5] ? ' · ' + a[5] : '')) + '</td><td class="tl-m">' + esc(a[6]) + '</td><td><span class="pill ' + st + '">' + esc(a[7] || 'Belum') + '</span></td></tr>'; }).join('') + '</tbody></table></div>' : ''));
   }
 
   /* ---------- pengembangan pegawai (IDP) ---------- */
@@ -905,6 +1050,20 @@
   }
   var REKAP = { l3: ['Rekap L3 Perilaku', 'l3', 'Tanggal Evaluasi'], l4: ['Rekap L4 Kinerja', 'l4', 'Tanggal Evaluasi'], roti: ['Rekap ROTI', 'roti', 'Tanggal'] };
 
+  /* ---------- arti singkatan butir evaluasi (tab Master Evaluasi L1) ---------- */
+  function kunciButir(x) { return String(x || '').toLowerCase().replace(/(\d)\s*0f\s*(\d)/, '$1of$2').replace(/[^a-z0-9]/g, ''); }
+  var MASTER = null, MASTER_SRC = null;
+  function arti(label) {
+    var M = S.data && S.data.masterL1;
+    if (MASTER_SRC !== M) { MASTER = {}; MASTER_SRC = M; (M || []).forEach(function (r) { MASTER[kunciButir(r[0])] = { singkat: r[0], objek: r[1], aspek: r[2], tanya: r[3] }; }); }
+    return MASTER[kunciButir(label)] || null;
+  }
+  /* "Mat-Sat 1 of 2" + pertanyaannya (kecil di bawah) */
+  function butirHtml(label) {
+    var a = arti(label);
+    return '<b>' + esc(label) + '</b>' + (a ? '<div class="tl-m">' + esc(a.tanya) + '</div>' : '');
+  }
+
   /* ---------- rincian evaluasi dari data mentah ---------- */
   function tglPendek(iso) { var t = D.tgl(iso); return t ? t.getDate() + ' ' + D.BLN3[t.getMonth()] + ' ' + t.getFullYear() : ''; }
   function nilaiKls(v, t) { return v === null || v === undefined ? 'idle' : skala5(v, t).c; }
@@ -929,11 +1088,11 @@
     openModal(judulEval('Kepuasan Peserta' + per, 'Rata-rata ' + D.fmt(K.nilai, 2) + ' dari semua butir (kolom berakhiran -Val tidak dihitung) · ' + D.fmt(K.responden, 0) + ' responden · ' + K.pelatihan + ' pelatihan' + (t ? ' · target ' + D.fmt(t, 2) : '')) +
       '<div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="kA">Per aspek</button><button type="button" role="tab" aria-selected="false" data-tab="kB">Per butir</button><button type="button" role="tab" aria-selected="false" data-tab="kC">Per pelatihan</button></div>' +
       '<div id="kA" class="bars">' + K.aspek.map(function (a) { return barH(a.nama, a.nilai, 5, D.fmt(a.nilai, 2), nilaiKls(a.nilai, t) === 'bad' ? 'bad' : 'bar', D.fmt(a.n, 0) + ' jawaban'); }).join('') + '</div>' +
-      '<div id="kB" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Aspek</th><th>Butir (judul kolom)</th><th class="r">Rata-rata</th><th class="r">Jawaban</th></tr></thead><tbody>' +
-        K.butir.map(function (b) { return '<tr><td>' + esc(b.aspek) + '</td><td>' + esc(b.label) + '</td><td class="r ' + nilaiKls(b.nilai, t) + '"><b>' + D.fmt(b.nilai, 2) + '</b></td><td class="r">' + D.fmt(b.n, 0) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div id="kB" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Objek · aspek</th><th>Butir</th><th class="r">Rata-rata</th><th class="r">Jawaban</th></tr></thead><tbody>' +
+        K.butir.map(function (b) { var a = arti(b.label); return '<tr><td>' + esc(a ? a.objek + ' · ' + a.aspek : b.aspek) + '</td><td>' + butirHtml(b.label) + '</td><td class="r ' + nilaiKls(b.nilai, t) + '"><b>' + D.fmt(b.nilai, 2) + '</b></td><td class="r">' + D.fmt(b.n, 0) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<div id="kC" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Pelatihan</th><th>Selesai</th><th class="r">Responden</th><th class="r">Nilai</th></tr></thead><tbody>' +
         urutPel(K.pel).map(function (x) { return '<tr><td>' + esc(x.judul) + '</td><td>' + tglPendek(x.tg) + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r ' + nilaiKls(x.nilai, t) + '"><b>' + D.fmt(x.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
-      '<div class="note">Judul butir mengikuti judul kolom di tab <b>Data - Kepuasan EL1</b>. Aspek = awalan sebelum tanda "-" (Ins, Mat, Sarpras, Dig).</div>');
+      '<div class="note">Butir mengikuti judul kolom di tab <b>Data - Kepuasan EL1</b>; pertanyaannya dari tab <b>Master Evaluasi L1</b>. Data per jadwal dibobot jumlah pengisi (P.Isi), jadi "jawaban" = jumlah pengisi.</div>');
     pasangTab();
   }
 
@@ -960,7 +1119,8 @@
       $('insDet').innerHTML = '<button class="back" type="button" id="insBack">← Semua instruktur</button>' +
         '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Pelatihan</th><th>Angkatan</th><th>Selesai</th><th class="r">Penilaian</th><th class="r">Nilai</th></tr></thead><tbody>' +
         urutPel(x.pel).map(function (p) { return '<tr><td>' + esc(p.judul) + '</td><td>' + esc(p.angkatan) + '</td><td>' + tglPendek(p.tg) + '</td><td class="r">' + D.fmt(p.n, 0) + '</td><td class="r ' + nilaiKls(p.nilai, t) + '"><b>' + D.fmt(p.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
-        '<div class="sub-h">Rata-rata per butir</div><div class="bars">' + x.butir.filter(function (b) { return b.nilai !== null; }).map(function (b) { return barH(b.label, b.nilai, 5, D.fmt(b.nilai, 2)); }).join('') + '</div>';
+        '<div class="sub-h">Rata-rata per butir</div><div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>Butir</th><th class="r">Rata-rata</th></tr></thead><tbody>' +
+        x.butir.filter(function (b) { return b.nilai !== null; }).map(function (b) { return '<tr><td>' + butirHtml(b.label) + '</td><td class="r ' + nilaiKls(b.nilai, t) + '"><b>' + D.fmt(b.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>';
       $('insList').hidden = true; $('insDet').hidden = false;
       $('insBack').addEventListener('click', function () { $('insJ').textContent = 'Penilaian Instruktur' + per; $('insD').textContent = dUmum; $('insDet').hidden = true; $('insList').hidden = false; });
       $('insBack').focus();
@@ -1038,7 +1198,7 @@
   function renderAll() {
     var gagal = [];
     [['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -1175,6 +1335,7 @@
       if (a === 'isu') return openIsu();
       if (a === 'pb') return openPbList();
       if (a === 'segar') return openSegar();
+      if (a === 'fra') return openFra();
       if (a === 'idp') return openIdp();
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
@@ -1192,6 +1353,9 @@
     var ml = t.closest('[data-ml]'); if (ml) { S.mlMode = ml.getAttribute('data-ml'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (b) { b.setAttribute('aria-pressed', b === ml); }); return renderMl(); }
     var ov = t.closest('[data-ov]'); if (ov) { S.orgView = ov.getAttribute('data-ov'); return renderOrg(); }
     var rv = t.closest('[data-rv]'); if (rv) { S.riskView = rv.getAttribute('data-rv'); return renderRisk(); }
+    var kv = t.closest('[data-kv]'); if (kv) { S.kriView = kv.getAttribute('data-kv'); return renderKri(); }
+    var fv = t.closest('[data-fv]'); if (fv) { S.fraView = fv.getAttribute('data-fv'); return renderFra(); }
+    var fr = t.closest('[data-fr]'); if (fr) return openFr(fr.getAttribute('data-fr'), !!fr.closest('#frT'));
     var r = t.closest('[data-r]'); if (r) { var n = r.getAttribute('data-r'); S.riskOn = S.riskOn === n ? null : n; return renderRisk(); }
     if (t.closest('[data-close]') || t === $('modal')) return closeModal();
   });

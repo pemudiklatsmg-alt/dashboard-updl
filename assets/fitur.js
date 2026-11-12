@@ -2,7 +2,7 @@
    dan ringkasan login untuk Admin. Memakai window.DashApp dari dashboard.js. */
 (function () {
   var $ = function (id) { return document.getElementById(id); }, A = window.DashApp, D = window.Dash, esc = D.esc;
-  var BAGIAN = { ringkasan: 'Ringkasan', bulanan: 'Capaian per bulan', indikator: 'Indikator & Maturity', kepatuhan: 'Kepatuhan & Tindak Lanjut', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko' };
+  var BAGIAN = { ringkasan: 'Ringkasan', bulanan: 'Capaian per bulan', indikator: 'Indikator & Maturity', kepatuhan: 'Kepatuhan & Perbaikan', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko', kri: 'Key Risk Indicator', fraud: 'Risiko Fraud' };
   function bagian(n) { return document.querySelector('[data-bagian="' + n + '"]'); }
   function siap() { return !!(A.S.data) && !$('app').hidden; }
 
@@ -37,7 +37,7 @@
   });
 
   /* ---------- mode presentasi ---------- */
-  var URUT = ['ringkasan', 'indikator', 'kepatuhan', 'pengembangan', 'isu', 'risiko'];
+  var URUT = ['ringkasan', 'indikator', 'kepatuhan', 'pengembangan', 'isu', 'risiko', 'kri', 'fraud'];
   var P = { on: false, i: 0, jeda: false, t: null, dur: 20000, layar: false, kunci: null };
   var bar = document.createElement('div');
   bar.className = 'pres-bar'; bar.id = 'presBar'; bar.hidden = true; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Kontrol presentasi');

@@ -1,4 +1,4 @@
-# Dashboard Kinerja UPDL Semarang (versi 5)
+# Dashboard Kinerja UPDL Semarang (versi 6)
 
 Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya tampil setelah login** (akun Admin atau akun Lihat). Data diisi lewat Google Sheets **atau** lewat tombol **Input Data** di website (akun Admin). Keduanya menulis ke tab yang sama. Dashboard mengambil, mengolah, dan menampilkannya otomatis (dimuat ulang tiap 5 menit). Tombol **Export Excel** mengunduh laporan periode terpilih.
 
@@ -12,16 +12,18 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
 | Capaian Kinerja, grafik per bulan, Indikator Kinerja | Spreadsheet gabungan → tab **Konman 2026** (tab per tahun: "Konman 2027", dst.) | PIC Konman |
 | Total Kelas, Total Peserta | File **Rendiklat** → sheet RENREKAP, status *Selesai* | Tim Rendiklat |
 | Hari Orang Pelatihan (HOP) | Rendiklat ÷ tab **Jumlah Pegawai**; koreksi di tab **Koreksi Rendiklat** dan **Penyesuaian HOP** | Tim Rendiklat / admin |
-| Kepuasan Peserta (EL1) | tab **Data - Kepuasan EL1** (tempel hasil tarikan, satu baris per responden) | Admin |
+| Kepuasan Peserta (EL1) | tab **Data - Kepuasan EL1** (template *EVALUASI LEVEL 1 PER JADWAL*: satu baris per kelas, nilai dibobot jumlah pengisi `P.Isi`; format lama per responden tetap terbaca). Arti singkatan butir dari tab **Master Evaluasi L1** | Admin |
 | Penilaian Instruktur (EL1) | tab **Data - Instruktur EL1** (satu baris per penilaian) | Admin |
 | Peningkatan KSA (EL2) | tab **Data - KSA EL2** (satu baris per peserta) | Admin |
-| Confidence & Commitment (EL2) | tab **Data - C&C EL2** (satu baris per peserta) | Admin |
+| Confidence & Commitment (EL2) | tab **Data - C&C EL2** (template *EVALUASI LEVEL 2 RESUME*: satu baris per kelas, dibobot `Jumlah Peserta Isi`; format lama per peserta tetap terbaca) | Admin |
 | Dampak Perilaku (L3) / Kinerja (L4) | tab **Rekap L3 Perilaku** / **Rekap L4 Kinerja** (target dari Konman) | Per pelatihan |
 | ROTI | tab **Rekap ROTI** | Per pengukuran |
 | Sertifikat Terbit | tab **Data - Sertifikat** (satu baris per sertifikat) | Admin |
 | Kepatuhan | tab **Kepatuhan** (tahun × aspek × bulan) | Bulanan |
-| Tindak Lanjut Evaluasi | tab **Tindak Lanjut Evaluasi** (format template; dropdown Sumber, PIC, Status) | Admin |
+| Perbaikan Berkelanjutan | tab **Perbaikan Berkelanjutan** (dulu *Tindak Lanjut Evaluasi*; nama lama tetap dikenali). Komentar EL1 dan komentar Hambatan/Dukungan EL2; dropdown Sumber, PIC (MAN, JAR, JAR LAB, JAR MUTU, PKU YAN, PKU KEU, PBJ, K3L KAM, REN Pusdiklat, ACD Pusdiklat), Status | Admin |
 | Maturity Level Proses Bisnis | File **MLI Probis** → sheet **SMG**; target dari Konman (indikator Pengelolaan Proses Bisnis) | Tim Mutu |
+| Key Risk Indicator | File **Profil Risiko** → tab **10. Pemantauan KRI 2026** (realisasi bulanan Jan–Des; nama tab bisa diganti lewat `KRI_TAB`) | Tim JAR |
+| Risiko Fraud (FRA) | File **FRA** (`FRA_ID` di Pengaturan) → sheet *Entry*, *Monev*, *Rencana Mitigasi*. Akun Lihat hanya menerima ringkasan; rincian per risiko hanya dikirim ke akun Admin | Tim JAR |
 | Peta Risiko | File **Profil Risiko** (versi Google Sheets) → sheet *4. Peta Risiko*, mengikuti pilihan Inheren/Residual/Target di file itu | Tim JAR |
 | Pengembangan Pegawai (IDP) | tab **Data - IDP** (kolom sama dengan template Pengembangan Pegawai). Selesai = semua jalur yang ada rencananya sudah ada realisasinya. Kelompok 4a–4e dari kolom Pemetaan IDP; nilai Konman 4a–4e dari tab Konman. Tidak mengikuti filter bulan. | Admin |
 | Pengembangan Inovasi | tab **Data - Inovasi** (tahun = kolom Tahun). Kategori Kinerja = untuk Konman no. 9, UPDL = internal. Persen Konman no. 9 diambil dari tab Konman, tidak dihitung ulang (tidak bergantung juklak). | JAR |
@@ -38,7 +40,8 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
   - *KSA* = rata-rata Nilai, hanya baris Kehadiran = Hadir dan Kelulusan = Lulus.
   - *C&C* = rata-rata Confidence Level dan Commitment Level (skala di Pengaturan `SKALA_CC`).
   - *Sertifikat terbit* = status **Finish TTE GM**, dihitung dari Tgl.Terbit. Yang belum terbit ditempatkan menurut Tgl.Selesai. Ditampilkan: jumlah terbit s.d. bulan, terbit di bulan itu saja, % terbit, dan jumlah per status.
-- **Tindak Lanjut**: Selesai = *Selesai* + *Sudah Dilaporkan*; Berjalan = *OFI* + *Proses Tindak Lanjut*; sisanya Belum Dimulai.
+- **Perbaikan Berkelanjutan**: *OFI* = masukan membangun/pujian/netral (tidak perlu tindakan). Persen tuntas = (*Selesai* + *Sudah Dilaporkan*) ÷ masukan selain OFI. *Belum Dimulai* masuk notifikasi Perlu perhatian. PIC dan Status bisa diubah lewat Input Data.
+- **KRI**: Maks = hijau ≥ batas atas, kuning ≥ batas bawah, merah di bawahnya; Min kebalikannya. KRI merah bulan terpilih masuk notifikasi.
 - **L3, L4, ROTI** = rata-rata baris bertanggal di tab rekapnya, tahun terpilih s.d. bulan terpilih.
 - **Maturity** = jumlah kolom *Level SA* / *Level Verifikasi* per key element di sheet SMG; skor total = rata-rata semua key element.
 
@@ -77,6 +80,11 @@ Tombol **⬇ Export Excel** (akun Admin) membuat file .xlsx berformat (pustaka E
 
 ## Font
 Website memakai SF Pro (seperti apple.com). Font ini bawaan perangkat Apple dan lisensinya tidak mengizinkan dipasang di website, jadi tidak ikut diunggah: di Mac, iPhone, dan iPad tampil asli; di perangkat lain memakai Helvetica/Arial/Segoe UI. File Excel memakai Arial supaya tampil sama di semua komputer.
+
+## Kecepatan (cache)
+Hasil olahan tiap bagian disimpan sementara di server (maks. 6 jam). Bagian dari tab di spreadsheet ini dihitung ulang hanya bila tabnya berubah (jumlah baris/kolom berubah atau ada suntingan); file luar (Rendiklat, MLI, Profil Risiko, FRA) disegarkan tiap 10 menit. Tab besar (KSA EL2, Sertifikat) hanya dibaca kolom yang dipakai.
+- **Dashboard → Percepat dashboard**: sekali saja, memasang pembaruan otomatis tiap jam supaya pengunjung tidak menunggu.
+- **Dashboard → Segarkan data dashboard sekarang**: setelah menempel data besar atau bila angka terasa belum berubah.
 
 ## Pengingat email bulanan
 Isi di tab **Pengaturan**: `EMAIL_PENGINGAT` (alamat, pisahkan dengan koma), `TANGGAL_PENGINGAT` (1–28, bawaan 5); alamat website diambil dari `DASHBOARD_URL`. Lalu **Dashboard → Pengingat email bulanan → Aktifkan**. Tiap tanggal itu sekitar pukul 07.00, Apps Script memeriksa isian bulan lalu (Jumlah Pegawai, Kepatuhan, tab Konman) dan tindak lanjut Belum Dimulai; email hanya dikirim bila ada yang kurang. **Kirim percobaan sekarang** selalu mengirim email; **Matikan** menghapus jadwalnya.
