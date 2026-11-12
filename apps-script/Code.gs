@@ -94,22 +94,29 @@ function onOpen() {
 }
 
 function cekKoneksi() {
-  var cfg = getConfig_(), pesan = [];
+  /* Tiap langkah dicatat waktunya di log eksekusi (Apps Script → Executions) agar
+     sumber yang lambat/macet langsung kelihatan. */
+  var t0 = Date.now(), pesan = [];
+  function log(m) { console.log(((Date.now() - t0) / 1000).toFixed(1) + ' s  ' + m); }
+  function uji(label, fn) {
+    log('mulai ' + label);
+    try { fn(); pesan.push(label + ': OK'); log('selesai ' + label); }
+    catch (e) { pesan.push(label + ': GAGAL — ' + e.message); log('gagal ' + label + ' — ' + e.message); }
+  }
+  log('baca Pengaturan'); var cfg = getConfig_(); log('Pengaturan terbaca');
   Object.keys(cfg).filter(function (k) { return /^RENDIKLAT_\d{4}$/.test(k); }).forEach(function (k) {
-    try { bukaSheet_(cfg[k], cfg.RENDIKLAT_TAB || 'RENREKAP').getLastRow(); pesan.push(k + ': OK'); }
-    catch (e) { pesan.push(k + ': GAGAL — ' + e.message); }
+    uji(k, function () { bukaSheet_(cfg[k], cfg.RENDIKLAT_TAB || 'RENREKAP').getLastRow(); });
   });
-  try { bukaSheet_(cfg.MLI_ID, cfg.MLI_TAB || 'SMG').getLastRow(); pesan.push('MLI Probis: OK'); }
-  catch (e) { pesan.push('MLI Probis: GAGAL — ' + e.message); }
-  try { bukaSheet_(cfg.PROFIL_RISIKO_ID, cfg.PROFIL_RISIKO_TAB || '4. Peta Risiko').getLastRow(); pesan.push('Profil Risiko: OK'); }
-  catch (e) { pesan.push('Profil Risiko: GAGAL — ' + e.message); }
+  uji('MLI Probis', function () { bukaSheet_(cfg.MLI_ID, cfg.MLI_TAB || 'SMG').getLastRow(); });
+  uji('Profil Risiko', function () { bukaSheet_(cfg.PROFIL_RISIKO_ID, cfg.PROFIL_RISIKO_TAB || '4. Peta Risiko').getLastRow(); });
   ['EL1', 'EL2', 'FRA'].forEach(function (j) {
     if (!cfg[j + '_ID']) return;
-    try { SpreadsheetApp.openById(String(cfg[j + '_ID']).trim()).getSheets()[0].getLastRow(); pesan.push(j + '_ID: OK'); }
-    catch (e) { pesan.push(j + '_ID: GAGAL — ' + e.message); }
+    uji(j + '_ID', function () { SpreadsheetApp.openById(String(cfg[j + '_ID']).trim()).getSheets()[0].getLastRow(); });
   });
+  log('cari tab Konman');
   var konman = tabKonman_(SpreadsheetApp.getActiveSpreadsheet(), cfg);
   pesan.push('Tab Konman: ' + (Object.keys(konman).join(', ') || 'tidak ditemukan'));
+  log('selesai semua');
   safeAlert_(pesan.join('\n'));
 }
 
