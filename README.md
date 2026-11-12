@@ -23,6 +23,7 @@ Website dashboard monitoring gratis (GitHub Pages). **Seluruh dashboard hanya ta
 | Perbaikan Berkelanjutan | tab **Perbaikan Berkelanjutan** (dulu *Tindak Lanjut Evaluasi*; nama lama tetap dikenali). Komentar EL1 dan komentar Hambatan/Dukungan EL2; dropdown Sumber, PIC (MAN, JAR, JAR LAB, JAR MUTU, PKU YAN, PKU KEU, PBJ, K3L KAM, REN Pusdiklat, ACD Pusdiklat), Status | Admin |
 | Maturity Level Proses Bisnis | File **MLI Probis** → sheet **SMG**; target dari Konman (indikator Pengelolaan Proses Bisnis) | Tim Mutu |
 | Key Risk Indicator | File **Profil Risiko** → tab **10. Pemantauan KRI 2026** (realisasi bulanan Jan–Des; nama tab bisa diganti lewat `KRI_TAB`) | Tim JAR |
+| Evaluasi Level 1 & 2 (DOC 1 / DOC 2) | File Google Sheets di Drive (`EL1_ID` / `EL2_ID` di Pengaturan, tab pertama atau `EL1_TAB` / `EL2_TAB`). Bila ID kosong, dashboard membaca tab *Data - Kepuasan EL1* / *Data - C&C EL2* | Tim Evaluasi |
 | Risiko Fraud (FRA) | File **FRA** (`FRA_ID` di Pengaturan) → sheet *Entry*, *Monev*, *Rencana Mitigasi*. Akun Lihat hanya menerima ringkasan; rincian per risiko hanya dikirim ke akun Admin | Tim JAR |
 | Peta Risiko | File **Profil Risiko** (versi Google Sheets) → sheet *4. Peta Risiko*, mengikuti pilihan Inheren/Residual/Target di file itu | Tim JAR |
 | Pengembangan Pegawai (IDP) | tab **Data - IDP** (kolom sama dengan template Pengembangan Pegawai). Selesai = semua jalur yang ada rencananya sudah ada realisasinya. Kelompok 4a–4e dari kolom Pemetaan IDP; nilai Konman 4a–4e dari tab Konman. Tidak mengikuti filter bulan. | Admin |

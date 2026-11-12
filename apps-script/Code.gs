@@ -103,6 +103,11 @@ function cekKoneksi() {
   catch (e) { pesan.push('MLI Probis: GAGAL — ' + e.message); }
   try { bukaSheet_(cfg.PROFIL_RISIKO_ID, cfg.PROFIL_RISIKO_TAB || '4. Peta Risiko').getLastRow(); pesan.push('Profil Risiko: OK'); }
   catch (e) { pesan.push('Profil Risiko: GAGAL — ' + e.message); }
+  ['EL1', 'EL2', 'FRA'].forEach(function (j) {
+    if (!cfg[j + '_ID']) return;
+    try { SpreadsheetApp.openById(String(cfg[j + '_ID']).trim()).getSheets()[0].getLastRow(); pesan.push(j + '_ID: OK'); }
+    catch (e) { pesan.push(j + '_ID: GAGAL — ' + e.message); }
+  });
   var konman = tabKonman_(SpreadsheetApp.getActiveSpreadsheet(), cfg);
   pesan.push('Tab Konman: ' + (Object.keys(konman).join(', ') || 'tidak ditemukan'));
   safeAlert_(pesan.join('\n'));
@@ -198,12 +203,16 @@ function buildData_() {
   });
   out.tindaklanjut = TL.rows; out.warnings = out.warnings.concat(TL.warnings || []);
   out.meta.tabPerbaikan = TAB.TINDAKLANJUT;
+  out.meta.sumberEval = { kepuasan: cfg.EL1_ID ? 'file DOC 1 di Drive (EL1_ID)' : TAB.KEPUASAN, cc: cfg.EL2_ID ? 'file DOC 2 di Drive (EL2_ID)' : TAB.CC };
+  out.meta.links.el1 = cfg.EL1_ID ? 'https://docs.google.com/spreadsheets/d/' + String(cfg.EL1_ID).trim() + '/edit' : '';
+  out.meta.links.el2 = cfg.EL2_ID ? 'https://docs.google.com/spreadsheets/d/' + String(cfg.EL2_ID).trim() + '/edit' : '';
   try { out.masterL1 = bacaMasterL1_(ss); } catch (e) { out.masterL1 = []; }
 
   // Data mentah evaluasi (hasil tarikan) -> ringkasan per pelatihan / per instruktur
   out.eval = {};
   [['kepuasan', aggKepuasan_, TAB.KEPUASAN], ['instruktur', aggInstruktur_, TAB.INSTRUKTUR], ['ksa', aggKsa_, TAB.KSA], ['cc', aggCc_, TAB.CC], ['sertifikat', aggSert_, TAB.SERT]].forEach(function (x) {
-    try { out.eval[x[0]] = lokal('ev_' + x[0], [x[2]], function () { return x[1](ss); }); }
+    var idLuar = x[0] === 'kepuasan' ? cfg.EL1_ID : x[0] === 'cc' ? cfg.EL2_ID : '';
+    try { out.eval[x[0]] = idLuar ? luar('ev_' + x[0] + '_' + String(idLuar).trim(), function () { return x[1](ss); }) : lokal('ev_' + x[0], [x[2]], function () { return x[1](ss); }); }
     catch (e) { out.warnings.push(e.message); out.eval[x[0]] = null; }
   });
 
@@ -686,6 +695,18 @@ function nilaiKolom_(k, v, user) {
 function bacaMentah_(ss, nama, kolom) {
   var sh = ss.getSheetByName(nama);
   if (!sh) throw new Error('Tab "' + nama + '" belum ada.');
+  return bacaSheet_(sh, kolom);
+}
+/* Data evaluasi dari file Google Sheets terpisah di Drive (Pengaturan EL1_ID / EL2_ID, tab EL1_TAB / EL2_TAB,
+   bawaan = tab pertama). Bila ID kosong, dibaca dari tab di spreadsheet ini seperti biasa. */
+function bacaEval_(ss, jenis, tabLokal, kolom) {
+  var cfg = getConfig_(), id = String(cfg[jenis + '_ID'] || '').trim();
+  if (!id) return bacaMentah_(ss, tabLokal, kolom);
+  var f = SpreadsheetApp.openById(id), nm = String(cfg[jenis + '_TAB'] || '').trim(), sh = nm ? f.getSheetByName(nm) : f.getSheets()[0];
+  if (!sh) throw new Error('File ' + jenis + ' (' + jenis + '_ID): tab "' + nm + '" tidak ditemukan.');
+  return bacaSheet_(sh, kolom);
+}
+function bacaSheet_(sh, kolom) {
   var nR = sh.getLastRow(), nC = sh.getLastColumn();
   if (nR < 2) return { head: nC ? judulKolom_(sh) : [], rows: [] };
   var head = sh.getRange(1, 1, 1, nC).getValues()[0].map(function (h) { return String(h).replace(/\s+/g, ' ').trim(); });
@@ -736,7 +757,7 @@ function bulatkan_(a) { return a.map(function (x) { return Math.round(x * 1000) 
 
 /* Kepuasan Peserta EL1: per pelatihan -> jumlah responden + jumlah & banyaknya nilai per butir */
 function aggKepuasan_(ss) {
-  var t = bacaMentah_(ss, TAB.KEPUASAN), h = t.head;
+  var t = bacaEval_(ss, 'EL1', TAB.KEPUASAN), h = t.head;
   if (kol_(h, 'P.Isi') >= 0) return aggKepuasanJadwal_(t);
   var cJ = kol_(h, ['Judul Pembelajaran', 'Judul']), cK = kol_(h, ['Kode Pembelajaran', 'Kode']), cS = kol_(h, ['Tanggal Selesai', 'Tgl Selesai']);
   if (t.rows.length && (cJ < 0 || cS < 0)) throw new Error('Tab "' + TAB.KEPUASAN + '": kolom Judul Pembelajaran / Tanggal Selesai tidak ditemukan.');
@@ -821,7 +842,7 @@ function aggKsa_(ss) {
 
 /* Confidence & Commitment EL2 */
 function aggCc_(ss) {
-  var t = bacaMentah_(ss, TAB.CC), h = t.head;
+  var t = bacaEval_(ss, 'EL2', TAB.CC), h = t.head;
   var cJ = kol_(h, ['Judul', 'Nama Judul']), cS = kol_(h, ['Tgl Selesai', 'Tanggal Selesai']), cC = kol_(h, 'Confidence Level'), cM = kol_(h, 'Commitment Level');
   if (t.rows.length && (cS < 0 || cC < 0 || cM < 0)) throw new Error('Tab "' + TAB.CC + '": kolom Tgl Selesai / Confidence Level / Commitment Level tidak ditemukan.');
   var cI = kol_(h, 'Jumlah Peserta Isi'), cA = kol_(h, 'Angkatan');
@@ -1402,7 +1423,7 @@ function isiPicStatus_() {
 /* Menu: tambahkan komentar Hambatan & Dukungan dari tab Data - C&C EL2 (format per jadwal). Aman diulang: komentar yang sudah ada tidak ditambah lagi. */
 function tambahKomentarEl2() { safeAlert_(tambahKomentarEl2_().pesan); }
 function tambahKomentarEl2_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet(), C = bacaMentah_(ss, TAB.CC), h = C.head, c = function (n) { return kol_(h, n); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), C = bacaEval_(ss, 'EL2', TAB.CC), h = C.head, c = function (n) { return kol_(h, n); };
   var cH = c('Komentar Hambatan Yg Ada Dan Penanganan'), cD = c('Komentar Dukungan Yg Diperlukan');
   if (cH < 0 && cD < 0) throw new Error('Kolom komentar hambatan/dukungan tidak ditemukan di tab ' + TAB.CC + '.');
   var sh = tab_(TAB.TINDAKLANJUT), k = kolomTl_(sh), H = k.h, ada = {};

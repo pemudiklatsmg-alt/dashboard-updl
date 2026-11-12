@@ -251,10 +251,11 @@
     var kMax = ks.reduce(function (a, k) { return !a || k.selesai > a ? k.selesai : a; }, null);
     tanggal('Rendiklat (kelas selesai)', 'file Rendiklat ' + y, kMax ? kMax.getFullYear() + '-' + ('0' + (kMax.getMonth() + 1)).slice(-2) + '-' + ('0' + kMax.getDate()).slice(-2) : null);
     var E = S.data.eval || {};
-    tanggal('Kepuasan Peserta EL1', 'Data - Kepuasan EL1', isoMaks(E.kepuasan));
+    var SE = (S.data.meta && S.data.meta.sumberEval) || {};
+    tanggal('Kepuasan Peserta EL1', SE.kepuasan || 'Data - Kepuasan EL1', isoMaks(E.kepuasan));
     tanggal('Penilaian Instruktur EL1', 'Data - Instruktur EL1', isoMaks(E.instruktur));
     tanggal('KSA EL2', 'Data - KSA EL2', isoMaks(E.ksa));
-    tanggal('Confidence & Commitment EL2', 'Data - C&C EL2', isoMaks(E.cc));
+    tanggal('Confidence & Commitment EL2', SE.cc || 'Data - C&C EL2', isoMaks(E.cc));
     tanggal('Sertifikat', 'Data - Sertifikat', isoMaks(E.sertifikat));
     tanggal('Evaluasi Level 3', 'Rekap L3 Perilaku', isoMaks(S.data.l3));
     tanggal('Evaluasi Level 4', 'Rekap L4 Kinerja', isoMaks(S.data.l4));
@@ -1092,7 +1093,7 @@
         K.butir.map(function (b) { var a = arti(b.label); return '<tr><td>' + esc(a ? a.objek + ' · ' + a.aspek : b.aspek) + '</td><td>' + butirHtml(b.label) + '</td><td class="r ' + nilaiKls(b.nilai, t) + '"><b>' + D.fmt(b.nilai, 2) + '</b></td><td class="r">' + D.fmt(b.n, 0) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<div id="kC" class="tbl-wrap scroll" hidden><table class="tbl"><thead><tr><th>Pelatihan</th><th>Selesai</th><th class="r">Responden</th><th class="r">Nilai</th></tr></thead><tbody>' +
         urutPel(K.pel).map(function (x) { return '<tr><td>' + esc(x.judul) + '</td><td>' + tglPendek(x.tg) + '</td><td class="r">' + D.fmt(x.n, 0) + '</td><td class="r ' + nilaiKls(x.nilai, t) + '"><b>' + D.fmt(x.nilai, 2) + '</b></td></tr>'; }).join('') + '</tbody></table></div>' +
-      '<div class="note">Butir mengikuti judul kolom di tab <b>Data - Kepuasan EL1</b>; pertanyaannya dari tab <b>Master Evaluasi L1</b>. Data per jadwal dibobot jumlah pengisi (P.Isi), jadi "jawaban" = jumlah pengisi.</div>');
+      '<div class="note">Sumber: <b>' + esc(((S.data.meta || {}).sumberEval || {}).kepuasan || 'Data - Kepuasan EL1') + '</b>; pertanyaannya dari tab <b>Master Evaluasi L1</b>. Data per jadwal dibobot jumlah pengisi (P.Isi), jadi "jawaban" = jumlah pengisi.</div>');
     pasangTab();
   }
 
