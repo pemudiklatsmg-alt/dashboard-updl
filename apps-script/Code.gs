@@ -105,7 +105,7 @@ function cekKoneksi() {
   }
   log('baca Pengaturan'); var cfg = getConfig_(); log('Pengaturan terbaca');
   Object.keys(cfg).filter(function (k) { return /^RENDIKLAT_\d{4}$/.test(k); }).forEach(function (k) {
-    uji(k, function () { bukaSheet_(cfg[k], cfg.RENDIKLAT_TAB || 'RENREKAP').getLastRow(); });
+    uji(k, function () { sheetsApi_(cfg[k], "'" + (cfg.RENDIKLAT_TAB || 'RENREKAP') + "'!A1:B2"); });
   });
   uji('MLI Probis', function () { bukaSheet_(cfg.MLI_ID, cfg.MLI_TAB || 'SMG').getLastRow(); });
   uji('Profil Risiko', function () { bukaSheet_(cfg.PROFIL_RISIKO_ID, cfg.PROFIL_RISIKO_TAB || '4. Peta Risiko').getLastRow(); });
@@ -238,11 +238,22 @@ function buildData_() {
     out.meta.links.rendiklat[th] = 'https://docs.google.com/spreadsheets/d/' + cfg[k] + '/edit';
     try {
       out.rendiklat[th] = luar('ren_' + th + '_' + cfg[k], function () {
-        return [KOLOM_REN].concat(bacaRendiklat_(cfg[k], cfg.RENDIKLAT_TAB).map(function (r) {
-          return [r[0], r[1], r[2], r[3], keIso_(r[4]), keIso_(r[5]), r[6], r[7], r[8]];
+        var rows = [KOLOM_REN].concat(bacaRendiklat_(cfg[k], cfg.RENDIKLAT_TAB).map(function (r) {
+          return [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]];
         }));
+        simpanCadanganRen_(th, rows);
+        return rows;
       });
-    } catch (e) { out.warnings.push('Rendiklat ' + th + ' tidak bisa dibaca: ' + e.message); }
+    } catch (e) {
+      var cad = null; try { cad = bacaCadanganRen_(th); } catch (x) { /* abaikan */ }
+      if (cad) {
+        out.rendiklat[th] = cad.rows;
+        var tgl = cad.waktu ? Utilities.formatDate(new Date(cad.waktu), Session.getScriptTimeZone(), 'd MMM yyyy HH:mm') : 'terakhir';
+        out.meta.rendiklatCadangan = out.meta.rendiklatCadangan || {};
+        out.meta.rendiklatCadangan[th] = tgl;
+        out.warnings.push('Rendiklat ' + th + ' sedang tidak bisa dibaca dari file sumber (' + e.message + '). Dashboard memakai data cadangan per ' + tgl + '.');
+      } else out.warnings.push('Rendiklat ' + th + ' tidak bisa dibaca: ' + e.message + '. Belum ada data cadangan.');
+    }
   });
 
   // MLI Probis sheet SMG -> skor per key element
@@ -283,17 +294,60 @@ function tabKonman_(ss, cfg) {
 }
 
 /* ---------- Rendiklat ---------- */
+/* RENDIKLAT dibaca lewat Sheets API (UrlFetchApp), bukan SpreadsheetApp.openById.
+   Alasannya: bila server Google gagal menghitung rumus file sumber (RENREKAP berisi QUERY besar),
+   openById bisa macet sampai batas 6 menit dan seluruh dashboard ikut kosong; lewat API
+   kegagalan itu langsung kembali sebagai galat sehingga cadangan bisa dipakai. */
+function sheetsApi_(id, range) {
+  var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + String(id).trim() + '/values/' + encodeURIComponent(range) +
+    '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER';
+  var r = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+  var kode = r.getResponseCode();
+  if (kode !== 200) {
+    var m = ''; try { m = JSON.parse(r.getContentText()).error.message; } catch (e) { m = r.getContentText().slice(0, 120); }
+    throw new Error('server Google menjawab ' + kode + (m ? ' (' + m + ')' : ''));
+  }
+  return JSON.parse(r.getContentText()).values || [];
+}
+function serialKeIso_(v) {
+  if (typeof v !== 'number') return keIso_(v);
+  return Utilities.formatDate(new Date(Date.UTC(1899, 11, 30) + Math.round(v * 864e5)), 'UTC', 'yyyy-MM-dd');
+}
 function bacaRendiklat_(id, tab) {
-  var sh = bukaSheet_(id, tab || 'RENREKAP');
-  var last = sh.getLastRow(), lastC = sh.getLastColumn();
-  var head = sh.getRange(1, 1, 1, lastC).getValues()[0].map(function (h) { return String(h).trim(); });
+  if (!id) throw new Error('ID file belum diisi di tab Pengaturan');
+  var v = sheetsApi_(id, "'" + (tab || 'RENREKAP') + "'");
+  if (!v.length) throw new Error('sheet "' + (tab || 'RENREKAP') + '" kosong atau tidak ditemukan');
+  var head = v[0].map(function (h) { return String(h).trim(); });
   var idx = KOLOM_REN.map(function (k) { return head.indexOf(k); });
   var miss = KOLOM_REN.filter(function (k, i) { return idx[i] < 0; });
   if (miss.length) throw new Error('kolom tidak ditemukan: ' + miss.join(', '));
-  if (last < 2) return [];
-  var vals = sh.getRange(2, 1, last - 1, lastC).getValues();
-  return vals.filter(function (r) { return String(r[idx[1]]).trim() !== ''; })
-    .map(function (r) { return idx.map(function (i) { var v = r[i]; return typeof v === 'string' ? v.trim() : v; }); });
+  return v.slice(1).filter(function (r) { return String(r[idx[1]] == null ? '' : r[idx[1]]).trim() !== ''; })
+    .map(function (r) { return idx.map(function (i, n) { var x = r[i] == null ? '' : r[i];
+      if (n === 4 || n === 5) return serialKeIso_(x);
+      return typeof x === 'string' ? x.trim() : x; }); });
+}
+
+/* Cadangan RENDIKLAT: hasil baca terakhir yang berhasil disimpan di tab tersembunyi
+   "Cadangan Rendiklat" (satu blok per tahun). Dipakai bila file sumber sedang tidak bisa dibaca. */
+var TAB_CADANGAN_REN = 'Cadangan Rendiklat';
+function simpanCadanganRen_(th, rows) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var props = PropertiesService.getScriptProperties(), sidik = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(rows)));
+    if (props.getProperty('renCad_' + th) === sidik) { props.setProperty('renCadWaktu_' + th, String(Date.now())); return; }
+    var sh = ss.getSheetByName(TAB_CADANGAN_REN + ' ' + th);
+    if (!sh) { sh = ss.insertSheet(TAB_CADANGAN_REN + ' ' + th); sh.hideSheet(); }
+    sh.clearContents();
+    if (rows.length) sh.getRange(1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows.map(function (r) { return r.map(function (x) { return x === null ? '' : String(x); }); }));
+    var o = {}; o['renCad_' + th] = sidik; o['renCadWaktu_' + th] = String(Date.now()); props.setProperties(o);
+  } catch (e) { console.log('cadangan Rendiklat ' + th + ' gagal disimpan: ' + e.message); }
+}
+function bacaCadanganRen_(th) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(TAB_CADANGAN_REN + ' ' + th);
+  if (!sh || sh.getLastRow() < 2) return null;
+  var w = Number(PropertiesService.getScriptProperties().getProperty('renCadWaktu_' + th)) || 0;
+  return { rows: sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues(), waktu: w };
 }
 
 /* ---------- Maturity (sheet SMG) ---------- */

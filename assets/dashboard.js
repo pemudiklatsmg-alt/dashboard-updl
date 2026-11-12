@@ -250,6 +250,8 @@
     var kini = new Date(), ks = kelas().filter(function (k) { return k.status === 'Selesai' && k.selesai && k.selesai <= kini; });
     var kMax = ks.reduce(function (a, k) { return !a || k.selesai > a ? k.selesai : a; }, null);
     tanggal('Rendiklat (kelas selesai)', 'file Rendiklat ' + y, kMax ? kMax.getFullYear() + '-' + ('0' + (kMax.getMonth() + 1)).slice(-2) + '-' + ('0' + kMax.getDate()).slice(-2) : null);
+    var cadRen = ((S.data.meta || {}).rendiklatCadangan || {})[y];
+    if (cadRen) { var rR = out[out.length - 1]; rR.tab = 'cadangan per ' + cadRen + ' (file Rendiklat sedang tidak bisa dibaca)'; rR.c = 'warn'; rR.t = 'Data cadangan'; }
     var E = S.data.eval || {};
     var SE = (S.data.meta && S.data.meta.sumberEval) || {};
     tanggal('Kepuasan Peserta EL1', SE.kepuasan || 'Data - Kepuasan EL1', isoMaks(E.kepuasan));
