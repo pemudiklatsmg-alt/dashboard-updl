@@ -1556,7 +1556,7 @@ function tambahKomentarEl2_() {
 /* Semua isi tab Pengaturan, PIC Tugas Tim EPMK, pengingat email, dan akun bisa diatur dari
    halaman Pengaturan di website. Tab Pengaturan tetap menjadi tempat penyimpanannya. */
 var PIC_EPMK_ = ['TL EPMK', 'OF EPMK', 'ADM EPMK'];
-var KODE_PIC_ = ['KONMAN', 'KEPATUHAN', 'KRI', 'INDIKATOR', 'PERBAIKAN_TL', 'PEGAWAI', 'EL1', 'INSTRUKTUR', 'KSA', 'CC', 'SERTIFIKAT', 'PERBAIKAN_ISI',
+var KODE_PIC_ = ['KONMAN', 'KEPATUHAN', 'KRI', 'INDIKATOR', 'PERBAIKAN_TL', 'PEGAWAI', 'EL1', 'INSTRUKTUR', 'KSA', 'CC', 'SERTIFIKAT', 'PERBAIKAN_ISI', 'PERBAIKAN_INPUT',
   'RENDIKLAT', 'L3', 'L4', 'ROTI', 'IDP', 'INOVASI', 'PERBAIKAN'];
 // nama yang mungkin ditulis tangan di tab Pengaturan -> kode tugas
 var ALIAS_PIC_ = { EL2: ['KSA', 'CC'], EL3: ['L3'], EL4: ['L4'], JUMLAH_PEGAWAI: ['PEGAWAI'], PERBAIKAN_BERKELANJUTAN: ['PERBAIKAN_ISI', 'PERBAIKAN'],

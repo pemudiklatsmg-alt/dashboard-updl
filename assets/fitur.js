@@ -248,4 +248,11 @@
   });
 
   window.DashFitur = { ke: ke, mulai: mulai, berhenti: berhenti, tampil: tampil };
+  /* tandai saat kepala halaman menempel di atas layar */
+  (function () {
+    var top = document.getElementById('top'), jalan = false;
+    function cek() { jalan = false; if (!top) return; var n = window.scrollY > 4 && top.getBoundingClientRect().top <= 1; document.body.classList.toggle('top-nempel', n); }
+    window.addEventListener('scroll', function () { if (!jalan) { jalan = true; requestAnimationFrame(cek); } }, { passive: true });
+    window.addEventListener('resize', cek); cek();
+  })();
 })();

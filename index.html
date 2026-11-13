@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261113q">
+<link rel="stylesheet" href="assets/style.css?v=20261113r">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -234,17 +234,17 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261113q"></script>
-<script src="assets/common.js?v=20261113q"></script>
-<script src="assets/genie.js?v=20261113q"></script>
-<script src="assets/dashboard.js?v=20261113q"></script>
-<script src="assets/input.js?v=20261113q"></script>
-<script src="assets/export.js?v=20261113q"></script>
-<script src="assets/fitur.js?v=20261113q"></script>
-<script src="assets/cetak.js?v=20261113q"></script>
-<script src="assets/pengaturan.js?v=20261113q"></script>
-<script src="assets/grafik.js?v=20261113q"></script>
-<template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
+<script src="config.js?v=20261113r"></script>
+<script src="assets/common.js?v=20261113r"></script>
+<script src="assets/genie.js?v=20261113r"></script>
+<script src="assets/dashboard.js?v=20261113r"></script>
+<script src="assets/input.js?v=20261113r"></script>
+<script src="assets/export.js?v=20261113r"></script>
+<script src="assets/fitur.js?v=20261113r"></script>
+<script src="assets/cetak.js?v=20261113r"></script>
+<script src="assets/pengaturan.js?v=20261113r"></script>
+<script src="assets/grafik.js?v=20261113r"></script>
+<template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
   <div class="flow">
@@ -261,7 +261,7 @@
    <div class="cat" style="--cc:var(--c-eva)"><b>■ Evaluasi pembelajaran</b><ul><li>Tempel tarikan: Kepuasan, Instruktur, KSA, C&amp;C, Sertifikat</li><li>Rekap L3, L4, ROTI: 1 baris per pengukuran</li><li>Perbaikan Berkelanjutan: PIC &amp; status dari dropdown</li></ul><span class="pic">Admin · Bidang evaluasi</span></div>
    <div class="cat" style="--cc:var(--c-sdm)"><b>■ SDM</b><ul><li>Data - Pegawai &amp; Alih Daya (struktur organisasi)</li><li>Data - IDP</li></ul><span class="pic">Admin</span></div>
    <div class="cat" style="--cc:var(--c-ino)"><b>■ Inovasi</b><ul><li>Data - Inovasi: 1 baris per inovasi, kolom Tahun wajib</li></ul><span class="pic">PIC JAR</span></div>
-   <div class="cat" style="--cc:var(--c-pan)"><b>■ Petunjuk &amp; Pengaturan</b><ul><li>Target evaluasi, aturan HOP, ID file sumber</li></ul><span class="pic">Admin saja</span></div>
+   <div class="cat" style="--cc:var(--c-pan)"><b>■ Petunjuk &amp; Pengaturan</b><ul><li>Target evaluasi, aturan HOP, PIC, akun: ubah lewat halaman <b>Pengaturan</b> di website</li></ul><span class="pic">Admin saja</span></div>
    <div class="cat" style="--cc:var(--c-ars)"><b>■ Arsip</b><ul><li>Tab "(Lama) …" dan Tautan Penting</li><li>Tidak dibaca dashboard</li></ul><span class="pic">—</span></div>
   </div>
  </section>
@@ -290,7 +290,24 @@
    <div class="jg"><b>✕ Jangan</b><ul><li>Mengubah judul kolom atau nama tab</li><li>Menyisipkan baris total / kosong di tengah tabel</li><li>Membagikan alamat Apps Script atau password</li></ul></div>
   </div>
  </section>
+
+ <section class="g-sec adm" id="g6"><h4><span class="no">6</span>Mengubah pengaturan (khusus Admin)</h4>
+  <div class="flow">
+   <div class="st"><span class="ic">⚙️</span><b>Buka</b><span>Menu samping → <b>Pengaturan</b> (di HP: tab Pengaturan)</span></div>
+   <div class="st"><span class="ic">✏️</span><b>Ubah</b><span>Pilih bagian, ubah isian. Baris yang berubah ditandai kuning. Tombol <b>?</b> menjelaskan kapan perlu diubah</span></div>
+   <div class="st"><span class="ic">✅</span><b>Simpan</b><span>Tekan <b>Simpan perubahan</b>, periksa daftar perubahan, lalu <b>Ya, simpan</b></span></div>
+   <div class="st"><span class="ic">↩️</span><b>Keliru?</b><span>Tekan <b>Urungkan</b> sesaat setelah menyimpan</span></div>
+  </div>
+  <div class="time">
+   <div><b>Umum</b>Judul, nama unit, periode data pegawai</div>
+   <div><b>Target &amp; perhitungan</b>Target evaluasi (kepuasan, instruktur, KSA, C&amp;C, sertifikat) dan aturan HOP</div>
+   <div><b>Tugas Tim EPMK</b>Batas waktu dan siapa PIC tiap tugas (boleh lebih dari satu). Bisa dilihat per tugas atau per orang</div>
+   <div><b>Pengingat email</b>Penerima, tanggal kirim, aktifkan / matikan, kirim percobaan</div>
+   <div><b>Akun</b>Ganti username/password Admin &amp; Lihat, tambah atau nonaktifkan akun Lihat per orang</div>
+   <div><b>Lanjutan</b>File &amp; sheet sumber data. Terkunci; ubah hanya bila diminta, lalu tekan Cek koneksi</div>
+  </div>
+ </section>
 </template>
-<script src="assets/panduan.js?v=20261113q"></script>
+<script src="assets/panduan.js?v=20261113r"></script>
 </body>
 </html>

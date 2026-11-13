@@ -1298,7 +1298,7 @@
   /* ---------- Tugas Tim EPMK: siapa perlu memperbarui data / menindaklanjuti apa ---------- */
   var PIC_EPMK = ['TL EPMK', 'OF EPMK', 'ADM EPMK'];
   var PIC_DEF = { KONMAN: 'TL EPMK', KEPATUHAN: 'TL EPMK', KRI: 'TL EPMK', INDIKATOR: 'TL EPMK', PERBAIKAN_TL: 'TL EPMK',
-    PEGAWAI: 'ADM EPMK', EL1: 'ADM EPMK', INSTRUKTUR: 'ADM EPMK', KSA: 'ADM EPMK', CC: 'ADM EPMK', SERTIFIKAT: 'ADM EPMK', PERBAIKAN_ISI: 'ADM EPMK',
+    PEGAWAI: 'ADM EPMK', EL1: 'ADM EPMK', INSTRUKTUR: 'ADM EPMK', KSA: 'ADM EPMK', CC: 'ADM EPMK', SERTIFIKAT: 'ADM EPMK', PERBAIKAN_ISI: 'ADM EPMK', PERBAIKAN_INPUT: 'ADM EPMK',
     RENDIKLAT: 'OF EPMK', L3: 'OF EPMK', L4: 'OF EPMK', ROTI: 'OF EPMK', IDP: 'OF EPMK', INOVASI: 'OF EPMK', PERBAIKAN: 'OF EPMK' };
   function tugasList() {
     var T = (S.data.meta && S.data.meta.tugas) || {}, pic = function (k) { var v = T.pic && T.pic[k]; if (typeof v === 'string') v = v.split(/\s*[,;\/&]\s*/); return v && v.length ? v : [PIC_DEF[k]]; };
@@ -1320,6 +1320,10 @@
     segar('CC', 'Tarik data Evaluasi Level 2 (C&C)', SE.cc || 'Data - C&C EL2', isoMaks(E.cc), 'Tarik laporan EL2 resume, perbarui file DOC 2 / tab C&C.');
     segar('KSA', 'Tarik data KSA Evaluasi Level 2', 'Data - KSA EL2', isoMaks(E.ksa), 'Tempel tarikan nilai pre/post test.');
     segar('SERTIFIKAT', 'Tarik data sertifikat', 'Data - Sertifikat', isoMaks(E.sertifikat), 'Tempel tarikan sertifikat terbit.');
+    // masukan peserta (EL1/EL2) yang perlu disalin ke tab Perbaikan Berkelanjutan: patokan tanggal selesai pelatihan terbaru
+    var tlTgl = null; D.rows(S.data.tindaklanjut).forEach(function (r) { var t = D.tgl(r['Tgl Selesai']); if (t && t <= kini && (!tlTgl || t > tlTgl)) tlTgl = t; });
+    if (tlTgl) segar('PERBAIKAN_INPUT', 'Input masukan peserta ke Perbaikan Berkelanjutan', 'Perbaikan Berkelanjutan', tlTgl.getFullYear() + '-' + ('0' + (tlTgl.getMonth() + 1)).slice(-2) + '-' + ('0' + tlTgl.getDate()).slice(-2), 'Salin komentar/saran peserta EL1 & EL2 terbaru (semua kolom kecuali PIC, Status, Keterangan).', 14);
+    else out.push({ pic: pic('PERBAIKAN_INPUT'), jenis: 'Perbarui data', judul: 'Input masukan peserta ke Perbaikan Berkelanjutan', ket: 'Kolom Tgl Selesai belum terisi, jadi kesegaran tidak bisa dihitung. Isi tanggal selesai pelatihan pada tiap masukan.', tab: 'Perbaikan Berkelanjutan', akhir: null, umur: null, st: 'idle', status: 'Tanggal belum diisi', batas: 'maks. 14 hari' });
     segar('L3', 'Perbarui rekap Evaluasi Level 3', 'Rekap L3 Perilaku', isoMaks(S.data.l3), 'Periodik: dicek tiap 30 hari.', 30);
     segar('L4', 'Perbarui rekap Evaluasi Level 4', 'Rekap L4 Kinerja', isoMaks(S.data.l4), 'Periodik: dicek tiap 30 hari.', 30);
     segar('ROTI', 'Perbarui rekap ROTI', 'Rekap ROTI', isoMaks(S.data.roti), 'Periodik: dicek tiap 30 hari.', 30);
@@ -1626,7 +1630,32 @@
     if (!S.riskView) S.riskView = /inheren/i.test(data.risiko && data.risiko.tampilan) ? 'inheren' : /residu/i.test(data.risiko && data.risiko.tampilan) ? 'residual' : 'target';
     setPeriode(S.tahun, S.bulan);
     $('footNote').textContent = 'Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
+    if (m.source === 'live' && !m.stale) setTimeout(pengingatAdmin, 350);
   }
+
+  /* Pop-up pengingat untuk Admin: sekali tiap login, berisi tugas tim yang terlambat / segera jatuh tempo */
+  function pengingatAdmin() {
+    if (!admin() || !S.data) return;
+    var s0 = D.sesi(), kunci = 'updl_ingat_' + (s0 ? s0.token : '');
+    try { if (sessionStorage.getItem(kunci)) return; sessionStorage.setItem(kunci, '1'); } catch (e) { /* abaikan */ }
+    try { if (localStorage.getItem('updl_ingat_off') === new Date().toDateString()) return; } catch (e) { /* abaikan */ }
+    if (!$('modal').hidden) return;
+    var L = tugasList().filter(function (x) { return x.st === 'bad' || x.st === 'warn'; });
+    var jam = new Date().getHours(), sapa = jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 18 ? 'Selamat sore' : 'Selamat malam';
+    var nB = L.filter(function (x) { return x.st === 'bad'; }).length, nW = L.length - nB;
+    var per = PIC_EPMK.map(function (p) {
+      var X = L.filter(function (x) { return x.pics.indexOf(p) >= 0; }); if (!X.length) return '';
+      return '<div class="ig-pic"><div class="ig-pic-h"><span class="tg-av">' + p.split(' ')[0] + '</span><b>' + p + '</b><small>' + X.length + ' tugas</small></div><ul class="ig-ul">' +
+        X.map(function (x) { return '<li data-st="' + x.st + '"><i></i><span><b>' + esc(x.judul) + '</b><small>' + esc(x.status) + (x.tab ? ' · ' + esc(x.tab) : '') + '</small></span></li>'; }).join('') + '</ul></div>';
+    }).join('');
+    openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim beres 🎉') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      (L.length ? '<div class="ig-sum"><span class="pill bad">' + nB + ' terlambat</span><span class="pill warn">' + nW + ' segera</span></div><div class="ig-list">' + per + '</div>' :
+        '<p class="desc">Tidak ada data yang usang atau isian yang terlambat. Terima kasih!</p>') +
+      '<div class="ig-aksi"><label class="ig-off"><input type="checkbox" id="igOff"> Jangan tampilkan lagi hari ini</label>' +
+      (L.length ? '<button type="button" class="btn primary" id="igBuka">Buka Tugas Tim EPMK</button>' : '') + '<button type="button" class="btn" data-close>Nanti saja</button></div>', 'ingat');
+  }
+  document.addEventListener('change', function (e) { if (e.target && e.target.id === 'igOff') { try { if (e.target.checked) localStorage.setItem('updl_ingat_off', new Date().toDateString()); else localStorage.removeItem('updl_ingat_off'); } catch (x) { /* abaikan */ } } });
+  document.addEventListener('click', function (e) { if (e.target && e.target.id === 'igBuka') { var c = document.querySelector('#modal [data-close]'); if (c) c.click(); S.tgF = { pic: '', st: 'perlu' }; pilihTab('tugas', true); } });
 
   /* ---------- login & peran ---------- */
   function aturPeran(peran, user) {
