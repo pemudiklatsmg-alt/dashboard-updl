@@ -1650,3 +1650,8 @@ tr.klik:hover td:last-child { box-shadow: inset -1px 1px 0 var(--accent), inset 
 .ph-i:hover::after { opacity: 1; border-color: var(--accent); color: var(--ink); }
 #cetakWrap tr.klik td:last-child::after, #cetakWrap .gx-klik .gx-hv::after, #cetakWrap .rk-row::after, #cetakWrap .ph-i::after { content: none; }
 @media (max-width: 700px) { .rk-row::after { grid-column: 3; grid-row: 1; } }
+/* tombol pilihan di kepala grafik selalu di kanan atas, apa pun panjang keterangannya */
+.gx-p .panel-h { flex-wrap: nowrap; align-items: flex-start; gap: 12px; }
+.gx-p .panel-h > div:first-child { flex: 1; min-width: 0; }
+.gx-p .panel-h > .seg, .gx-p .panel-h > .ke-rinci { flex: none; }
+@media (max-width: 520px) { .gx-p .panel-h { flex-wrap: wrap; } }
