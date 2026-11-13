@@ -24,7 +24,7 @@
   function sec(k) { return document.querySelector('main [data-bagian="' + k + '"]'); }
   function kop(judul) {
     var S = A.S, m = S.data.meta || {};
-    return '<div class="cp-kop"><span class="cp-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></span>' +
+    return '<div class="cp-kop"><span class="pln-logo cp-pln"><img src="assets/pln.png" alt="Logo PLN"></span>' +
       '<div><b>' + esc(m.judul || 'Dashboard Kinerja UPDL Semarang') + '</b><span>' + esc(judul) + '</span></div>' +
       '<div class="cp-per"><b>' + A.namaBulan(S.bulan) + ' ' + S.tahun + '</b><span>dicetak ' + new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + (m.user ? ' · ' + esc(m.user) : '') + '</span></div></div>';
   }

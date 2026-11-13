@@ -1402,7 +1402,7 @@
     el.hidden = false; document.body.classList.add('ada-side');
     var m = (S.data && S.data.meta) || { user: S.user, unit: 'UPDL Semarang' }, t = m.generatedAt ? new Date(m.generatedAt) : null, nT = S.data ? hitungTugas() : 0;
     var item = function (x) { return '<button type="button" class="sn-i" data-vt="' + x[0] + '" aria-selected="' + (S.vt === x[0]) + '"><span class="ikb">' + ikon(x[2]) + '</span><span class="sn-t"><b>' + esc(x[1]) + '</b><small>' + esc(x[3]) + '</small></span></button>'; };
-    el.innerHTML = '<div class="sn-brand"><span class="sn-logo" aria-hidden="true">' + ikon('petir') + '</span><span><b>Dashboard Kinerja</b><small>' + esc(m.unit || 'UPDL Semarang') + '</small></span></div>' +
+    el.innerHTML = '<div class="sn-brand"><span class="pln-logo"><img src="assets/pln.png" alt="Logo PLN" width="30" height="44"></span><span><b>Dashboard Kinerja</b><small>' + esc(m.unit || 'UPDL Semarang') + '</small></span></div>' +
       '<div class="sn-cap">Menu</div><nav class="sn-nav">' + NAV.map(item).join('') + '</nav>' +
       (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button>' +
         '<button type="button" class="sn-i" data-vt="pengaturan" aria-selected="' + (S.vt === 'pengaturan') + '"><span class="ikb">' + ikon('gir') + '</span><span class="sn-t"><b>Pengaturan</b><small>Target, PIC, pengingat, akun</small></span></button></nav>' : '') +

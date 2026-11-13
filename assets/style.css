@@ -1452,3 +1452,13 @@ html.glass .at-k:not([aria-selected="true"]) { background: var(--g-btn); border-
 .sheet > .credit { margin-top: -10px; padding-top: 8px; }
 
 .gx-p > .gx-hb { flex: 1; align-content: space-evenly; }
+
+/* Logo PLN (file resmi, di atas petak putih agar warna logo selalu benar) */
+.pln-logo { display: inline-flex; align-items: center; justify-content: center; flex: none; background: #fff; border-radius: 10px; padding: 4px 7px; box-shadow: 0 0 0 1px rgba(0,0,0,.06); line-height: 0; }
+.pln-logo img { display: block; width: auto; max-width: none; }
+.sn-brand .pln-logo img { height: 42px; }
+.pln-top { padding: 2px 3px; border-radius: 6px; } .pln-top img { height: 26px; }
+@media (max-width: 480px) { .top .brand { gap: 7px; } .top .brand h1 .heart { display: none; } }
+@media (min-width: 1100px) { body.ada-side .pln-top { display: none; } }
+.pln-login { padding: 6px 10px; border-radius: 14px; justify-self: start; } .pln-login img { height: 58px; }
+.cp-pln { padding: 3px 5px; border-radius: 6px; box-shadow: 0 0 0 1px #d8dbe4; } .cp-pln img { height: 40px; }
