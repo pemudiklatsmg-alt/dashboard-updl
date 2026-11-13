@@ -546,6 +546,8 @@
       g += '<div class="ry">' + KEM[k] + ' (' + k + ')</div>';
       for (var d = 1; d <= 5; d++) {
         var lv = MATRIKS[k][d - 1], here = list.filter(function (x) { return x.p && x.p.k === k && x.p.d === d; });
+        var kd = k + d, adaOn = here.some(function (x) { return x.no === S.riskOn; });
+        if (here.length > 4) { g += '<div class="c" data-l="' + LV[lv] + '" title="' + kd + ' · ' + lv + '"><button type="button" class="fr-many' + (S.riskSel === kd || adaOn ? ' on' : '') + '" data-rksel="' + kd + '" title="' + esc(here.map(function (x) { return x.no; }).join(', ')) + '"><b>' + here.length + '</b>risiko</button></div>'; continue; }
         g += '<div class="c" data-l="' + LV[lv] + '" title="' + k + d + ' · ' + lv + '">' +
           here.map(function (x) { return '<button type="button" class="rdot' + (S.riskOn === x.no ? ' on' : '') + '" data-r="' + esc(x.no) + '" title="' + esc(x.no + '. ' + x.des) + '">' + esc(x.no) + '</button>'; }).join('') + '</div>';
       }
@@ -557,8 +559,9 @@
     list.forEach(function (x) { if (x.p) cnt[x.p.level] = (cnt[x.p.level] || 0) + 1; });
     var ringkas = '<div class="rk-sum"><div class="rk-total"><b class="num">' + list.length + '</b><span>risiko</span></div><div class="rk-chips">' +
       urut.map(function (l) { return '<span' + (cnt[l] ? '' : ' class="nol"') + '><i style="background:var(--risk-' + LV[l] + ')"></i>' + l + ' <b class="num">' + (cnt[l] || 0) + '</b></span>'; }).join('') + '</div></div>';
-    var daftar = '<div class="rk-list"><div class="rk-lh"><span>Daftar risiko · ' + col + '</span><span>' + list.length + '</span></div><div class="rk-rows" id="rkRows">' + (list.length ?
-      list.map(function (x) {
+    var lsel = S.riskSel ? list.filter(function (x) { return x.p && x.p.k + x.p.d === S.riskSel; }) : list;
+    var daftar = '<div class="rk-list"><div class="rk-lh"><span>Daftar risiko · ' + col + (S.riskSel ? ' · sel ' + S.riskSel + ' <a href="#" data-rksel="">tampilkan semua</a>' : '') + '</span><span>' + lsel.length + '</span></div><div class="rk-rows" id="rkRows">' + (lsel.length ?
+      lsel.map(function (x) {
         return '<button type="button" class="rk-row' + (S.riskOn === x.no ? ' on' : '') + '" data-r="' + esc(x.no) + '" title="' + esc(x.id) + '"><span class="num">' + esc(x.no) + '</span><span>' + esc(x.des) + '</span>' +
           (x.p ? '<span class="lv" style="background:var(--risk-' + LV[x.p.level] + ')">' + esc(x.p.level) + ' (' + x.p.k + x.p.d + ')</span>' : '<span class="lv">–</span>') + '</button>';
       }).join('') : '<div class="empty" style="border:0">File Profil Risiko belum terbaca.</div>') + '</div></div>';
@@ -1786,6 +1789,7 @@
     var rv = t.closest('[data-rv]'); if (rv) { S.riskView = rv.getAttribute('data-rv'); return renderRisk(); }
     var kv = t.closest('[data-kv]'); if (kv) { S.kriView = kv.getAttribute('data-kv'); return renderKri(); }
     var fv = t.closest('[data-fv]'); if (fv) { S.fraView = fv.getAttribute('data-fv'); return renderFra(); }
+    var rs = t.closest('[data-rksel]'); if (rs) { e.preventDefault && e.preventDefault(); var v = rs.getAttribute('data-rksel'); S.riskSel = v && S.riskSel !== v ? v : null; S.riskOn = null; return renderRisk(); }
     var fs = t.closest('[data-frsel]'); if (fs) { e.preventDefault && e.preventDefault(); return openFra(null, fs.getAttribute('data-frsel') || null); }
     var fr = t.closest('[data-fr]'); if (fr) return openFr(fr.getAttribute('data-fr'), !!fr.closest('#frT'));
     var r = t.closest('[data-r]'); if (r) { var n = r.getAttribute('data-r'); S.riskOn = S.riskOn === n ? null : n; return renderRisk(); }
