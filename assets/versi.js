@@ -1,42 +1,24 @@
 /* Nomor versi website & catatan rilis.
-   Aturan: X.Y.Z  — X naik bila tampilan/cara pakai berubah besar, Y bila ada fitur baru, Z untuk perbaikan kecil.
+   Aturan: X.Y — X naik bila tampilan/cara pakai berubah besar, Y naik setiap pemasangan berikutnya.
    Tambah entri baru PALING ATAS di RILIS setiap kali memasang perubahan. */
 (function () {
+  // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
-    { v: '4.3.1', t: '14 Nov 2026', j: 'Perbaikan tampilan', d: [
-      'Nomor versi & catatan rilis di menu ☰',
-      'Tinggi batang Capaian Kinerja sebanding dengan nilainya; warna status sama di semua grafik capaian',
-      'Angka di semua grafik tren: bulan terpilih terang, bulan lain redup',
-      'Penanda klik seragam: panah dalam lingkaran yang menyala pink, tanpa garis pink di kartu'] },
-    { v: '4.3.0', t: '14 Nov 2026', j: 'Pantau kesegaran & kualitas data', d: [
-      'Menu samping menampilkan kapan data sumber terakhir berubah (edit manual, lewat dashboard, atau file sumber)',
-      'Status Data: kelompok Kosong / Belum lengkap / Lengkap, kolom "Terakhir diubah", dan pemeriksaan kualitas isian',
-      'Pengingat Admin saat masuk memuat temuan kualitas data, dengan pintasan ke baris yang perlu diperbaiki',
-      'Peta Risiko: sel berisi banyak risiko diringkas "N risiko"'] },
-    { v: '4.2.0', t: '13 Nov 2026', j: 'Rincian berlapis & grafik baru', d: [
-      'Klik batang grafik, metode, status kelas, atau KRI untuk melihat daftar lalu rincian per kelas/KRI',
-      'Grafik tren di Ringkasan, Rekap Pembelajaran, dan Evaluasi',
-      'Logo PLN; kepala halaman mengambang saat digulir; lengkung sudut seragam',
-      'Mode presentasi: kartu yang diperbesar tampil jelas'] },
-    { v: '4.1.0', t: '13 Nov 2026', j: 'Pengaturan lewat website', d: [
-      'Halaman Pengaturan (Admin): target, PIC, batas waktu, pengingat email, akun, sumber data',
-      'Satu tugas boleh punya lebih dari satu PIC; tugas ADM input masukan perbaikan',
-      'Pengingat tugas saat Admin masuk',
-      'Cetak / Simpan PDF: Ringkas, Lengkap, atau Halaman ini, dengan kop di setiap halaman'] },
-    { v: '4.0.0', t: '13 Nov 2026', j: 'Menu samping & Tugas Tim EPMK', d: [
-      'Menu samping untuk berpindah bagian',
-      'Halaman Tugas Tim EPMK: data usang & tenggat per PIC (TL, OF, ADM)',
-      'Tampilan saat memuat langsung memakai tata letak baru'] },
-    { v: '3.0.0', t: '13 Nov 2026', j: 'Desain ulang', d: [
-      'Halaman Ringkasan baru: capaian, perlu perhatian, enam angka kunci',
-      'Mode presentasi dengan zoom & fokus kartu',
-      'Tampilan kaca, tema terang/gelap'] },
-    { v: '2.0.0', t: '12 Nov 2026', j: 'Login & input data', d: [
-      'Akun Admin dan Lihat; data hanya tampil setelah login',
-      'Input data langsung dari dashboard; pengingat email bulanan',
-      'Data dimuat lebih cepat (cache) dan evaluasi per jadwal'] },
-    { v: '1.1.0', t: '10 Nov 2026', j: 'SDM & inovasi', d: ['Struktur organisasi, IDP pegawai, dan inovasi'] },
-    { v: '1.0.0', t: '5 Nov 2026', j: 'Rilis awal', d: ['Kinerja Konman, Rendiklat, evaluasi pembelajaran, dan risiko'] }
+    { v: '4.3', t: '14 Nov 2026', b: ['Menu samping & Status Data menampilkan kapan data sumber terakhir berubah', 'Pemeriksaan kualitas data di pengingat Admin, dengan pintasan ke baris yang perlu diperbaiki', 'Nomor versi & catatan rilis'],
+      l: ['Penanda klik seragam: panah dalam lingkaran yang menyala pink', 'Angka tampil di semua grafik tren; Peta Risiko meringkas sel padat menjadi "N risiko"'],
+      p: ['Tinggi batang Capaian Kinerja kini sebanding nilainya, warna status sama di semua grafik', 'Panduan yang berantakan dirapikan'] },
+    { v: '4.2', t: '13 Nov 2026', b: ['Rincian berlapis: klik grafik, metode, status kelas, atau KRI untuk melihat daftar lalu rinciannya', 'Grafik tren di Ringkasan, Rekap Pembelajaran, dan Evaluasi', 'Logo PLN'],
+      l: ['Kepala halaman mengambang saat digulir; lengkung sudut seragam'], p: ['Kartu yang diperbesar di mode presentasi tidak lagi buram'] },
+    { v: '4.1', t: '13 Nov 2026', b: ['Halaman Pengaturan lewat website (Admin): target, PIC, pengingat email, akun', 'Cetak / Simpan PDF: Ringkas, Lengkap, atau Halaman ini', 'Pengingat tugas saat Admin masuk'],
+      l: ['Satu tugas boleh punya lebih dari satu PIC'], p: ['Laporan PDF: ukuran huruf seragam, tidak ada tulisan keluar kotak'] },
+    { v: '4.0', t: '13 Nov 2026', b: ['Menu samping untuk berpindah bagian', 'Halaman Tugas Tim EPMK: data usang & tenggat per PIC'],
+      l: ['Tampilan saat memuat langsung memakai tata letak baru'], p: ['Data Rendiklat yang sempat gagal terbaca'] },
+    { v: '3.0', t: '13 Nov 2026', b: ['Halaman Ringkasan baru', 'Mode presentasi dengan zoom & fokus kartu'],
+      l: ['Tampilan kaca, tema terang/gelap'], p: ['Slide presentasi yang terpotong atau terlalu kosong', 'Panel Risiko Fraud yang berantakan'] },
+    { v: '2.0', t: '12 Nov 2026', b: ['Akun Admin & Lihat: data hanya tampil setelah login', 'Input data langsung dari dashboard; pengingat email bulanan'],
+      l: ['Data dimuat lebih cepat; evaluasi per jadwal'], p: ['Pembacaan kolom data evaluasi yang tidak sesuai'] },
+    { v: '1.1', t: '10 Nov 2026', b: ['Struktur organisasi, IDP pegawai, dan inovasi'], l: [], p: ['Tata letak bagan struktur organisasi'] },
+    { v: '1.0', t: '5 Nov 2026', b: ['Rilis awal: kinerja Konman, Rendiklat, evaluasi pembelajaran, dan risiko'], l: [], p: [] }
   ];
   var KINI = RILIS[0];
   var A = function () { return window.DashApp; }, $ = function (id) { return document.getElementById(id); };
@@ -54,10 +36,12 @@
     var daftar = baru ? RILIS.slice(0, 1) : RILIS;
     A().openModal('<div class="modal-h"><div><div class="desc">' + (baru ? 'Pembaruan dashboard' : 'Riwayat pembaruan dashboard') + '</div><h3>' + (baru ? 'Ada yang baru di v' + KINI.v : 'Catatan rilis') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="rl">' + daftar.map(function (r, i) {
-        return '<section class="rl-i' + (i === 0 ? ' kini' : '') + '"><div class="rl-h"><b>v' + esc(r.v) + '</b><span>' + esc(r.j) + '</span><small>' + esc(r.t) + '</small></div><ul>' + r.d.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
+        var kat = [['b', '✨ Baru'], ['l', '👍 Lebih baik'], ['p', '🔧 Diperbaiki']].filter(function (k) { return r[k[0]] && r[k[0]].length; });
+        return '<section class="rl-i' + (i === 0 ? ' kini' : '') + '"><div class="rl-h"><b>v' + esc(r.v) + '</b><small>' + esc(r.t) + '</small></div>' +
+          kat.map(function (k) { return '<div class="rl-k"><span>' + k[1] + '</span><ul>' + r[k[0]].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>'; }).join('') + '</section>';
       }).join('') + '</div>' +
       (baru ? '<div class="ig-aksi"><button type="button" class="btn" data-rilis>Lihat semua catatan rilis</button><button type="button" class="btn primary" data-close>Mengerti</button></div>' :
-        '<p class="note">Penomoran X.Y.Z — X: perubahan besar tampilan/cara pakai · Y: fitur baru · Z: perbaikan kecil.</p>'), 'rilis');
+        '<p class="note">Penomoran X.Y — X naik untuk perubahan besar tampilan/cara pakai, Y naik setiap ada pembaruan.</p>'), 'rilis');
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-rilis]'); if (!b) return;
