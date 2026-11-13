@@ -1718,3 +1718,7 @@ svg .bl { opacity: .6; } svg .bl.on { opacity: 1; font-weight: 700; }
 .rl-k > span { font-size: 12.5px; font-weight: 600; color: var(--ink-2); padding-top: 1px; }
 .rl-k ul { margin: 0; }
 @media (max-width: 520px) { .rl-k { grid-template-columns: minmax(0, 1fr); } }
+
+/* kunci gulir halaman saat menu / pop-up terbuka */
+html.kunci-gulir { overflow: hidden; overscroll-behavior: none; }
+#mainMenu, .modal { overscroll-behavior: contain; }

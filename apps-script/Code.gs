@@ -491,10 +491,9 @@ function doPost(e) {
     if (req.aksi === 'cek') return json_({ ok: true, user: sesi.user, peran: sesi.peran });
     if (req.aksi === 'keluar') { CacheService.getScriptCache().remove('tok_' + req.token); catatLogin_(sesi.user, sesi.peran, 'Keluar', ''); return json_({ ok: true }); }
     if (req.aksi === 'data') {
-      var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
+      var d = dataCepat_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
       if (d.fra && sesi.peran !== 'admin') d.fra = { periode: d.fra.periode, ringkas: d.fra.ringkas, terbatas: true };   // rincian FRA hanya untuk Admin
       if (sesi.peran === 'admin') d.meta.tugas = infoTugas_();   // pemantauan tugas tim EPMK (Admin)
-      try { d.meta.perubahan = infoPerubahan_(); } catch (x) { /* abaikan */ }
       return json_(d);
     }
     if (req.aksi === 'log') {
@@ -1325,11 +1324,47 @@ function tandaiUbah_(nama) { try { var o = {}; o['ubah_' + nama] = String(Date.n
 /* Menu: hapus semua cache lalu hitung ulang (dipakai setelah menempel data besar) */
 function segarkanData() {
   var o = { CACHE_EPOCH: String(Date.now()) }; PropertiesService.getScriptProperties().setProperties(o);
-  var t = Date.now(); buildData_();
+  var t = Date.now(); buatPaket_();
   safeAlert_('Data dashboard sudah disegarkan (' + Math.round((Date.now() - t) / 1000) + ' detik). Website akan memakai data terbaru.');
 }
-/* Pemicu per jam: menjaga cache tetap siap sehingga pengunjung tidak menunggu */
-function hangatkanCache() { buildData_(); }
+/* PAKET DATA JADI: seluruh hasil olahan disimpan sebagai satu paket. Pengunjung langsung menerima paket ini
+   tanpa membaca spreadsheet sama sekali. Paket dibuat ulang:
+   - langsung, bila ada tab yang disunting (cap waktu onEdit / input dashboard / Segarkan data berubah);
+   - di belakang layar, bila paket berumur > 10 menit (file luar mungkin berubah) — pengunjung tetap
+     menerima paket lama seketika, dan pengunjung berikutnya mendapat yang baru. */
+var PAKET_UMUR = 600000;
+function sidikPaket_(u) {
+  return 'v' + VERSI + '|' + Object.keys(u).filter(function (k) { return k.indexOf('ubah_') === 0 || k === 'CACHE_EPOCH'; }).sort()
+    .map(function (k) { return k + '=' + u[k]; }).join(',');
+}
+function buatPaket_() {
+  var u = ambilUbah_(), d = buildData_();
+  try { d.meta.perubahan = infoPerubahan_(); } catch (x) { /* abaikan */ }
+  d.meta.paketDibuat = Date.now();
+  cacheSimpan_('paket', sidikPaket_(u), d, CACHE_DETIK);
+  return d;
+}
+function dataCepat_() {
+  var h = cacheAmbil_('paket');
+  if (h && h.fp === sidikPaket_(ambilUbah_())) {
+    if (Date.now() - (h.data.meta.paketDibuat || 0) > PAKET_UMUR) jadwalSegar_();
+    return h.data;
+  }
+  return buatPaket_();
+}
+function jadwalSegar_() {
+  try {
+    var c = CacheService.getScriptCache(); if (c.get('paket_jadwal')) return;
+    c.put('paket_jadwal', '1', 600);
+    ScriptApp.newTrigger('segarPaketLatar').timeBased().after(1000).create();
+  } catch (e) { /* abaikan: paket akan dibuat ulang oleh pemicu per jam */ }
+}
+function segarPaketLatar() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'segarPaketLatar') ScriptApp.deleteTrigger(t); });
+  try { buatPaket_(); } finally { CacheService.getScriptCache().remove('paket_jadwal'); }
+}
+/* Pemicu per jam: menjaga paket tetap siap sehingga pengunjung tidak menunggu */
+function hangatkanCache() { buatPaket_(); }
 function pasangPercepatan() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'hangatkanCache') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('hangatkanCache').timeBased().everyHours(1).create();

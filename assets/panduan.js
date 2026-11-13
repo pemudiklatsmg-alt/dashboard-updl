@@ -26,7 +26,7 @@
   var G = window.Genie, menutup = 0;
   function tutup(fokus) {
     if (menu.hidden || menutup) return;
-    var token = menutup = Date.now(); btn.setAttribute('aria-expanded', 'false'); scrim.hidden = true;
+    var token = menutup = Date.now(); btn.setAttribute('aria-expanded', 'false'); scrim.hidden = true; document.documentElement.classList.remove('kunci-gulir');
     function selesai() { if (menutup !== token) return; menutup = 0; menu.hidden = true; if (fokus) btn.focus(); }
     if (G) G.jalan(menu, btn.getBoundingClientRect(), false).then(selesai); else selesai();
   }
@@ -42,6 +42,21 @@
   menu.addEventListener('click', function (e) { if (e.target.closest('.mi')) tutup(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) tutup(true); });
   window.addEventListener('resize', function () { if (!menu.hidden && window.innerWidth > 640) tutup(false); });
+  /* Saat menu (lembar bawah di HP) atau jendela pop-up terbuka, halaman di belakangnya tidak ikut bergulir */
+  function perluKunci() {
+    if (!menu.hidden && !menutup && window.innerWidth <= 640) return true;
+    return Array.prototype.some.call(document.querySelectorAll('.modal'), function (m) { return !m.hidden; });
+  }
+  function aturKunci() { document.documentElement.classList.toggle('kunci-gulir', perluKunci()); }
+  new MutationObserver(aturKunci).observe(document.body, { attributes: true, attributeFilter: ['hidden'], subtree: true });
+  // iOS: geseran di lapisan gelap atau di lembar menu yang tidak perlu digulir jangan diteruskan ke halaman
+  scrim.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+  menu.addEventListener('touchmove', function (e) {
+    var el = e.target.closest ? e.target : null, bisa = false;
+    while (el && el !== document.body) { if (el.scrollHeight > el.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)) { bisa = true; break; } if (el === menu) break; el = el.parentElement; }
+    if (!bisa) e.preventDefault();
+  }, { passive: false });
+
   /* titik status di samping judul mengikuti label status di menu */
   var badge = $('srcBadge'), dot = $('stDot');
   function sinkron() { var c = badge.className.match(/\b(live|snap|err)\b/); dot.className = 'st ' + (c ? c[1] : 'snap'); dot.title = badge.textContent; }

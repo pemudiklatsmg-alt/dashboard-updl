@@ -4,6 +4,9 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '4.4', t: '14 Nov 2026', b: ['Dashboard langsung tampil dari data terakhir, lalu memperbarui diri di belakang layar'],
+      l: ['Server mengirim paket data yang sudah jadi, sehingga data termuat jauh lebih cepat', 'Website selalu dibuka di tab Ringkasan; tidak perlu login ulang setelah menutup tab (selama sesi 6 jam masih berlaku)'],
+      p: ['Di HP, halaman di belakang menu ☰ dan jendela pop-up tidak lagi ikut bergulir'] },
     { v: '4.3', t: '14 Nov 2026', b: ['Menu samping & Status Data menampilkan kapan data sumber terakhir berubah', 'Pemeriksaan kualitas data di pengingat Admin, dengan pintasan ke baris yang perlu diperbaiki', 'Nomor versi & catatan rilis'],
       l: ['Penanda klik seragam: panah dalam lingkaran yang menyala pink', 'Angka tampil di semua grafik tren; Peta Risiko meringkas sel padat menjadi "N risiko"'],
       p: ['Tinggi batang Capaian Kinerja kini sebanding nilainya, warna status sama di semua grafik', 'Panduan yang berantakan dirapikan'] },

@@ -1309,7 +1309,7 @@
     $('bulanSel').value = String(m);
     Array.prototype.forEach.call(document.querySelectorAll('.per'), function (e) { e.textContent = namaBulan(m) + ' ' + y; });
     renderAll();
-    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } pilihTab(vt0 || (admin() ? 'semua' : 'ringkasan')); }
+    if (!S.vt) pilihTab('ringkasan');   // saat website dibuka selalu mulai dari Ringkasan
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
@@ -1704,7 +1704,8 @@
     if (m.judul) { $('judul').textContent = m.judul; document.title = m.judul; }
     if (m.links && m.links.data) $('sheetBtn').href = m.links.data;
     var badge = $('srcBadge');
-    if (m.source === 'live' && !m.stale) { badge.className = 'badge live'; badge.textContent = 'Terhubung ke Google Sheets'; }
+    if (m.dariSimpanan && !m.stale) { badge.className = 'badge snap'; badge.textContent = 'Memperbarui data…'; }
+    else if (m.source === 'live' && !m.stale) { badge.className = 'badge live'; badge.textContent = 'Terhubung ke Google Sheets'; }
     else if (m.stale) { badge.className = 'badge err'; badge.textContent = 'Data tersimpan (gagal memuat ulang)'; }
     else { badge.className = 'badge snap'; badge.textContent = 'Data belum terhubung'; }
     var t = m.generatedAt ? new Date(m.generatedAt) : null;
@@ -1800,14 +1801,15 @@
   /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
   function tampilMemuat() {
     document.body.classList.add('memuat');
-    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } S.vt = vt0 || (admin() ? 'semua' : 'ringkasan'); document.body.setAttribute('data-vt', S.vt); }
+    if (!S.vt) { S.vt = 'ringkasan'; document.body.setAttribute('data-vt', S.vt); }
     try { renderSidenav(); } catch (e) { /* abaikan */ }
   }
   function load() {
     $('srcBadge').className = 'badge snap'; $('srcBadge').textContent = 'Memuat data…';
-    var c = D.cachedData(); if (c && !S.data) boot(c);
     if (!S.data) tampilMemuat();
-    return D.loadData().then(boot).catch(function (e) {
+    var ambil = D.loadData();   // ambil data terbaru, sementara itu tampilkan simpanan terakhir di browser
+    D.dataTersimpan().then(function (c) { if (c && !S.data) { try { boot(c); } catch (x) { /* abaikan */ } } });
+    return ambil.then(boot).catch(function (e) {
       if (e.login) { D.hapusSesi(); return tampilLogin(e.message === 'Silakan masuk.' ? '' : e.message); }
       $('srcBadge').className = 'badge err'; $('srcBadge').textContent = 'Gagal memuat';
       $('warn').hidden = false; $('warn').className = 'warnbox'; $('warn').textContent = 'Data tidak bisa dimuat: ' + (e.message || e);

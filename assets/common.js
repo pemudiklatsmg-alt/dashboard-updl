@@ -273,11 +273,19 @@
 
   /* ---------------- SESI LOGIN ---------------- */
   var SESI_KEY = 'dash-sesi', CACHE_KEY = 'dash-cache-v4';
-  function sesi() { try { var s = JSON.parse(sessionStorage.getItem(SESI_KEY) || 'null'); return s && s.exp > Date.now() ? s : null; } catch (e) { return null; } }
-  function simpanSesi(s) { try { sessionStorage.setItem(SESI_KEY, JSON.stringify(s)); } catch (e) {} }
-  function hapusSesi() {
-    try { sessionStorage.removeItem(SESI_KEY); sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('dash-cache-v3'); sessionStorage.removeItem('dash-input-token'); } catch (e) {}
+  /* Sesi disimpan di localStorage (berlaku sampai token habis, maks. 6 jam) supaya menutup tab tidak memaksa login ulang. */
+  function sesi() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SESI_KEY) || sessionStorage.getItem(SESI_KEY) || 'null');
+      return s && s.exp > Date.now() ? s : null;
+    } catch (e) { return null; }
   }
+  function simpanSesi(s) { try { localStorage.setItem(SESI_KEY, JSON.stringify(s)); } catch (e) { try { sessionStorage.setItem(SESI_KEY, JSON.stringify(s)); } catch (x) {} } }
+  function hapusSesi() {
+    try { localStorage.removeItem(SESI_KEY); sessionStorage.removeItem(SESI_KEY); sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('dash-cache-v3'); sessionStorage.removeItem('dash-input-token'); } catch (e) {}
+    MEM = null; idbHapus();
+  }
+
   function api(body) {
     var url = String((window.DASH_CONFIG || {}).API_URL || '').trim();
     if (!url) return Promise.reject(new Error('Alamat Apps Script belum diatur di config.js.'));
@@ -292,6 +300,39 @@
       });
   }
 
+  /* ---------------- SIMPANAN DATA DI BROWSER (IndexedDB) ----------------
+     Data terakhir disimpan per pengguna. Saat dibuka lagi, dashboard langsung tampil dari simpanan
+     ini, lalu data terbaru diambil di belakang layar. Dihapus saat keluar. */
+  var MEM = null, IDB_NAMA = 'updl-dash';
+  function idb() {
+    return new Promise(function (res, rej) {
+      try {
+        var r = indexedDB.open(IDB_NAMA, 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+        r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); };
+      } catch (e) { rej(e); }
+    });
+  }
+  function idbTx(mode, fn) {
+    return idb().then(function (db) {
+      return new Promise(function (res) {
+        var tx = db.transaction('kv', mode), st = tx.objectStore('kv'), q = fn(st), hasil = null;
+        if (q) q.onsuccess = function () { hasil = q.result; };
+        tx.oncomplete = function () { res(hasil); }; tx.onerror = tx.onabort = function () { res(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function idbHapus() { return idbTx('readwrite', function (st) { st.delete('data'); }); }
+  /* data tersimpan untuk pengguna yang sedang masuk (Promise -> data | null) */
+  function dataTersimpan() {
+    var s = sesi(); if (!s) return Promise.resolve(null);
+    if (MEM) return Promise.resolve(MEM);
+    return idbTx('readonly', function (st) { return st.get('data'); }).then(function (r) {
+      if (!r || r.user !== s.user || r.peran !== s.peran || !r.d) return null;
+      r.d.meta = r.d.meta || {}; r.d.meta.dariSimpanan = r.t; MEM = r.d; return r.d;
+    });
+  }
+
   /* ---------------- LOAD ---------------- */
   function loadData() {
     var s = sesi();
@@ -299,24 +340,26 @@
     return api({ aksi: 'data', token: s.token })
       .then(function (d) {
         if (!d.meta || !(d.meta.versi >= 4)) throw new Error('Apps Script masih versi lama. Tempel Code.gs terbaru lalu buat versi deployment baru.');
-        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {}
+        MEM = d;
+        idbTx('readwrite', function (st) { st.put({ user: s.user, peran: s.peran, t: Date.now(), d: d }, 'data'); });
         return d;
       })
       .catch(function (err) {
         if (err.login) throw err;
-        var cached = cachedData();
-        if (cached) { cached.meta.stale = String(err.message || err); return cached; }
-        throw new Error('Gagal memuat dari Google Sheets: ' + (err.message || err) + ' Coba klik Muat ulang beberapa saat lagi.');
+        return dataTersimpan().then(function (c) {
+          if (c) { c.meta.stale = String(err.message || err); return c; }
+          throw new Error('Gagal memuat dari Google Sheets: ' + (err.message || err) + ' Coba klik Muat ulang beberapa saat lagi.');
+        });
       });
   }
-  function cachedData() { try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { return null; } }
-  function hapusCache() { try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {} }
+  function cachedData() { return MEM; }
+  function hapusCache() { /* data lama tetap tampil sampai data baru datang */ }
 
   window.Dash = {
     BULAN: BULAN, BLN3: BLN3, cap: cap, num: num, esc: esc, fmt: fmt, pct: pct, rows: rows,
     parseKonman: parseKonman, capaianItem: capaianItem, bobotFor: bobotFor, hasData: hasData,
     tgl: tgl, hariKerja: hariKerja, akhirBulan: akhirBulan, parseRendiklat: parseRendiklat, hitungRendiklat: hitungRendiklat,
-    rekapSampai: rekapSampai, rataTertimbang: rataTertimbang, loadData: loadData, cachedData: cachedData, hapusCache: hapusCache,
+    rekapSampai: rekapSampai, rataTertimbang: rataTertimbang, loadData: loadData, cachedData: cachedData, dataTersimpan: dataTersimpan, hapusCache: hapusCache,
     evalKepuasan: evalKepuasan, evalInstruktur: evalInstruktur, evalKsa: evalKsa, evalCc: evalCc, evalSert: evalSert,
     sesi: sesi, simpanSesi: simpanSesi, hapusSesi: hapusSesi, api: api
   };
