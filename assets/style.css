@@ -1598,7 +1598,7 @@ html.glass .panel:hover { box-shadow: var(--g-shadow), inset 0 1px 0 var(--g-hi)
 .ke-rinci:hover, .ke-rinci:focus-visible { color: var(--ink); border-color: var(--accent); transform: translateX(2px); outline: none; }
 .gx-klik:hover .gx-hl, tr.klik:hover td { color: var(--ink); }
 tr.klik { cursor: pointer; } tr.klik:hover td { background: var(--accent-soft); }
-.gx-klik .gx-hv::after, tr.klik td:last-child::after { content: " ›"; color: var(--ink-3); font-weight: 700; }
+
 #cetakWrap .gx-klik .gx-hv::after, #cetakWrap tr.klik td:last-child::after { content: none; }
 /* 6. nomor di daftar risiko berbentuk lingkaran seperti penanda di peta */
 .rk-row .num { width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1630,3 +1630,23 @@ body.top-nempel::after { opacity: 1; }
 .card .foot.warn::before { background: var(--warn); } .card .foot.bad::before { background: var(--bad); }
 #cetakWrap .card.click::after { content: none; }
 .card .foot .more { display: none; }
+
+/* Satu bahasa visual untuk semua yang bisa diklik: garis pink saat diarahkan + panah dalam lingkaran */
+tr.klik td:last-child::after, .gx-klik .gx-hv::after, .rk-row::after {
+  content: "→"; display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 8px; vertical-align: middle;
+  border-radius: 50%; border: 1px solid var(--line); color: var(--ink-3); font-size: 10px; font-weight: 600; line-height: 1; opacity: .55; transition: opacity .15s, border-color .15s;
+}
+tr.klik:hover td:last-child::after, .gx-klik:hover .gx-hv::after, .rk-row:hover::after, tr.klik:focus-visible td:last-child::after { opacity: 1; border-color: var(--accent); color: var(--ink); }
+tr.klik:hover td { background: transparent !important; box-shadow: inset 0 1px 0 var(--accent), inset 0 -1px 0 var(--accent); }
+tr.klik:hover td:first-child { box-shadow: inset 1px 1px 0 var(--accent), inset 0 -1px 0 var(--accent); }
+tr.klik:hover td:last-child { box-shadow: inset -1px 1px 0 var(--accent), inset 0 -1px 0 var(--accent); }
+.gx-klik { border-radius: 8px; padding: 4px 6px; margin: -4px -6px; box-shadow: inset 0 0 0 1px transparent; }
+.gx-klik:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--accent); }
+.rk-row { grid-template-columns: 28px minmax(0, 1fr) auto 20px; }
+.rk-row::after { margin-left: 0; align-self: center; }
+.rk-row:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--accent); border-radius: 8px; }
+.rk-row.on { background: var(--accent-soft); }
+.ph-i::after { content: "→"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); color: var(--ink-3); font-size: 10px; opacity: .55; margin-left: auto; flex: none; }
+.ph-i:hover::after { opacity: 1; border-color: var(--accent); color: var(--ink); }
+#cetakWrap tr.klik td:last-child::after, #cetakWrap .gx-klik .gx-hv::after, #cetakWrap .rk-row::after, #cetakWrap .ph-i::after { content: none; }
+@media (max-width: 700px) { .rk-row::after { grid-column: 3; grid-row: 1; } }
