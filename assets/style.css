@@ -1659,3 +1659,21 @@ tr.klik:hover td:last-child { box-shadow: inset -1px 1px 0 var(--accent), inset 
 html.glass .card.click:hover, html.glass .rgk-tile:hover { box-shadow: var(--g-shadow), inset 0 1px 0 var(--g-hi); }
 .card.click:hover, .rgk-tile:hover, .rgk-tile:focus-visible, .card.click:focus-visible { border-color: var(--accent); }
 .rgk-tile:hover::after, .card.click:hover::after { border-color: var(--accent); color: var(--ink); }
+
+/* kartu & baris tidak bergaris pink; penanda klik cukup lingkaran panah yang menyala pink */
+.card.click:hover, .card.click:focus-visible, .rgk-tile:hover, .rgk-tile:focus-visible { border-color: var(--line) !important; }
+html.glass .card.click:hover, html.glass .rgk-tile:hover, html.glass .card.click:focus-visible, html.glass .rgk-tile:focus-visible { border-color: var(--g-border) !important; }
+.gx-klik:hover, .rk-row:hover, .ph-i:hover, .ph-i:focus-visible, .kx-pb:hover { box-shadow: none !important; border-color: var(--line); background: var(--idle-bg); }
+tr.klik:hover td, tr.klik:hover td:first-child, tr.klik:hover td:last-child { box-shadow: none !important; background: var(--idle-bg) !important; }
+.rgk-tile:hover::after, .card.click:hover::after, .ke-rinci:hover, tr.klik:hover td:last-child::after, .gx-klik:hover .gx-hv::after, .rk-row:hover::after, .ph-i:hover::after { border-color: var(--accent) !important; background: var(--accent); color: #fff !important; opacity: 1; }
+/* angka di semua grafik tren: bulan berjalan terang, bulan lain redup */
+.rgk-tren span .rgk-pv { visibility: visible !important; opacity: .55; }
+.rgk-tren span.on .rgk-pv { opacity: 1; }
+.chart .bl { opacity: .55; } .chart .bl.on { opacity: 1; font-weight: 700; }
+.tl-v { opacity: .55; } .tl-v.on { opacity: 1; font-weight: 700; }
+.gx-val { opacity: .55; font-size: 10.5px; } .gx-val.on { opacity: 1; }
+svg .bl { opacity: .6; } svg .bl.on { opacity: 1; font-weight: 700; }
+/* "Perlu perhatian": panah bawaan dijadikan lingkaran yang sama, tanpa panah ganda */
+.ph-i::after { content: none !important; }
+.ph-i em { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); font-size: 10px; flex: none; margin-left: auto; transition: background .15s, border-color .15s; }
+.ph-i:hover em, .ph-i:focus-visible em { background: var(--accent); border-color: var(--accent); color: #fff !important; }

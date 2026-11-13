@@ -377,7 +377,7 @@
         var top = y(Math.max(v, 0));
         s += '<g data-m="' + m + '"><rect class="hit" x="' + (cx - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>' +
           '<path class="b' + (sel ? ' sel' : '') + '" d="M' + x + ' ' + (T + ih) + 'V' + (top + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (T + ih) + 'z"><title>' + D.cap(Bn) + ': ' + D.fmt(v, 2) + '</title></path>' +
-          '<text class="bl num" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
+          '<text class="bl num' + (sel ? ' on' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
       }
       s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (sel ? ' font-weight="700" fill="var(--ink)"' : '') + '>' + D.BLN3[m - 1] + '</text>';
     });
@@ -1048,6 +1048,7 @@
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + vals.map(function (v, i) {
       var cx = 8 + step * i + step / 2, h = v / mx * ih, y = 14 + ih - h;
       return (v ? '<path class="b' + (i === selIdx ? ' sel' : '') + '" d="M' + (cx - bw / 2) + ' ' + (14 + ih) + 'V' + (y + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (14 + ih) + 'z"><title>' + labels[i] + ': ' + D.fmt(v, 0) + ' ' + unit + '</title></path><text class="bl" x="' + cx + '" y="' + (y - 4) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
+        (v ? '<text class="bl num' + (i === selIdx ? ' on' : '') + '" x="' + cx + '" y="' + (y - 5) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
         '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + labels[i] + '</text>';
     }).join('') + '</svg>';
   }
@@ -1553,7 +1554,7 @@
     ada.forEach(function (x, k) {
       var naik = k ? x.v - ada[k - 1].v : 0, baik = o.turunBaik ? naik < 0 : naik > 0, kls = !k || !naik ? '' : baik ? 'up' : 'dn';
       s += '<circle class="tl-p ' + (x.m === S.bulan ? 'on ' : '') + kls + '" cx="' + X(x.m) + '" cy="' + Y(x.v) + '" r="' + (x.m === S.bulan ? 6 : 4.5) + '"><title>' + namaBulan(x.m) + ': ' + D.fmt(x.v, o.des) + '</title></circle>' +
-        '<text class="tl-v" x="' + X(x.m) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + D.fmt(x.v, o.des) + '</text>';
+        '<text class="tl-v' + (x.m === S.bulan ? ' on' : '') + '" x="' + X(x.m) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + D.fmt(x.v, o.des) + '</text>';
     });
     for (var m = 1; m <= 12; m++) s += '<text class="ax' + (m === S.bulan ? ' on' : '') + '" x="' + X(m) + '" y="' + (H - 9) + '" text-anchor="middle">' + D.BLN3[m - 1] + '</text>';
     return s + '</svg>';

@@ -21,7 +21,7 @@
       var x = L + i * cw + cw * 0.18, w = cw * 0.64, on = o.sel === i + 1, b = o.bayang ? o.bayang[i] : null;
       if (b) s += '<rect' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-ghost" x="' + x + '" y="' + y(b) + '" width="' + w + '" height="' + (y(0) - y(b)) + '" rx="4"><title>' + BLN[i] + ' · ' + esc(o.namaBayang || 'rencana') + ': ' + D.fmt(b, 0) + '</title></rect>';
       if (v) s += '<path' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-bar' + (on ? ' on' : '') + '" d="M' + x + ',' + y(0) + 'V' + (y(v) + 4) + 'q0,-4 4,-4h' + (w - 8) + 'q4,0 4,4V' + y(0) + 'z"><title>' + BLN[i] + ': ' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + (b ? ' dari ' + D.fmt(b, 0) + ' ' + esc(o.namaBayang || 'rencana') : '') + '</title></path>';
-      if (v && (on || o.semuaLabel)) s += '<text class="gx-val' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (y(Math.max(v, b || 0)) - 5) + '" text-anchor="middle">' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + '</text>';
+      if (v) s += '<text class="gx-val' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (y(Math.max(v, b || 0)) - 5) + '" text-anchor="middle">' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + '</text>';
       s += '<text class="gx-ax' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (H - 7) + '" text-anchor="middle">' + BL[i] + '</text>';
     });
     return s + '<line class="gx-base" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '"/></svg>';
@@ -45,10 +45,8 @@
       sr.v.forEach(function (v, i) {
         if (v === null || v === undefined) return;
         s += '<circle class="gx-dot ' + sr.c + (o.sel === i + 1 ? ' on' : '') + '" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + (o.sel === i + 1 ? 5.5 : 4) + '"><title>' + BLN[i] + ' · ' + esc(sr.n) + ': ' + D.fmt(v, 2) + '</title></circle>';
-        if (o.sel === i + 1) {
-          var lain = seri.filter(function (q) { return q !== sr && q.v[i] !== null && q.v[i] !== undefined; })[0], bawah = lain && lain.v[i] > v;
-          s += '<text class="gx-val on ' + sr.c + '" x="' + x(i) + '" y="' + (bawah ? y(v) + 18 : y(v) - 9) + '" text-anchor="middle">' + D.fmt(v, 2) + '</text>';
-        }
+        var lain = seri.filter(function (q) { return q !== sr && q.v[i] !== null && q.v[i] !== undefined; })[0], bawah = lain && lain.v[i] > v;
+        s += '<text class="gx-val ' + (o.sel === i + 1 ? 'on ' : '') + sr.c + '" x="' + x(i) + '" y="' + (bawah ? y(v) + 17 : y(v) - 9) + '" text-anchor="middle">' + D.fmt(v, 2) + '</text>';
       });
     });
     for (var i = 0; i < 12; i++) s += '<text class="gx-ax' + (o.sel === i + 1 ? ' on' : '') + '" x="' + x(i) + '" y="' + (H - 7) + '" text-anchor="middle">' + BL[i] + '</text>';
