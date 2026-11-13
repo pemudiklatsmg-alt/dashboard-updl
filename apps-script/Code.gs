@@ -1712,7 +1712,7 @@ function waktuFile_(id) {
       { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
     if (r.getResponseCode() === 200) hasil = JSON.parse(r.getContentText()).modifiedTime || null;
   } catch (e) { /* tanpa izin Drive: lewati */ }
-  c.put(k, hasil || '-', 600);
+  c.put(k, hasil || '-', hasil ? 600 : 60);
   return hasil;
 }
 function infoPerubahan_() {
