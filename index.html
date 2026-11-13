@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261113h">
+<link rel="stylesheet" href="assets/style.css?v=20261113j">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -22,6 +22,7 @@
   </form>
 </section>
 
+<aside class="sidenav" id="sidenav" aria-label="Navigasi dashboard" hidden></aside>
 <main class="sheet" id="app" hidden>
   <header class="top" id="top">
     <div class="brand">
@@ -70,11 +71,14 @@
     <button type="button" role="tab" data-vt="ringkasan">Ringkasan</button>
     <button type="button" role="tab" data-vt="kinerja">Kinerja</button>
     <button type="button" role="tab" data-vt="pembelajaran">Pembelajaran</button>
+    <button type="button" role="tab" data-vt="evaluasi">Evaluasi</button>
     <button type="button" role="tab" data-vt="sdm">SDM &amp; Inovasi</button>
     <button type="button" role="tab" data-vt="risiko">Risiko &amp; Mutu</button>
+    <button type="button" role="tab" data-vt="tugas" class="adm">Tugas Tim<b class="vt-badge" id="vtTugasN" hidden></b></button>
     <button type="button" role="tab" data-vt="semua" class="vt-semua">Semua</button>
   </nav>
   <section class="rgk" id="rgk" aria-label="Ringkasan" data-vt-isi="ringkasan"></section>
+  <section class="tugas" id="tugas" aria-label="Tugas Tim EPMK" hidden></section>
   <section class="perhatian" id="perhatian" aria-label="Perlu perhatian" aria-live="polite" hidden></section>
   <section class="kpis" id="kpis" aria-label="Ringkasan utama" data-bagian="ringkasan"></section>
 
@@ -219,13 +223,13 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261113h"></script>
-<script src="assets/common.js?v=20261113h"></script>
-<script src="assets/genie.js?v=20261113h"></script>
-<script src="assets/dashboard.js?v=20261113h"></script>
-<script src="assets/input.js?v=20261113h"></script>
-<script src="assets/export.js?v=20261113h"></script>
-<script src="assets/fitur.js?v=20261113h"></script>
+<script src="config.js?v=20261113j"></script>
+<script src="assets/common.js?v=20261113j"></script>
+<script src="assets/genie.js?v=20261113j"></script>
+<script src="assets/dashboard.js?v=20261113j"></script>
+<script src="assets/input.js?v=20261113j"></script>
+<script src="assets/export.js?v=20261113j"></script>
+<script src="assets/fitur.js?v=20261113j"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -273,6 +277,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261113h"></script>
+<script src="assets/panduan.js?v=20261113j"></script>
 </body>
 </html>

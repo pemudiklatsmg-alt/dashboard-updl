@@ -491,6 +491,7 @@ function doPost(e) {
     if (req.aksi === 'data') {
       var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
       if (d.fra && sesi.peran !== 'admin') d.fra = { periode: d.fra.periode, ringkas: d.fra.ringkas, terbatas: true };   // rincian FRA hanya untuk Admin
+      if (sesi.peran === 'admin') d.meta.tugas = infoTugas_();   // pemantauan tugas tim EPMK (Admin)
       return json_(d);
     }
     if (req.aksi === 'log') {
@@ -1267,6 +1268,14 @@ function hapusPengingat() { var n = hapusPengingat_(); safeAlert_(n ? 'Pengingat
    berubah atau ada suntingan (dicatat onEdit). File luar (Rendiklat, MLI, Profil Risiko, FRA)
    disegarkan tiap 10 menit. Menu Dashboard > Segarkan data dashboard menghapus semua cache. */
 var CACHE_DETIK = 21600;
+/* Info untuk halaman Tugas Tim EPMK: kapan tiap tab terakhir diubah (dari onEdit / menu),
+   PIC per sumber (bisa diganti lewat Pengaturan: PIC_<KODE>), dan batas kesegaran data. */
+function infoTugas_() {
+  var cfg = getConfig_(), u = ambilUbah_(), ubah = {}, pic = {};
+  Object.keys(u).forEach(function (k) { if (k.indexOf('ubah_') === 0) ubah[k.slice(5)] = Number(u[k]) || 0; });
+  Object.keys(cfg).forEach(function (k) { if (/^PIC_/.test(k) && String(cfg[k]).trim()) pic[k.slice(4)] = String(cfg[k]).trim(); });
+  return { ubah: ubah, pic: pic, batasHari: angka_(cfg.BATAS_HARI_DATA) || 7, batasTanggal: angka_(cfg.BATAS_TANGGAL_BULANAN) || 7, sekarang: new Date().toISOString() };
+}
 function ambilUbah_() { try { return PropertiesService.getScriptProperties().getProperties(); } catch (e) { return {}; } }
 function sidikTab_(ss, tabs, ubah) {
   return tabs.map(function (n) {

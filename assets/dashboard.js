@@ -1237,7 +1237,11 @@
     peta: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
     meter: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>',
     waspada: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M12 8v5M12 16h.01"/>',
-    sertifikat: '<circle cx="12" cy="9" r="5"/><path d="M9 13.5L7.5 21l4.5-2.5 4.5 2.5L15 13.5"/>'
+    sertifikat: '<circle cx="12" cy="9" r="5"/><path d="M9 13.5L7.5 21l4.5-2.5 4.5 2.5L15 13.5"/>',
+    rumah: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    daftar: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8.5 8l1.5 1.5L13 6.5M8.5 14l1.5 1.5 3-3M15 8h1.5M15 14h1.5"/>',
+    grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    petir: '<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/>'
   };
   function ikon(n) { return IKON[n] ? '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + IKON[n] + '</svg>' : ''; }
   var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'],
@@ -1289,19 +1293,137 @@
       '<div class="cs-pres cs-ket">' + ind.filter(function (x) { return x.v >= 0.9999; }).length + ' dari ' + ind.length + ' indikator mencapai target ' + bl + '.</div>';
   }
 
+  /* ---------- Tugas Tim EPMK: siapa perlu memperbarui data / menindaklanjuti apa ---------- */
+  var PIC_EPMK = ['TL EPMK', 'OF EPMK', 'ADM EPMK'];
+  var PIC_DEF = { KONMAN: 'TL EPMK', KEPATUHAN: 'TL EPMK', KRI: 'TL EPMK', INDIKATOR: 'TL EPMK', PERBAIKAN_TL: 'TL EPMK',
+    PEGAWAI: 'ADM EPMK', EL1: 'ADM EPMK', INSTRUKTUR: 'ADM EPMK', KSA: 'ADM EPMK', CC: 'ADM EPMK', SERTIFIKAT: 'ADM EPMK', PERBAIKAN_ISI: 'ADM EPMK',
+    RENDIKLAT: 'OF EPMK', L3: 'OF EPMK', L4: 'OF EPMK', ROTI: 'OF EPMK', IDP: 'OF EPMK', INOVASI: 'OF EPMK', PERBAIKAN: 'OF EPMK' };
+  function tugasList() {
+    var T = (S.data.meta && S.data.meta.tugas) || {}, pic = function (k) { return (T.pic && T.pic[k]) || PIC_DEF[k]; };
+    var kini = T.sekarang ? new Date(T.sekarang) : new Date(), hariIni = new Date(kini.getFullYear(), kini.getMonth(), kini.getDate());
+    var batas = T.batasHari || 7, tglB = T.batasTanggal || 7, y = S.tahun, out = [];
+    var fmtT = function (d) { return d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; };
+    var umurH = function (d) { return d ? Math.max(0, Math.round((hariIni - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5)) : null; };
+    // 1. data tarikan berkala: dianggap usang bila data terakhir lebih dari `batas` hari
+    function segar(kode, judul, tab, iso, ket, bts) {
+      var b = bts || batas, d = iso ? new Date(iso + 'T00:00:00') : null, u = umurH(d);
+      var st = d === null ? 'bad' : u > b ? 'bad' : u > b - 2 ? 'warn' : 'good';
+      out.push({ pic: pic(kode), jenis: 'Perbarui data', judul: judul, ket: ket, tab: tab, akhir: d, umur: u, st: st,
+        status: !d ? 'Belum ada data' : st === 'bad' ? 'Usang ' + u + ' hari' : st === 'warn' ? 'Segera, ' + u + ' hari' : 'Terbaru',
+        batas: 'maks. ' + b + ' hari' });
+    }
+    var E = S.data.eval || {}, SE = (S.data.meta && S.data.meta.sumberEval) || {};
+    segar('EL1', 'Tarik data Evaluasi Level 1 (kepuasan)', SE.kepuasan || 'Data - Kepuasan EL1', isoMaks(E.kepuasan), 'Tarik laporan EL1 per jadwal, perbarui file DOC 1 / tab kepuasan.');
+    segar('INSTRUKTUR', 'Tarik data penilaian instruktur EL1', 'Data - Instruktur EL1', isoMaks(E.instruktur), 'Tempel tarikan penilaian instruktur.');
+    segar('CC', 'Tarik data Evaluasi Level 2 (C&C)', SE.cc || 'Data - C&C EL2', isoMaks(E.cc), 'Tarik laporan EL2 resume, perbarui file DOC 2 / tab C&C.');
+    segar('KSA', 'Tarik data KSA Evaluasi Level 2', 'Data - KSA EL2', isoMaks(E.ksa), 'Tempel tarikan nilai pre/post test.');
+    segar('SERTIFIKAT', 'Tarik data sertifikat', 'Data - Sertifikat', isoMaks(E.sertifikat), 'Tempel tarikan sertifikat terbit.');
+    segar('L3', 'Perbarui rekap Evaluasi Level 3', 'Rekap L3 Perilaku', isoMaks(S.data.l3), 'Periodik: dicek tiap 30 hari.', 30);
+    segar('L4', 'Perbarui rekap Evaluasi Level 4', 'Rekap L4 Kinerja', isoMaks(S.data.l4), 'Periodik: dicek tiap 30 hari.', 30);
+    segar('ROTI', 'Perbarui rekap ROTI', 'Rekap ROTI', isoMaks(S.data.roti), 'Periodik: dicek tiap 30 hari.', 30);
+    // 2. isian bulanan: bulan M wajib terisi paling lambat tanggal `tglB` bulan berikutnya
+    var mWajib = kini.getMonth() + (kini.getDate() > tglB ? 0 : -1), mBerikut = mWajib + 1;   // 1-12 (0 = Desember tahun lalu)
+    function bulanan(kode, judul, tab, terakhir, ket) {
+      var ok = terakhir >= mWajib, segera = !ok ? false : terakhir < mBerikut && mBerikut <= kini.getMonth() + 1;
+      var jatuh = mBerikut <= 12 ? new Date(kini.getFullYear(), mBerikut, tglB) : null, sisa = jatuh ? Math.round((jatuh - hariIni) / 864e5) : null;
+      var st = !ok ? 'bad' : segera && sisa !== null && sisa <= 3 ? 'warn' : 'good';
+      out.push({ pic: pic(kode), jenis: 'Isi bulanan', judul: judul, ket: ket, tab: tab, akhir: null, akhirTeks: terakhir ? 's.d. ' + namaBulan(terakhir) : 'belum ada', umur: null, st: st,
+        status: !ok ? namaBulan(mWajib) + ' belum diisi' : st === 'warn' ? namaBulan(mBerikut) + ' jatuh tempo ' + sisa + ' hari lagi' : 'Lengkap',
+        batas: 'tgl ' + tglB + ' bulan berikutnya' });
+    }
+    var leaves = K().items.filter(function (it) { return !it.isGroup && !it.pengurang; });
+    if (kini.getFullYear() === y) {
+      bulanan('KONMAN', 'Isi realisasi Kontrak Manajemen', 'Konman ' + y, bulanTerakhir(function (m) { var Bn = D.BULAN[m - 1]; if (!konmanAda(Bn)) return false; var f = leaves.filter(function (it) { return D.hasData(it, Bn); }).length; return f && f >= leaves.length * 0.5; }, 12), 'Kolom REALISASI dan KET bulan berjalan.');
+      bulanan('KEPATUHAN', 'Isi nilai kepatuhan bulanan', 'Kepatuhan', bulanTerakhir(function (m) { var Bn = D.BULAN[m - 1]; return kepRows().some(function (x) { return kepVal(x, Bn) !== null; }); }, 12), '0 = patuh; isi pengurang bila ada.');
+      bulanan('PEGAWAI', 'Isi jumlah pegawai bulanan', 'Jumlah Pegawai', bulanTerakhir(function (m) { return pegawai(y, m) !== null; }, 12), 'Dipakai untuk menghitung HOP.');
+      if (kriRows().length) bulanan('KRI', 'Isi realisasi KRI bulanan', 'file Profil Risiko · tab KRI', bulanTerakhir(function (m) { return kriRows().some(function (k) { var v = k.bulan[m - 1]; return v !== null && v !== undefined && v !== ''; }); }, 12), 'Realisasi tiap Key Risk Indicator.');
+    }
+    // 3. tindak lanjut dari isi data
+    function tindak(kode, judul, n, ket, tab, act, st) { out.push({ pic: pic(kode), jenis: 'Tindak lanjut', judul: judul, ket: ket, tab: tab, akhir: null, umur: null, st: n ? st || 'warn' : 'good', status: n ? D.fmt(n, 0) + ' perlu ditangani' : 'Beres', batas: '—', act: n ? act : null, n: n }); }
+    var r = D.hitungRendiklat(kelas(), y, S.bulan, set()), nk = (r.pakaiRencana || 0) + (r.tanpaPeserta || 0);
+    tindak('RENDIKLAT', 'Lengkapi realisasi peserta kelas selesai', nk, 'Kelas berstatus Selesai tanpa realisasi peserta. Isi di tab Koreksi Rendiklat atau minta perbaikan di file Rendiklat.', 'Koreksi Rendiklat', 'kelas', nk >= 10 ? 'bad' : 'warn');
+    var TLr = tlRows(), tb = TLr.filter(function (x) { return tlStatus(x) === 'Belum Dimulai'; }).length, kos = TLr.filter(function (x) { return !String(x['PIC'] || '').trim() || !String(x['Status'] || '').trim(); }).length;
+    tindak('PERBAIKAN_TL', 'Koordinasikan perbaikan berkelanjutan yang belum dimulai', tb, 'Masukan peserta yang perlu tindakan; pantau ke PIC unit terkait.', 'Perbaikan Berkelanjutan', 'tl', tb >= 5 ? 'bad' : 'warn');
+    tindak('PERBAIKAN_ISI', 'Lengkapi PIC & Status perbaikan berkelanjutan', kos, 'Jalankan menu Perbaikan Berkelanjutan → Isi PIC & Status otomatis, lalu periksa.', 'Perbaikan Berkelanjutan', 'tl');
+    var Bn = B(), bawah = konmanAda(Bn) ? leaves.filter(function (it) { var v = D.hasData(it, Bn) ? D.capaianItem(it, Bn) : null; return v !== null && v !== undefined && v < 0.95; }).length : 0;
+    tindak('INDIKATOR', 'Tindak lanjuti indikator Konman di bawah 95%', bawah, 'Siapkan rencana perbaikan untuk indikator ' + namaBulan(S.bulan) + '.', 'Konman ' + y, null, 'bad');
+    if (S.data.inovasi) { var lw = inoRows().filter(function (x) { return x.w[1] === 'bad'; }).length; tindak('INOVASI', 'Perbarui progres inovasi yang lewat target', lw, 'Isi tahap / tanggal realisasi terbaru.', 'Data - Inovasi', 'ino', 'warn'); }
+    // 4. tab isian manual tanpa tanggal: pakai waktu ubah terakhir (tercatat sejak dashboard v6)
+    function manual(kode, judul, tab, bts) {
+      var w = T.ubah && T.ubah[tab] ? new Date(T.ubah[tab]) : null, u = umurH(w);
+      out.push({ pic: pic(kode), jenis: 'Perbarui data', judul: judul, ket: 'Waktu ubah terakhir tab ini (tercatat otomatis saat sheet diedit).', tab: tab, akhir: w, umur: u, st: !w ? 'idle' : u > bts ? 'warn' : 'good',
+        status: !w ? 'Belum tercatat' : u > bts ? 'Belum diubah ' + u + ' hari' : 'Terbaru', batas: 'maks. ' + bts + ' hari' });
+    }
+    manual('IDP', 'Perbarui data IDP pegawai', 'Data - IDP', 30);
+    manual('INOVASI', 'Perbarui data inovasi', 'Data - Inovasi', 30);
+    manual('PERBAIKAN', 'Perbarui status perbaikan berkelanjutan', 'Perbaikan Berkelanjutan', batas);
+    out.forEach(function (x) { if (!x.akhirTeks) x.akhirTeks = x.akhir ? fmtT(x.akhir) + (x.umur !== null ? ' · ' + (x.umur === 0 ? 'hari ini' : x.umur + ' hari lalu') : '') : '—'; });
+    var urut = { bad: 0, warn: 1, idle: 2, good: 3 };
+    return out.sort(function (a, b) { return (urut[a.st] - urut[b.st]) || PIC_EPMK.indexOf(a.pic) - PIC_EPMK.indexOf(b.pic); });
+  }
+  function renderTugas() {
+    var el = $('tugas'); if (!el || !admin()) return;
+    var L = tugasList(), f = S.tgF || { pic: '', st: 'perlu' }, T = (S.data.meta && S.data.meta.tugas) || {};
+    var hit = function (p) { var X = L.filter(function (x) { return x.pic === p; }); return { bad: X.filter(function (x) { return x.st === 'bad'; }).length, warn: X.filter(function (x) { return x.st === 'warn'; }).length, ok: X.filter(function (x) { return x.st === 'good'; }).length, n: X.length }; };
+    var cards = PIC_EPMK.map(function (p) {
+      var h = hit(p), perlu = h.bad + h.warn, pct = h.n ? h.ok / h.n : 0;
+      return '<button type="button" class="tg-pic' + (f.pic === p ? ' on' : '') + '" data-st="' + (h.bad ? 'bad' : h.warn ? 'warn' : 'good') + '" data-tgpic="' + p + '">' +
+        '<span class="tg-av">' + p.split(' ')[0] + '</span><span class="tg-pn"><b>' + p + '</b><small>' + (perlu ? perlu + ' tugas belum beres' : 'Semua beres') + '</small></span>' +
+        '<span class="tg-cnt"><span class="bad" title="Terlambat / usang">' + h.bad + '</span><span class="warn" title="Segera">' + h.warn + '</span><span class="good" title="Beres">' + h.ok + '</span></span>' +
+        '<span class="tg-bar"><i style="width:' + (pct * 100).toFixed(0) + '%"></i></span></button>';
+    }).join('');
+    var tampil = L.filter(function (x) { return (!f.pic || x.pic === f.pic) && (f.st === 'semua' || (f.st === 'perlu' ? x.st === 'bad' || x.st === 'warn' : x.st === f.st)); });
+    var chip = function (k, t, n) { return '<button type="button" class="chip' + (f.st === k ? ' on' : '') + '" data-tgst="' + k + '">' + t + (n !== undefined ? ' <b>' + n + '</b>' : '') + '</button>'; };
+    var nBad = L.filter(function (x) { return x.st === 'bad'; }).length, nWarn = L.filter(function (x) { return x.st === 'warn'; }).length;
+    el.innerHTML = '<div class="panel tg-head"><div class="panel-h"><div><h2 class="ber-ikon"><span class="ikb">' + ikon('daftar') + '</span>Tugas Tim EPMK</h2>' +
+        '<div class="desc">Data yang perlu diperbarui dan hal yang perlu ditindaklanjuti, per PIC. Data tarikan dianggap usang bila lebih dari <b>' + (T.batasHari || 7) + ' hari</b>; isian bulanan jatuh tempo tanggal <b>' + (T.batasTanggal || 7) + '</b> bulan berikutnya.</div></div>' +
+        '<span class="pill ' + (nBad ? 'bad' : nWarn ? 'warn' : 'good') + '">' + (nBad ? nBad + ' terlambat' : nWarn ? nWarn + ' segera' : 'Semua beres') + '</span></div>' +
+      '<div class="tg-pics">' + cards + '</div></div>' +
+      '<div class="panel"><div class="tg-fil"><div class="chips">' + chip('perlu', 'Perlu tindakan', nBad + nWarn) + chip('bad', 'Terlambat', nBad) + chip('good', 'Beres') + chip('semua', 'Semua', L.length) + '</div>' +
+        (f.pic ? '<button type="button" class="chip on" data-tgpic="">' + esc(f.pic) + ' ✕</button>' : '') + '</div>' +
+      '<div class="tg-list">' + (tampil.length ? tampil.map(function (x) {
+        return '<div class="tg-row" data-st="' + x.st + '"><i class="tg-dot" aria-hidden="true"></i><div class="tg-main"><b>' + esc(x.judul) + '</b><span class="tg-ket">' + esc(x.ket) + '</span>' +
+          '<span class="tg-meta"><span class="tg-tag">' + esc(x.jenis) + '</span>' + sheetLink(x.tab) + '</span></div>' +
+          '<div class="tg-when"><span class="tg-pic-c">' + esc(x.pic) + '</span>' + (x.akhirTeks !== '—' ? '<span>' + esc(x.akhirTeks) + '</span>' : '') + (x.batas !== '—' ? '<small>' + esc(x.batas) + '</small>' : '') + '</div>' +
+          '<div class="tg-st"><span class="pill ' + (x.st === 'idle' ? '' : x.st) + '">' + esc(x.status) + '</span>' + (x.act ? '<button type="button" class="btn sm" data-act="' + x.act + '">Lihat</button>' : '') + '</div></div>';
+      }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini. 🎉</div>') + '</div>' +
+      '<div class="note">PIC per sumber bisa diganti di tab Pengaturan dengan kunci <b>PIC_&lt;KODE&gt;</b> (mis. PIC_EL1 = ADM EPMK). Batas hari: <b>BATAS_HARI_DATA</b>, batas tanggal isian bulanan: <b>BATAS_TANGGAL_BULANAN</b>.</div></div>';
+  }
+  function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
+
+  /* ---------- navigasi samping (laptop) ---------- */
+  var NAV = [['ringkasan', 'Ringkasan', 'rumah', 'Gambaran bulan ini'], ['kinerja', 'Kinerja Unit', 'target', 'Konman, indikator, kepatuhan'], ['pembelajaran', 'Rekap Pembelajaran', 'toga', 'Kelas, peserta, HOP'],
+    ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, sertifikat'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
+  function renderSidenav() {
+    var el = $('sidenav'); if (!el) return;
+    el.hidden = false; document.body.classList.add('ada-side');
+    var m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null, nT = hitungTugas();
+    var item = function (x) { return '<button type="button" class="sn-i" data-vt="' + x[0] + '" aria-selected="' + (S.vt === x[0]) + '"><span class="ikb">' + ikon(x[2]) + '</span><span class="sn-t"><b>' + esc(x[1]) + '</b><small>' + esc(x[3]) + '</small></span></button>'; };
+    el.innerHTML = '<div class="sn-brand"><span class="sn-logo" aria-hidden="true">' + ikon('petir') + '</span><span><b>Dashboard Kinerja</b><small>' + esc(m.unit || 'UPDL Semarang') + '</small></span></div>' +
+      '<div class="sn-cap">Menu</div><nav class="sn-nav">' + NAV.map(item).join('') + '</nav>' +
+      (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button></nav>' : '') +
+      '<nav class="sn-nav sn-bawah"><button type="button" class="sn-i" data-vt="semua" aria-selected="' + (S.vt === 'semua') + '"><span class="ikb">' + ikon('grid') + '</span><span class="sn-t"><b>Semua bagian</b><small>Tampilan lengkap</small></span></button></nav>' +
+      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
+      '<div class="sn-user"><span class="av">' + esc(String(m.user || 'U').charAt(0).toUpperCase()) + '</span><span><b>' + esc(m.user || '') + '</b><small>' + (admin() ? 'Admin' : 'Lihat') + '</small></span></div></div>';
+    var b = $('vtTugasN'); if (b) { b.hidden = !nT; b.textContent = nT; }
+  }
+
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
-  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan'], evaluasi: ['evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
   function pilihTab(t, gulir) {
-    if (!t || (!VT[t] && t !== 'ringkasan' && t !== 'semua')) t = 'ringkasan';
+    if (t === 'tugas' && !admin()) t = 'ringkasan';
+    if (!t || (!VT[t] && t !== 'ringkasan' && t !== 'semua' && t !== 'tugas')) t = 'ringkasan';
     S.vt = t; try { localStorage.setItem(VT_KEY, t); } catch (e) { /* abaikan */ }
     document.body.setAttribute('data-vt', t);
     Array.prototype.forEach.call(document.querySelectorAll('[data-vt]'), function (b) { if (b.tagName === 'BUTTON') b.setAttribute('aria-selected', b.getAttribute('data-vt') === t); });
     Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian]'), function (sec) {
       var bg = sec.getAttribute('data-bagian'); sec.hidden = !(t === 'semua' || (VT[t] && VT[t].indexOf(bg) >= 0));
     });
-    $('rgk').hidden = t !== 'ringkasan';
+    $('rgk').hidden = t !== 'ringkasan'; $('tugas').hidden = t !== 'tugas';
+    if (t === 'tugas') renderTugas();
+    if (gulir && window.innerWidth >= 1100) window.scrollTo({ top: 0, behavior: 'smooth' });
     if (t === 'semua' || t === 'kinerja') { try { renderChart(); } catch (e) { /* abaikan */ } }
     if (gulir) { var nv = $('vtabs'); if (nv && nv.getBoundingClientRect().top < 0) nv.scrollIntoView({ block: 'start' }); }
   }
@@ -1371,7 +1493,7 @@
       return '<button type="button" class="rgk-tile ' + x.c + '" data-rgk="' + i + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
     }).join('') + '</div>';
     el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles +
-      '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak atau pilih tab di atas untuk melihat rinciannya.</p>';
+      '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak untuk melihat tren, atau pilih menu untuk rinciannya.</p>';
   }
 
   /* detail tren: grafik garis per bulan yang mudah dibaca orang awam, lalu tombol menuju kartu rinciannya */
@@ -1433,7 +1555,7 @@
   function renderAll() {
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
-    [['Ringkasan', renderRingkasan], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
+    [['Navigasi', renderSidenav], ['Ringkasan', renderRingkasan], ['Tugas', function () { if (S.vt === 'tugas') renderTugas(); }], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
      ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
@@ -1503,6 +1625,7 @@
     $('avatar').textContent = (user || 'U').charAt(0).toUpperCase();
   }
   function tampilLogin(pesan) {
+    if ($('sidenav')) { $('sidenav').hidden = true; document.body.classList.remove('ada-side'); }
     S.data = null; S.cache = null; S.tahun = null; S.bulan = null; S.riskOn = null;
     document.body.classList.remove('peran-admin');
     Array.prototype.forEach.call(document.querySelectorAll('.modal'), function (m) { m.hidden = true; });
@@ -1576,6 +1699,8 @@
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
+    var tp = t.closest('[data-tgpic]'); if (tp) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; var pv = tp.getAttribute('data-tgpic'); S.tgF.pic = S.tgF.pic === pv ? '' : pv; return renderTugas(); }
+    var ts = t.closest('[data-tgst]'); if (ts) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; S.tgF.st = ts.getAttribute('data-tgst'); return renderTugas(); }
     var rg = t.closest('[data-rgk]'); if (rg) return openTren(+rg.getAttribute('data-rgk'));
     var lp = t.closest('[data-lompat]'); if (lp) { var q = lp.getAttribute('data-lompat').split('|'); return lompatKe(q[0], q[1]); }
     var vtb = t.closest('[data-vt]'); if (vtb && vtb.tagName === 'BUTTON') { pilihTab(vtb.getAttribute('data-vt'), true); return; }
