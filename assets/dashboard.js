@@ -1362,7 +1362,7 @@
     return out.sort(function (a, b) { return (urut[a.st] - urut[b.st]) || PIC_EPMK.indexOf(a.pic) - PIC_EPMK.indexOf(b.pic); });
   }
   function renderTugas() {
-    var el = $('tugas'); if (!el || !admin()) return;
+    var el = $('tugas'); if (!el || !admin() || !S.data) return;
     var L = tugasList(), f = S.tgF || { pic: '', st: 'perlu' }, T = (S.data.meta && S.data.meta.tugas) || {};
     var hit = function (p) { var X = L.filter(function (x) { return x.pic === p; }); return { bad: X.filter(function (x) { return x.st === 'bad'; }).length, warn: X.filter(function (x) { return x.st === 'warn'; }).length, ok: X.filter(function (x) { return x.st === 'good'; }).length, n: X.length }; };
     var cards = PIC_EPMK.map(function (p) {
@@ -1397,13 +1397,13 @@
   function renderSidenav() {
     var el = $('sidenav'); if (!el) return;
     el.hidden = false; document.body.classList.add('ada-side');
-    var m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null, nT = hitungTugas();
+    var m = (S.data && S.data.meta) || { user: S.user, unit: 'UPDL Semarang' }, t = m.generatedAt ? new Date(m.generatedAt) : null, nT = S.data ? hitungTugas() : 0;
     var item = function (x) { return '<button type="button" class="sn-i" data-vt="' + x[0] + '" aria-selected="' + (S.vt === x[0]) + '"><span class="ikb">' + ikon(x[2]) + '</span><span class="sn-t"><b>' + esc(x[1]) + '</b><small>' + esc(x[3]) + '</small></span></button>'; };
     el.innerHTML = '<div class="sn-brand"><span class="sn-logo" aria-hidden="true">' + ikon('petir') + '</span><span><b>Dashboard Kinerja</b><small>' + esc(m.unit || 'UPDL Semarang') + '</small></span></div>' +
       '<div class="sn-cap">Menu</div><nav class="sn-nav">' + NAV.map(item).join('') + '</nav>' +
       (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button></nav>' : '') +
       '<nav class="sn-nav sn-bawah"><button type="button" class="sn-i" data-vt="semua" aria-selected="' + (S.vt === 'semua') + '"><span class="ikb">' + ikon('grid') + '</span><span class="sn-t"><b>Semua bagian</b><small>Tampilan lengkap</small></span></button></nav>' +
-      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
+      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
       '<div class="sn-user"><span class="av">' + esc(String(m.user || 'U').charAt(0).toUpperCase()) + '</span><span><b>' + esc(m.user || '') + '</b><small>' + (admin() ? 'Admin' : 'Lihat') + '</small></span></div></div>';
     var b = $('vtTugasN'); if (b) { b.hidden = !nT; b.textContent = nT; }
   }
@@ -1552,6 +1552,12 @@
       '<div><button class="btn btn-p" type="button" data-lompat="' + o.ke[0] + '|' + o.ke[1] + '">Lihat rincian di kartu ' + esc(o.keNama) + ' →</button></div>', 'tren');
   }
 
+  window.addEventListener('beforeprint', function () {
+    if (S.vtCetak) return; S.vtCetak = S.vt || 'semua';
+    Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian]'), function (sec) { sec.hidden = false; });
+    try { renderChart(); } catch (e) { /* abaikan */ }
+  });
+  window.addEventListener('afterprint', function () { var t = S.vtCetak; S.vtCetak = null; if (t) pilihTab(t); });
   function renderAll() {
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
@@ -1587,7 +1593,7 @@
   }
 
   function boot(data) {
-    S.data = data;
+    S.data = data; document.body.classList.remove('memuat');
     S.cache = { konman: {}, kelas: {} };
     Object.keys(data.konman || {}).forEach(function (y) { S.cache.konman[y] = D.parseKonman(data.konman[y]); });
     Object.keys(data.rendiklat || {}).forEach(function (y) { S.cache.kelas[y] = D.parseRendiklat(data.rendiklat[y], data.koreksi); });
@@ -1619,12 +1625,14 @@
 
   /* ---------- login & peran ---------- */
   function aturPeran(peran, user) {
+    S.user = user || S.user;
     S.peran = peran === 'admin' ? 'admin' : 'lihat';
     document.body.classList.toggle('peran-admin', S.peran === 'admin');
     $('who').textContent = (user ? user + ' · ' : '') + (S.peran === 'admin' ? 'Admin' : 'Akun Lihat');
     $('avatar').textContent = (user || 'U').charAt(0).toUpperCase();
   }
   function tampilLogin(pesan) {
+    S.vt = null;
     if ($('sidenav')) { $('sidenav').hidden = true; document.body.classList.remove('ada-side'); }
     S.data = null; S.cache = null; S.tahun = null; S.bulan = null; S.riskOn = null;
     document.body.classList.remove('peran-admin');
@@ -1659,9 +1667,16 @@
   });
   $('logoutBtn').addEventListener('click', function () { keluar(); });
 
+  /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
+  function tampilMemuat() {
+    document.body.classList.add('memuat');
+    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } S.vt = vt0 || (admin() ? 'semua' : 'ringkasan'); document.body.setAttribute('data-vt', S.vt); }
+    try { renderSidenav(); } catch (e) { /* abaikan */ }
+  }
   function load() {
     $('srcBadge').className = 'badge snap'; $('srcBadge').textContent = 'Memuat data…';
     var c = D.cachedData(); if (c && !S.data) boot(c);
+    if (!S.data) tampilMemuat();
     return D.loadData().then(boot).catch(function (e) {
       if (e.login) { D.hapusSesi(); return tampilLogin(e.message === 'Silakan masuk.' ? '' : e.message); }
       $('srcBadge').className = 'badge err'; $('srcBadge').textContent = 'Gagal memuat';

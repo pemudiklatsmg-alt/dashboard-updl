@@ -1223,3 +1223,33 @@ html.glass .tg-row { background: var(--g-btn); border-color: var(--g-border); }
 .tg-fil .chip { background: transparent; color: var(--ink-2); border-color: var(--line); }
 .tg-fil .chip.on, html.glass .tg-fil .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 .tg-row .btn.sm { color: var(--ink); }
+
+/* ---------- kerangka saat data pertama dimuat ---------- */
+.muat-skel { display: none; gap: 14px; }
+body.memuat .muat-skel { display: grid; }
+body.memuat main [data-bagian], body.memuat #rgk, body.memuat #tugas, body.memuat #perhatian, body.memuat .vtabs, body.memuat #warn { display: none !important; }
+.sk-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; }
+.sk-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.sk { border-radius: 18px; border: 1px solid var(--line); min-height: 120px; position: relative; overflow: hidden;
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--ink) 7%, transparent) 40%, transparent 60%) 0 0 / 220% 100%, color-mix(in srgb, var(--ink) 4%, transparent);
+  animation: kilau 1.4s linear infinite; }
+.sk-hero, .sk-side { min-height: 210px; }
+@keyframes kilau { from { background-position: 120% 0, 0 0; } to { background-position: -120% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+.sk-t { margin: 0; text-align: center; color: var(--ink-3); font-size: 13px; display: flex; gap: 8px; justify-content: center; align-items: center; }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: putar .8s linear infinite; }
+@keyframes putar { to { transform: rotate(360deg); } }
+@media (max-width: 700px) { .sk-top { grid-template-columns: minmax(0, 1fr); } .sk-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sk-side { display: none; } }
+
+/* ---------- cetak / simpan PDF: satu halaman ringkas, tanpa navigasi ---------- */
+@media print {
+  .sidenav, .vtabs, #rgk, #tugas, .muat-skel, .fokus-tirai, .cap-side .cs-pres { display: none !important; }
+  body.ada-side .sheet { margin: 0 !important; }
+  body[data-vt] #perhatian { display: flex !important; }
+  [data-bagian="ringkasan"], [data-bagian="bulanan"] { display: grid !important; }
+  [data-bagian="evaluasi"] { display: block !important; }
+  [data-bagian="evaluasi"] .minis { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+  .row2 { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr) !important; }
+  .ikb { display: none !important; }
+}
+body.memuat #notifBtn { visibility: hidden; }
