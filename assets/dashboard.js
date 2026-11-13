@@ -279,6 +279,23 @@
     return u + (g !== undefined ? '#gid=' + g + (baris ? '&range=A' + baris : '') : '');
   }
   /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai janggal. Tiap temuan membawa daftar baris untuk ditelusuri */
+  /* kapan data sumber terakhir berubah (bukan kapan dashboard mengambil data) */
+  var NAMA_FILE = { mli: 'file MLI Probis', profil: 'file Profil Risiko', fra: 'file FRA', el1: 'file DOC 1 (EL1)', el2: 'file DOC 2 (EL2)', data: 'spreadsheet Data Dashboard' };
+  function jamTgl(d) { return d.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function waktuSumber(tab) {
+    var P = (S.data.meta || {}).perubahan; if (!P) return null;
+    var x = P.tab && P.tab[tab]; if (x && x.t) return { d: new Date(x.t), via: x.via === 'dashboard' ? 'lewat dashboard' : x.via === 'manual' ? 'edit manual' : '' };
+    var F = P.file || {}, k = /Rendiklat/i.test(tab) ? 'rendiklat_' + ((tab.match(/20\d\d/) || [S.tahun])[0]) : /MLI/i.test(tab) ? 'mli' : /Profil Risiko|KRI|Peta Risiko/i.test(tab) ? 'profil' : /FRA/i.test(tab) ? 'fra' : '';
+    return k && F[k] ? { d: new Date(F[k]), via: 'file sumber' } : null;
+  }
+  function perubahanTerakhir() {
+    var P = (S.data.meta || {}).perubahan; if (!P) return null;
+    var best = null, cek = function (d, nama, via) { if (d && !isNaN(d) && d <= new Date(Date.now() + 6e4) && (!best || d > best.d)) best = { d: d, nama: nama, via: via }; };
+    Object.keys(P.tab || {}).forEach(function (k) { if (/^(Log Login|Cadangan|\(Lama\))/i.test(k)) return; var x = P.tab[k]; cek(new Date(x.t), k, x.via === 'dashboard' ? 'lewat dashboard' : x.via === 'manual' ? 'edit manual' : ''); });
+    Object.keys(P.file || {}).forEach(function (k) { if (k === 'data' || !P.file[k]) return; cek(new Date(P.file[k]), /^rendiklat_/.test(k) ? 'file Rendiklat ' + k.slice(-4) : NAMA_FILE[k] || k, 'file sumber'); });
+    if (!best && P.file && P.file.data) cek(new Date(P.file.data), NAMA_FILE.data, '');
+    return best;
+  }
   function cekKualitas() {
     var out = [], y = S.tahun, tglId = function (d) { return d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'tanpa tanggal'; };
     var renUrl = ((S.data.meta.links || {}).rendiklat || {})[y] || '';
@@ -330,11 +347,11 @@
     var sum = '<div class="sg-sum">' + grup.map(function (g) { return '<div data-st="' + g[2] + '"><b class="num">' + n(g[1]) + '</b><span>' + g[0] + '</span></div>'; }).join('') + '<div data-st="' + (Q.length ? 'warn' : 'good') + '"><b class="num">' + Q.length + '</b><span>temuan kualitas isian</span></div></div>';
     var tbl = grup.map(function (g) {
       var X = L.filter(g[1]); if (!X.length) return '';
-      return '<h4 class="sg-h" data-st="' + g[2] + '">' + g[0] + ' · ' + X.length + '</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Status</th></tr></thead><tbody>' +
-        X.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
+      return '<h4 class="sg-h" data-st="' + g[2] + '">' + g[0] + ' · ' + X.length + '</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Terakhir diubah</th><th>Status</th></tr></thead><tbody>' +
+        X.map(function (x) { var w = waktuSumber(x.tab); return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td>' + (w ? esc(jamTgl(w.d)) + (w.via ? '<div class="desc">' + esc(w.via) + '</div>' : '') : '<span class="desc">–</span>') + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
     }).join('');
     var kual = '<h4 class="sg-h" data-st="' + (Q.length ? 'warn' : 'good') + '">Pemeriksaan kualitas isian · ' + Q.length + ' temuan</h4>' + (Q.length ? daftarKualitasHtml(Q) : '<p class="desc">Tidak ditemukan data ganda, kolom wajib kosong, atau nilai janggal.</p>');
-    openModal('<div class="modal-h"><div><div class="desc">Patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
+    openModal('<div class="modal-h"><div><div class="desc">Patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (function () { var pt = perubahanTerakhir(); return (pt ? ' · data terakhir berubah ' + esc(jamTgl(pt.d)) + ' (' + esc(pt.nama) + (pt.via ? ', ' + esc(pt.via) : '') + ')' : '') + (t ? ' · dicek ' + esc(jamTgl(t)) : ''); })() + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
       sum + kual + tbl + '<div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>', 'wide');
   }
 
@@ -1488,7 +1505,7 @@
       (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button>' +
         '<button type="button" class="sn-i" data-vt="pengaturan" aria-selected="' + (S.vt === 'pengaturan') + '"><span class="ikb">' + ikon('gir') + '</span><span class="sn-t"><b>Pengaturan</b><small>Target, PIC, pengingat, akun</small></span></button></nav>' : '') +
       '<nav class="sn-nav sn-bawah"><button type="button" class="sn-i" data-vt="semua" aria-selected="' + (S.vt === 'semua') + '"><span class="ikb">' + ikon('grid') + '</span><span class="sn-t"><b>Semua bagian</b><small>Tampilan lengkap</small></span></button></nav>' +
-      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'Di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
+      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (function () { var pt = S.data && perubahanTerakhir(); return pt ? 'Data berubah ' + esc(jamTgl(pt.d)) + '<br>' + esc(pt.nama) + (pt.via ? ' · ' + esc(pt.via) : '') : (t ? 'Diambil ' + esc(jamTgl(t)) : ''); })() + '</small></span></button>' +
       '<div class="sn-user"><span class="av">' + esc(String(m.user || 'U').charAt(0).toUpperCase()) + '</span><span><b>' + esc(m.user || '') + '</b><small>' + (admin() ? 'Admin' : 'Lihat') + '</small></span></div></div>';
     var b = $('vtTugasN'); if (b) { b.hidden = !nT; b.textContent = nT; }
   }
@@ -1691,7 +1708,7 @@
     else if (m.stale) { badge.className = 'badge err'; badge.textContent = 'Data tersimpan (gagal memuat ulang)'; }
     else { badge.className = 'badge snap'; badge.textContent = 'Data belum terhubung'; }
     var t = m.generatedAt ? new Date(m.generatedAt) : null;
-    $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (t ? 'di-update ' + t.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
+    var pt0 = perubahanTerakhir(); $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (pt0 ? 'data berubah ' + jamTgl(pt0.d) + ' (' + pt0.nama + ')' : t ? 'diambil ' + jamTgl(t) : '');
     var w = [];
     if (m.source !== 'live') w.push(esc(m.reason || 'Data tidak terhubung ke Google Sheets.'));
     if (m.stale) w.push('Gagal memuat data terbaru: ' + esc(m.stale));
@@ -1869,7 +1886,7 @@
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
-    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink, openKualitas: openKualitas, cekKualitas: cekKualitas, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
+    kesegaran: kesegaran, perhatian: perhatian, perubahanTerakhir: perubahanTerakhir, sheetLink: sheetLink, openKualitas: openKualitas, cekKualitas: cekKualitas, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
     pilihTab: pilihTab, renderChart: renderChart, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }

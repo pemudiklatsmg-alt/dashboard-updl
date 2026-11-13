@@ -494,6 +494,7 @@ function doPost(e) {
       var d = buildData_(); d.ok = true; d.meta.user = sesi.user; d.meta.peran = sesi.peran;
       if (d.fra && sesi.peran !== 'admin') d.fra = { periode: d.fra.periode, ringkas: d.fra.ringkas, terbatas: true };   // rincian FRA hanya untuk Admin
       if (sesi.peran === 'admin') d.meta.tugas = infoTugas_();   // pemantauan tugas tim EPMK (Admin)
+      try { d.meta.perubahan = infoPerubahan_(); } catch (x) { /* abaikan */ }
       return json_(d);
     }
     if (req.aksi === 'log') {
@@ -1318,9 +1319,9 @@ function sekCache_(key, fp, fn, detik) {
 }
 /* Pemicu sederhana: catat tab yang disunting supaya cache bagian itu dihitung ulang */
 function onEdit(e) {
-  try { var n = e.range.getSheet().getName(), o = {}; o['ubah_' + n] = String(Date.now()); PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ }
+  try { var n = e.range.getSheet().getName(), o = {}; o['ubah_' + n] = String(Date.now()); o['ubahvia_' + n] = 'manual'; PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ }
 }
-function tandaiUbah_(nama) { try { var o = {}; o['ubah_' + nama] = String(Date.now()); PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ } }
+function tandaiUbah_(nama) { try { var o = {}; o['ubah_' + nama] = String(Date.now()); o['ubahvia_' + nama] = 'dashboard'; PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ } }
 /* Menu: hapus semua cache lalu hitung ulang (dipakai setelah menempel data besar) */
 function segarkanData() {
   var o = { CACHE_EPOCH: String(Date.now()) }; PropertiesService.getScriptProperties().setProperties(o);
@@ -1694,3 +1695,35 @@ function ubahAkun_(req, sesi) {
   }
   throw new Error('Perintah akun tidak dikenal.');
 }
+
+
+/* ======================================================================== */
+/*  KAPAN DATA TERAKHIR BERUBAH                                              */
+/* ======================================================================== */
+/* Tab spreadsheet dashboard: dicatat saat diedit manual (onEdit) atau lewat form dashboard (tandaiUbah_).
+   File luar (Rendiklat, MLI, Profil Risiko, FRA, DOC EL1/EL2): "terakhir diubah" dari Google Drive. */
+function waktuFile_(id) {
+  id = String(id || '').trim(); if (!id) return null;
+  var c = CacheService.getScriptCache(), k = 'mod_' + id, v = c.get(k);
+  if (v) return v === '-' ? null : v;
+  var hasil = null;
+  try {
+    var r = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?fields=modifiedTime&supportsAllDrives=true',
+      { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    if (r.getResponseCode() === 200) hasil = JSON.parse(r.getContentText()).modifiedTime || null;
+  } catch (e) { /* tanpa izin Drive: lewati */ }
+  c.put(k, hasil || '-', 600);
+  return hasil;
+}
+function infoPerubahan_() {
+  var cfg = getConfig_(), p = ambilUbah_(), tab = {};
+  Object.keys(p).forEach(function (k) { if (k.indexOf('ubah_') === 0) tab[k.slice(5)] = { t: Number(p[k]) || 0, via: p['ubahvia_' + k.slice(5)] || '' }; });
+  var file = {};
+  try { file.data = waktuFile_(SpreadsheetApp.getActiveSpreadsheet().getId()); } catch (e) { /* abaikan */ }
+  Object.keys(cfg).forEach(function (k) { if (/^RENDIKLAT_\d{4}$/.test(k)) file['rendiklat_' + k.slice(-4)] = waktuFile_(cfg[k]); });
+  file.mli = waktuFile_(cfg.MLI_ID); file.profil = waktuFile_(cfg.PROFIL_RISIKO_ID); file.fra = waktuFile_(cfg.FRA_ID);
+  if (cfg.EL1_ID) file.el1 = waktuFile_(cfg.EL1_ID);
+  if (cfg.EL2_ID) file.el2 = waktuFile_(cfg.EL2_ID);
+  return { tab: tab, file: file };
+}
+function cekIzinDrive() { Logger.log(JSON.stringify(infoPerubahan_().file)); }
