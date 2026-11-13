@@ -272,12 +272,46 @@
     ada('Isu & Pihak Berkepentingan', 'file Profil Risiko tab 2b/2c', S.data.konteks ? kIsu().length + kPihak().length : 0, S.data.konteks ? kIsu().length + ' isu · ' + kPihak().length + ' pihak' : null);
     return out;
   }
+  /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai di luar aturan */
+  function cekKualitas() {
+    var out = [], y = S.tahun;
+    var tambah = function (n, c, judul, ket, tab) { if (n) out.push({ n: n, c: c, judul: judul, ket: ket, tab: tab }); };
+    var K0 = kelas(), idH = {}, dup = 0;
+    K0.forEach(function (k) { if (!k.id) return; idH[k.id] = (idH[k.id] || 0) + 1; if (idH[k.id] === 2) dup++; });
+    tambah(dup, 'bad', 'ID kelas ganda di Rendiklat', 'ID jadwal yang sama muncul lebih dari sekali; peserta bisa terhitung dua kali.', 'file Rendiklat');
+    var thn = K0.filter(function (k) { return k.selesai && k.selesai.getFullYear() === y; });
+    tambah(thn.filter(function (k) { return !/^(Selesai|Berlangsung|Terjadwal|Ditunda|Dibatalkan)$/.test(k.status); }).length, 'warn', 'Status kelas kosong / tidak baku', 'Kelas tahun ini yang kolom status-nya kosong atau bukan Selesai/Berlangsung/Terjadwal/Ditunda/Dibatalkan.', 'file Rendiklat');
+    tambah(thn.filter(function (k) { return !k.metode; }).length, 'warn', 'Metode pelaksanaan kosong', 'Kelas tanpa metode (ICT/DL/BL/SL/IHT/HL) tidak masuk grafik Metode Pembelajaran.', 'file Rendiklat');
+    tambah(thn.filter(function (k) { return k.mulai && k.selesai && k.selesai < k.mulai; }).length, 'bad', 'Tanggal selesai sebelum tanggal mulai', 'Hari pelatihan & HOP jadi salah.', 'file Rendiklat');
+    tambah(thn.filter(function (k) { return k.status === 'Selesai' && k.realisasi !== null && k.rencana && k.realisasi > k.rencana * 2; }).length, 'warn', 'Realisasi peserta > 2× rencana', 'Periksa kemungkinan salah ketik jumlah peserta.', 'file Rendiklat');
+    var r = D.hitungRendiklat(K0, y, S.bulan, set()), nk = r.pakaiRencana || r.tanpaPeserta;
+    tambah(nk, 'warn', 'Kelas selesai tanpa realisasi peserta', 'Dihitung memakai rencana peserta (ditandai perkiraan). Isi realisasi di Rendiklat atau Koreksi Rendiklat.', 'Koreksi Rendiklat');
+    var tl = tlRows(), kunci = {}, dTl = 0;
+    tl.forEach(function (x) { var kk = [x['Judul Diklat'], x['Angkatan'], String(x['Komentar'] || '').trim().toLowerCase()].join('|'); if (!String(x['Komentar'] || '').trim()) return; kunci[kk] = (kunci[kk] || 0) + 1; if (kunci[kk] === 2) dTl++; });
+    tambah(dTl, 'warn', 'Masukan perbaikan ganda', 'Komentar yang sama untuk pelatihan & angkatan yang sama tercatat lebih dari sekali.', 'Perbaikan Berkelanjutan');
+    tambah(tl.filter(function (x) { return !String(x['PIC'] || '').trim() && x['Kategori Komentar'] !== 'OFI'; }).length, 'warn', 'Masukan perbaikan tanpa PIC', 'Tidak bisa dipantau siapa yang menindaklanjuti.', 'Perbaikan Berkelanjutan');
+    tambah(tl.filter(function (x) { return !String(x['Status'] || '').trim() && x['Kategori Komentar'] !== 'OFI'; }).length, 'warn', 'Masukan perbaikan tanpa Status', 'Dianggap Belum Dimulai.', 'Perbaikan Berkelanjutan');
+    if (S.data.inovasi) { var ino = D.rows(S.data.inovasi);
+      tambah(ino.filter(function (x) { return !String(x['Tahun'] || '').trim(); }).length, 'bad', 'Inovasi tanpa Tahun', 'Kolom Tahun wajib; baris ini tidak tampil di dashboard.', 'Data - Inovasi');
+      var jI = {}, dI = 0; ino.forEach(function (x) { var t = String(x['Judul Inovasi'] || '').trim().toLowerCase(); if (!t) return; jI[t] = (jI[t] || 0) + 1; if (jI[t] === 2) dI++; });
+      tambah(dI, 'warn', 'Judul inovasi ganda', 'Judul yang sama tercatat lebih dari sekali.', 'Data - Inovasi'); }
+    (S.data.warnings || []).forEach(function (w) { tambah(1, 'warn', 'Peringatan saat membaca data', String(w), '–'); });
+    return out;
+  }
   function openSegar() {
-    var L = kesegaran(), m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null;
-    openModal('<div class="modal-h"><div><div class="desc">Data terakhir per sumber · patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
-      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Status</th></tr></thead><tbody>' +
-      L.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') +
-      '</tbody></table></div><div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>');
+    var L = kesegaran(), m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null, Q = cekKualitas();
+    var grup = [['Kosong / belum ada data', function (x) { return x.c === 'idle' || x.c === 'bad'; }, 'bad'], ['Belum lengkap / perlu diperbarui', function (x) { return x.c === 'warn'; }, 'warn'], ['Lengkap & terbaru', function (x) { return x.c === 'good'; }, 'good']];
+    var n = function (f) { return L.filter(f).length; };
+    var sum = '<div class="sg-sum">' + grup.map(function (g) { return '<div data-st="' + g[2] + '"><b class="num">' + n(g[1]) + '</b><span>' + g[0] + '</span></div>'; }).join('') + '<div data-st="' + (Q.length ? 'warn' : 'good') + '"><b class="num">' + Q.length + '</b><span>temuan kualitas isian</span></div></div>';
+    var tbl = grup.map(function (g) {
+      var X = L.filter(g[1]); if (!X.length) return '';
+      return '<h4 class="sg-h" data-st="' + g[2] + '">' + g[0] + ' · ' + X.length + '</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Status</th></tr></thead><tbody>' +
+        X.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
+    }).join('');
+    var kual = '<h4 class="sg-h" data-st="' + (Q.length ? 'warn' : 'good') + '">Pemeriksaan kualitas isian · ' + Q.length + ' temuan</h4>' + (Q.length ? '<ul class="sg-q">' + Q.map(function (q) {
+      return '<li data-st="' + q.c + '"><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + '</small></div></li>'; }).join('') + '</ul>' : '<p class="desc">Tidak ditemukan data ganda, kolom wajib kosong, atau nilai janggal.</p>');
+    openModal('<div class="modal-h"><div><div class="desc">Patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      sum + kual + tbl + '<div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>', 'wide');
   }
 
   /* ---------- perlu perhatian ---------- */

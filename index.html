@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261114b">
+<link rel="stylesheet" href="assets/style.css?v=20261114c">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -51,8 +51,6 @@
     <div class="mtheme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Tampilan</span>
       <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap"><button type="button" data-th="light" aria-pressed="false">Terang</button><button type="button" data-th="dark" aria-pressed="false">Gelap</button></span></div>
     <div class="msep"></div>
-    <div class="mcap">Lompat ke bagian</div>
-    <nav class="mjump" aria-label="Bagian dashboard"><a href="#ringkasan">Ringkasan</a><a href="#bulanan">Per bulan</a><a href="#indikator">Indikator</a><a href="#kepatuhan">Kepatuhan</a><a href="#pengembangan">IDP &amp; Inovasi</a><a href="#isu">Isu &amp; Pihak</a><a href="#risiko">Risiko</a><a href="#kri">KRI</a><a href="#fraud">Fraud</a></nav>
     <button class="mi adm" role="menuitem" type="button" id="presBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8.5v4l3.5-2z"/></svg>Mode presentasi<span class="mhint">layar penuh</span></button>
     <button class="mi" role="menuitem" type="button" id="printBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Cetak ringkasan / PDF<span class="mhint">1 halaman</span></button>
     <div class="msep"></div>
@@ -234,17 +232,17 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261114b"></script>
-<script src="assets/common.js?v=20261114b"></script>
-<script src="assets/genie.js?v=20261114b"></script>
-<script src="assets/dashboard.js?v=20261114b"></script>
-<script src="assets/input.js?v=20261114b"></script>
-<script src="assets/export.js?v=20261114b"></script>
-<script src="assets/fitur.js?v=20261114b"></script>
-<script src="assets/cetak.js?v=20261114b"></script>
-<script src="assets/pengaturan.js?v=20261114b"></script>
-<script src="assets/grafik.js?v=20261114b"></script>
-<template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g6" class="adm">Pengaturan</a></nav>
+<script src="config.js?v=20261114c"></script>
+<script src="assets/common.js?v=20261114c"></script>
+<script src="assets/genie.js?v=20261114c"></script>
+<script src="assets/dashboard.js?v=20261114c"></script>
+<script src="assets/input.js?v=20261114c"></script>
+<script src="assets/export.js?v=20261114c"></script>
+<script src="assets/fitur.js?v=20261114c"></script>
+<script src="assets/cetak.js?v=20261114c"></script>
+<script src="assets/pengaturan.js?v=20261114c"></script>
+<script src="assets/grafik.js?v=20261114c"></script>
+<template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
   <div class="flow">
@@ -291,7 +289,18 @@
   </div>
  </section>
 
- <section class="g-sec adm" id="g6"><h4><span class="no">6</span>Mengubah pengaturan (khusus Admin)</h4>
+ <section class="g-sec" id="g7"><h4><span class="no">6</span>Memakai dashboard</h4>
+  <div class="time">
+   <div><b>Menu samping</b>Pilih Ringkasan, Kinerja Unit, Rekap Pembelajaran, Evaluasi, SDM &amp; Inovasi, atau Risiko &amp; Mutu. Di HP: tab di bawah judul</div>
+   <div><b>Panah dalam lingkaran →</b>Kartu atau baris yang bisa diklik untuk rincian. Di dalam rincian kadang bisa diklik lagi (mis. daftar kelas → satu kelas)</div>
+   <div><b>Angka di grafik</b>Bulan terpilih tampil terang &amp; tebal, bulan lain redup</div>
+   <div><b>Status Data</b>Menu ☰ › Status data: sumber yang kosong, belum lengkap, lengkap, dan temuan kualitas isian (data ganda, kolom kosong)</div>
+   <div><b>Cetak / PDF</b>Menu ☰ › Cetak: Ringkas, Lengkap, atau Halaman ini. Pilih "Simpan sebagai PDF"</div>
+   <div class="adm"><b>Khusus Admin</b>Tugas Tim EPMK (PIC, data usang, tenggat), pengingat saat masuk, mode presentasi, dan halaman Pengaturan</div>
+  </div>
+ </section>
+
+ <section class="g-sec adm" id="g6"><h4><span class="no">7</span>Mengubah pengaturan (khusus Admin)</h4>
   <div class="flow">
    <div class="st"><span class="ic">⚙️</span><b>Buka</b><span>Menu samping → <b>Pengaturan</b> (di HP: tab Pengaturan)</span></div>
    <div class="st"><span class="ic">✏️</span><b>Ubah</b><span>Pilih bagian, ubah isian. Baris yang berubah ditandai kuning. Tombol <b>?</b> menjelaskan kapan perlu diubah</span></div>
@@ -308,6 +317,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261114b"></script>
+<script src="assets/panduan.js?v=20261114c"></script>
 </body>
 </html>
