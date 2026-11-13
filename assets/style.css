@@ -1515,3 +1515,19 @@ body.top-nempel .top, html.glass body.top-nempel .top {
 @media (max-width: 700px) { body.top-nempel .top, html.glass body.top-nempel .top { margin-left: -15px; margin-right: -15px; border-radius: 0 0 14px 14px; } }
 .at-l label b, .at-help b { display: inline; }
 .at-l small { margin-top: 3px; }
+
+/* Cetak v3: satu skala, isi mengalir, margin kiri-kanan sama */
+#cetakWrap .cp-doc { background: #fff; color: #18233f; }
+#cetakWrap .cp-sec { break-before: page; page-break-before: always; }
+#cetakWrap .cp-sec.pertama { break-before: auto; page-break-before: auto; }
+#cetakWrap .cp-judul { font-family: var(--f-display); font-size: 20px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+#cetakWrap .cp-sec .cp-isi { width: auto !important; transform: none !important; display: grid; gap: 14px; }
+#cetakWrap .cp-kop { margin-bottom: 14px; }
+#cetakWrap .panel, #cetakWrap .card, #cetakWrap .gx-p, #cetakWrap .cp-box, #cetakWrap .rgk-tile, #cetakWrap .tg-row, #cetakWrap tr, #cetakWrap .ind-row { break-inside: avoid; page-break-inside: avoid; }
+#cetakWrap .cp-foot { margin-top: 14px; }
+#cetakWrap .idp-warn, #cetakWrap .warnbox, #cetakWrap .note.idp, #cetakWrap [data-bagian="pengembangan"] .note { display: none !important; }
+#cetakWrap .rgk-t { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+#cetakWrap .minis { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+#cetakWrap [data-bagian="risiko"] .row2, #cetakWrap [data-bagian="risiko"] .pair { grid-template-columns: minmax(0, 1fr) !important; }
+#cetakWrap .fr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; } #cetakWrap .fr-r { grid-column: 1 / -1; }
+@media print { body.cetak-mode #cetakWrap .cp-doc { width: 900px; } }

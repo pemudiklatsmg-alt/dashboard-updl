@@ -99,44 +99,30 @@
     isi.style.width = best.L + 'px'; isi.style.transform = 'scale(' + best.s.toFixed(4) + ')';
     return best.s;
   }
+  /* Satu skala untuk semua bagian (ukuran huruf sama di tiap halaman); isi mengalir ke halaman berikutnya bila panjang. */
+  var LEBAR_TETAP = 900;
   function susun(jenis) {
-    var unit = [];   // { n: judul, el: fungsi pembuat isi }
-    var dariBag = function (b, ks) { ks = ks || b.k; return { n: b.n, el: function () { return ks.map(sec).filter(Boolean).map(salin); }, ada: ks.some(sec) }; };
-    var pages = [];
-    if (jenis === 'ringkas') pages.push(halRingkas());
-    else if (jenis === 'lengkap') { pages.push(halRingkas()); BAG.forEach(function (b) { if (b.k[0] !== 'bulanan') unit.push(dariBag(b)); }); }
+    var w = $('cetakWrap'); w.innerHTML = '';
+    var bag = [];
+    if (jenis === 'ringkas') bag.push(halRingkas());
+    else if (jenis === 'lengkap') { bag.push(halRingkas()); BAG.forEach(function (b) { if (b.k[0] !== 'bulanan') { var p = halBagian(b); if (p) bag.push(p); } }); }
     else {
       var t = A.S.vt || 'semua';
-      if (t === 'ringkasan') pages.push(halRingkas());
-      else if (t === 'tugas') pages.push(halaman('Tugas Tim EPMK', salin($('tugas'))));
-      else BAG.forEach(function (b) {
-        var ks = t === 'semua' ? b.k : b.k.filter(function (k) { return (TAB[t] || []).indexOf(k) >= 0; });
-        if (ks.length) unit.push(dariBag(b, ks));
-      });
+      if (t === 'ringkasan') bag.push(halRingkas());
+      else if (t === 'tugas') bag.push(halaman('Tugas Tim EPMK', salin($('tugas'))));
+      else BAG.forEach(function (b) { var ks = t === 'semua' ? b.k : b.k.filter(function (k) { return (TAB[t] || []).indexOf(k) >= 0; }); if (ks.length) { var p = halBagian({ k: ks, n: b.n }); if (p) bag.push(p); } });
     }
-    unit = unit.filter(function (u) { return u.ada; });
-    var f = bingkai(), fd = f.contentDocument, fw = fd.getElementById('cetakWrap'); fw.innerHTML = '';
-    var pasang = function (pg) { var x = fd.adoptNode(pg); fw.appendChild(x); return x; };
-    pages = pages.map(function (pg) { pg = pasang(pg); ukur(pg); return pg; });
-    // gabungkan bagian pendek berurutan ke satu halaman bila isinya tetap terbaca (tidak mengecil > 12%)
-    var cur = null;
-    unit.forEach(function (u) {
-      var pg = pasang(halaman(u.n, u.el())), s = ukur(pg);
-      if (cur) {
-        var gab = pasang(halaman(cur.n + ' · ' + u.n, cur.els().concat(u.el()))), sg = ukur(gab);
-        if (sg >= 0.88 * Math.min(cur.s, s) && sg >= 0.6) {
-          fw.removeChild(cur.pg); fw.removeChild(pg);
-          var a = cur; cur = { n: a.n + ' · ' + u.n, els: function () { return a.els().concat(u.el()); }, pg: gab, s: sg }; return;
-        }
-        fw.removeChild(gab); pages.push(cur.pg);
-      }
-      cur = { n: u.n, els: u.el, pg: pg, s: s };
+    var doc = document.createElement('div'); doc.className = 'cp-doc'; doc.style.width = LEBAR_TETAP + 'px';
+    doc.style.zoom = (KERTAS.w / LEBAR_TETAP).toFixed(4);
+    bag.forEach(function (p, i) {
+      var sec = document.createElement('section'); sec.className = 'cp-sec' + (i ? '' : ' pertama');
+      var judul = p.querySelector('.cp-kop > div > span');
+      sec.innerHTML = i ? '<h2 class="cp-judul">' + (judul ? judul.innerHTML : '') + '</h2>' : p.querySelector('.cp-kop').outerHTML;
+      var isi = p.querySelector('.cp-isi'); isi.removeAttribute('style'); sec.appendChild(isi); doc.appendChild(sec);
     });
-    if (cur) pages.push(cur.pg);
-    // susun ulang urutan & nomor halaman, lalu salin ke dokumen utama untuk dicetak
-    fw.innerHTML = ''; pages.forEach(function (p, i) { p.querySelector('.cp-no').textContent = 'Halaman ' + (i + 1) + ' dari ' + pages.length; fw.appendChild(p); });
-    var w = $('cetakWrap'); w.innerHTML = fw.innerHTML; w.hidden = false;
-    return pages.length;
+    doc.insertAdjacentHTML('beforeend', '<div class="cp-foot"><span>Sumber: spreadsheet Data Dashboard UPDL Semarang, Konman, Rendiklat, MLI Probis, Profil Risiko</span></div>');
+    w.appendChild(doc); w.hidden = false;
+    return bag.length;
   }
   function cetak(jenis) {
     var fd = bingkai().contentDocument, n = susun(jenis);
