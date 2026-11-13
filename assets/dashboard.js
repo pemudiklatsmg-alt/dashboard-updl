@@ -180,9 +180,9 @@
         foot: v === null ? 'Belum ada data s.d. ' + bl : o.foot + ' <span class="more">→</span>' }).replace('class="card', 'class="card mini2');
     }
     h += '<div class="stack2">' +
-      mini({ title: 'Kepuasan Peserta', hint: 'EL1 · rata-rata semua butir', v: Kp ? Kp.nilai : null, p: KpP ? KpP.nilai : null, t: p.targetL1, click: 'kepuasan',
+      mini({ title: 'Kepuasan Peserta', hint: 'EL1 · rata-rata semua butir', v: Kp ? Kp.nilai : null, p: KpP ? KpP.nilai : null, t: p.targetL1, click: Kp ? 'kepuasan' : null,
         foot: Kp ? D.fmt(Kp.responden, 0) + ' responden · ' + Kp.pelatihan + ' pelatihan' : '' }) +
-      mini({ title: 'Penilaian Instruktur', hint: 'EL1 · rata-rata semua butir', v: In ? In.nilai : null, p: InP ? InP.nilai : null, t: p.targetInstruktur, click: 'instruktur',
+      mini({ title: 'Penilaian Instruktur', hint: 'EL1 · rata-rata semua butir', v: In ? In.nilai : null, p: InP ? InP.nilai : null, t: p.targetInstruktur, click: In ? 'instruktur' : null,
         foot: In ? In.instruktur.length + ' instruktur · ' + D.fmt(In.penilaian, 0) + ' penilaian' : '' }) + '</div>';
     $('kpis').innerHTML = h;
   }
@@ -194,7 +194,7 @@
       var st = !a ? { c: 'idle', t: 'Belum diisi' } : o.target ? status(a.nilai / o.target) : { c: 'idle', t: a.n + ' data' };
       var fr = !a ? null : o.target ? a.nilai / o.target : a.nilai / 100;
       var rc = !a ? 'idle' : o.target ? st.c : (fr >= 0.8 ? 'good' : fr >= 0.6 ? 'warn' : 'bad');
-      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', cls: st.c, click: 'rekap:' + o.data,
+      return card({ title: o.title, hint: o.hint, val: a ? o.fmtV(a.nilai) : '–', cls: st.c, click: a ? 'rekap:' + o.data : null,
         foot: !a ? 'Belum diisi' : (o.target ? (a.nilai / o.target >= 0.9999 ? 'Mencapai target ' : 'Dari target ') + D.fmt(o.target, 2) : a.n + ' data s.d. ' + bl),
         ring: ring(fr, rc, pctTxt(fr), o.title + ' ' + pctTxt(fr)) });
     }
@@ -202,20 +202,20 @@
 
     var K = ev('ksa'), kv = K ? K.nilai : null, kt = p.targetKSA, kf = kv === null ? null : kt ? kv / kt : kv / 100;
     var kc = kv === null ? 'idle' : kt ? status(kf).c : (kf >= 0.8 ? 'good' : kf >= 0.6 ? 'warn' : 'bad');
-    h += card({ title: 'Peningkatan KSA', hint: 'EL2 formatif · Hadir & Lulus', val: kv === null ? '–' : D.fmt(kv, 1), click: 'ksa', cls: kv === null ? 'idle' : kt ? kc : 'idle',
+    h += card({ title: 'Peningkatan KSA', hint: 'EL2 formatif · Hadir & Lulus', val: kv === null ? '–' : D.fmt(kv, 1), click: kv === null ? null : 'ksa', cls: kv === null ? 'idle' : kt ? kc : 'idle',
       ring: ring(kf, kc, pctTxt(kf), 'KSA ' + pctTxt(kf) + (kt ? ' dari target' : ' dari skala 100')),
       foot: kv === null ? 'Belum ada data s.d. ' + bl : D.fmt(K.peserta, 0) + ' peserta Hadir & Lulus' });
     h += rekapCard({ title: 'Dampak pada Perilaku', hint: 'Evaluasi Level 3', data: 'l3', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Perubahan Perilaku/i), fmtV: function (v) { return D.fmt(v, 2); } });
     h += rekapCard({ title: 'ROTI', hint: 'Return on Training Investment', data: 'roti', kolTgl: 'Tanggal', kolNilai: 'Nilai ROTI (%)', fmtV: function (v) { return D.fmt(v, 1) + '<small>%</small>'; } });
 
     var C = ev('cc'), sk = p.skalaCC || 4, ct = p.targetCC, cn = C ? C.nilai : null, cst = cn === null ? { c: 'idle' } : ct ? status(cn / ct) : { c: 'idle' };
-    h += card({ title: 'Confidence & Commitment', hint: 'EL2 sumatif · skala 1–' + sk, click: 'cc', cls: cst.c,
+    h += card({ title: 'Confidence & Commitment', hint: 'EL2 sumatif · skala 1–' + sk, click: C ? 'cc' : null, cls: cst.c,
       html: '<div class="duo"><div><b class="num">' + (C && C.conf !== null ? D.fmt(C.conf, 2) : '–') + '</b><span>Confidence</span></div><div><b class="num">' + (C && C.comm !== null ? D.fmt(C.comm, 2) : '–') + '</b><span>Commitment</span></div></div>',
       foot: cn === null ? 'Belum ada data s.d. ' + bl : (ct ? (cn / ct >= 0.9999 ? 'Mencapai target ' : 'Target ') + D.fmt(ct, 2) + ' · ' : '') + D.fmt(C.n, 0) + ' pengisian' });
     h += rekapCard({ title: 'Dampak pada Kinerja', hint: 'Evaluasi Level 4', data: 'l4', kolTgl: 'Tanggal Evaluasi', kolNilai: 'Skor (0-100)', target: konTarget(/Pada Kinerja/i), fmtV: function (v) { return D.fmt(v, 2); } });
 
     var Se = ev('sertifikat'), sp = Se ? Se.pct : null, sc = sp === null ? 'idle' : sp >= 0.95 ? 'good' : sp >= 0.8 ? 'warn' : 'bad';
-    h += card({ title: 'Sertifikat Terbit', hint: 'Status Finish TTE GM · s.d. ' + bl, val: Se && Se.total ? D.fmt(Se.terbit, 0) : '–', click: 'sert', cls: 'idle',
+    h += card({ title: 'Sertifikat Terbit', hint: 'Status Finish TTE GM · s.d. ' + bl, val: Se && Se.total ? D.fmt(Se.terbit, 0) : '–', click: Se && Se.total ? 'sert' : null, cls: 'idle',
       ring: ring(sp, sc, pctTxt(sp), 'Sertifikat terbit ' + pctTxt(sp) + ' dari seluruh sertifikat'),
       foot: Se && Se.total ? '<b class="num" style="color:var(--ink)">+' + D.fmt(Se.bulan, 0) + '</b> terbit di ' + bl + ' <span class="more">→</span>' : 'Belum ada data s.d. ' + bl });
     $('minis').innerHTML = h;

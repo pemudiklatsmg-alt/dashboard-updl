@@ -1629,3 +1629,4 @@ body.top-nempel::after { opacity: 1; }
 .card .foot.good::before, .card .foot.warn::before, .card .foot.bad::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--good); }
 .card .foot.warn::before { background: var(--warn); } .card .foot.bad::before { background: var(--bad); }
 #cetakWrap .card.click::after { content: none; }
+.card .foot .more { display: none; }
