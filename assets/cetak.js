@@ -9,11 +9,11 @@
 
   var BAG = [
     { k: ['bulanan'], n: 'Capaian Kinerja per Bulan' }, { k: ['indikator'], n: 'Indikator Kinerja & Maturity' },
-    { k: ['kepatuhan'], n: 'Kepatuhan & Perbaikan Berkelanjutan' }, { k: ['ringkasan', 'evaluasi'], n: 'Pembelajaran & Evaluasi' },
+    { k: ['kepatuhan'], n: 'Kepatuhan & Perbaikan Berkelanjutan' }, { k: ['ringkasan', 'pemb-grafik'], n: 'Rekap Pembelajaran' }, { k: ['evaluasi', 'eval-grafik'], n: 'Evaluasi Pembelajaran' },
     { k: ['pengembangan'], n: 'Pengembangan Pegawai & Inovasi' }, { k: ['isu'], n: 'Isu & Pihak Berkepentingan' },
     { k: ['risiko'], n: 'Peta Risiko' }, { k: ['kri'], n: 'Key Risk Indicator' }, { k: ['fraud'], n: 'Risiko Fraud (FRA)' }
   ];
-  var TAB = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan'], evaluasi: ['evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var TAB = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
 
   function salin(el) {
     var c = el.cloneNode(true); c.hidden = false; c.removeAttribute('id');

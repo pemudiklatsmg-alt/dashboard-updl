@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dashboard Kinerja UPDL Semarang</title>
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
-<link rel="stylesheet" href="assets/style.css?v=20261113p">
+<link rel="stylesheet" href="assets/style.css?v=20261113q">
 </head>
 <body>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
@@ -88,6 +88,7 @@
   <section class="atur" id="pengaturan" aria-label="Pengaturan" hidden></section>
   <section class="perhatian" id="perhatian" aria-label="Perlu perhatian" aria-live="polite" hidden></section>
   <section class="kpis" id="kpis" aria-label="Ringkasan utama" data-bagian="ringkasan"></section>
+  <section class="gx" id="gxPemb" aria-label="Grafik pembelajaran" data-bagian="pemb-grafik"></section>
 
   <section class="row2" data-bagian="bulanan">
     <div class="panel">
@@ -99,6 +100,7 @@
     <div class="panel cap-side" id="capSide" aria-label="Analisis capaian"></div>
   </section>
   <section class="minis-sec" data-bagian="evaluasi" aria-label="Evaluasi pembelajaran"><div class="minis" id="minis" aria-label="Evaluasi pembelajaran"></div></section>
+  <section class="gx" id="gxEval" aria-label="Grafik evaluasi" data-bagian="eval-grafik"></section>
 
   <!-- Baris berpasangan: tinggi kedua kartu selalu sama -->
   <section class="pair" aria-label="Indikator kinerja dan maturity" data-bagian="indikator">
@@ -230,15 +232,16 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261113p"></script>
-<script src="assets/common.js?v=20261113p"></script>
-<script src="assets/genie.js?v=20261113p"></script>
-<script src="assets/dashboard.js?v=20261113p"></script>
-<script src="assets/input.js?v=20261113p"></script>
-<script src="assets/export.js?v=20261113p"></script>
-<script src="assets/fitur.js?v=20261113p"></script>
-<script src="assets/cetak.js?v=20261113p"></script>
-<script src="assets/pengaturan.js?v=20261113p"></script>
+<script src="config.js?v=20261113q"></script>
+<script src="assets/common.js?v=20261113q"></script>
+<script src="assets/genie.js?v=20261113q"></script>
+<script src="assets/dashboard.js?v=20261113q"></script>
+<script src="assets/input.js?v=20261113q"></script>
+<script src="assets/export.js?v=20261113q"></script>
+<script src="assets/fitur.js?v=20261113q"></script>
+<script src="assets/cetak.js?v=20261113q"></script>
+<script src="assets/pengaturan.js?v=20261113q"></script>
+<script src="assets/grafik.js?v=20261113q"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -286,6 +289,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261113p"></script>
+<script src="assets/panduan.js?v=20261113q"></script>
 </body>
 </html>

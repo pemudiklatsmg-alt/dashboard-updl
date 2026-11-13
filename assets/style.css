@@ -1407,3 +1407,48 @@ html.glass .at-k:not([aria-selected="true"]) { background: var(--g-btn); border-
   .at-tb-r { grid-template-columns: minmax(0, 1fr) auto; } .at-tb-r .at-aksi { grid-column: 1 / -1; }
 }
 @media print { .atur { display: none !important; } }
+
+/* ---------- Grafik tren tambahan (Ringkasan, Pembelajaran, Evaluasi) ---------- */
+.gx { display: grid; gap: 16px; }
+.gx-row { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.gx-row.gx-sama { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.rgk .gx-rgk { margin-top: 2px; }
+.gx-p { display: flex; flex-direction: column; min-width: 0; }
+.gx-p .panel-h { margin-bottom: 6px; }
+.gx-svg { width: 100%; height: auto; display: block; margin-top: auto; overflow: visible; }
+.gx-grid { stroke: var(--line); stroke-width: 1; }
+.gx-base { stroke: var(--frame); stroke-width: 1; }
+.gx-ax { fill: var(--ink-3); font-size: 11px; font-family: var(--f-body); }
+.gx-ax.on { fill: var(--ink); font-weight: 700; }
+.gx-bar { fill: var(--bar); } .gx-bar.on { fill: var(--accent); }
+.gx-bar:hover, .gx-ghost:hover { opacity: .8; }
+.gx-ghost { fill: none; stroke: var(--bar-dim); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.gx-val { fill: var(--ink-2); font-size: 11.5px; font-weight: 600; } .gx-val.on { fill: var(--ink); font-size: 12.5px; font-weight: 700; }
+.gx-selcol { fill: var(--accent-soft); opacity: .55; }
+.gx-tgt { stroke: var(--good); stroke-width: 1.5; stroke-dasharray: 5 4; } .gx-tgt-t { fill: var(--good); font-size: 11px; font-weight: 600; }
+.gx-ln { fill: none; stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.gx-ln.a { stroke: var(--accent); } .gx-ln.b { stroke: var(--bar); }
+.gx-dot { stroke: var(--sheet); stroke-width: 2; } .gx-dot.a { fill: var(--accent); } .gx-dot.b { fill: var(--bar); }
+.gx-val.b { fill: var(--bar); }
+.gx-leg { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.gx-leg span { display: inline-flex; align-items: center; gap: 6px; } .gx-leg i { width: 14px; height: 3px; border-radius: 2px; background: var(--accent); } .gx-leg i.b { background: var(--bar); }
+.gx-hb { display: grid; gap: 9px; margin-top: 4px; }
+.gx-hr { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13px; }
+.gx-hl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gx-hl small { display: block; font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; }
+.gx-ht { position: relative; height: 10px; border-radius: 5px; background: var(--track); }
+.gx-ht i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--bar); }
+.gx-ht em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--good); border-radius: 1px; }
+.gx-hr[data-st="good"] .gx-ht i { background: var(--good); } .gx-hr[data-st="warn"] .gx-ht i { background: var(--warn); }
+.gx-hr[data-st="bad"] .gx-ht i { background: var(--bad); } .gx-hr[data-st="idle"] .gx-ht i { background: var(--idle); }
+.gx-hv { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; white-space: nowrap; }
+@media (max-width: 900px) { .gx-row, .gx-row.gx-sama { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .gx-hr { grid-template-columns: minmax(0, 1fr) auto; } .gx-ht { grid-column: 1 / -1; grid-row: 2; } }
+#cetakWrap .gx-row, #cetakWrap .gx-row.gx-sama { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+
+/* Catatan sumber & kredit selalu menempel di bawah halaman, jaraknya dirapatkan */
+.sheet { min-height: calc(100vh - 60px); min-height: calc(100dvh - 60px); }
+#footNote { margin-top: auto; padding-top: 12px; }
+.sheet > .credit { margin-top: -10px; padding-top: 8px; }
+
+.gx-p > .gx-hb { flex: 1; align-content: space-evenly; }

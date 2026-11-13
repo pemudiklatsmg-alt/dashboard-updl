@@ -274,7 +274,7 @@
   }
   function openSegar() {
     var L = kesegaran(), m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null;
-    openModal('<div class="modal-h"><div><div class="desc">Data terakhir per sumber · patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
+    openModal('<div class="modal-h"><div><div class="desc">Data terakhir per sumber · patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Status</th></tr></thead><tbody>' +
       L.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') +
       '</tbody></table></div><div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>');
@@ -1407,13 +1407,13 @@
       (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button>' +
         '<button type="button" class="sn-i" data-vt="pengaturan" aria-selected="' + (S.vt === 'pengaturan') + '"><span class="ikb">' + ikon('gir') + '</span><span class="sn-t"><b>Pengaturan</b><small>Target, PIC, pengingat, akun</small></span></button></nav>' : '') +
       '<nav class="sn-nav sn-bawah"><button type="button" class="sn-i" data-vt="semua" aria-selected="' + (S.vt === 'semua') + '"><span class="ikb">' + ikon('grid') + '</span><span class="sn-t"><b>Semua bagian</b><small>Tampilan lengkap</small></span></button></nav>' +
-      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
+      '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'Di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
       '<div class="sn-user"><span class="av">' + esc(String(m.user || 'U').charAt(0).toUpperCase()) + '</span><span><b>' + esc(m.user || '') + '</b><small>' + (admin() ? 'Admin' : 'Lihat') + '</small></span></div></div>';
     var b = $('vtTugasN'); if (b) { b.hidden = !nT; b.textContent = nT; }
   }
 
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
-  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan'], evaluasi: ['evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
   function pilihTab(t, gulir) {
@@ -1567,7 +1567,7 @@
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
     [['Navigasi', renderSidenav], ['Ringkasan', renderRingkasan], ['Tugas', function () { if (S.vt === 'tugas') renderTugas(); }], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg], ['Grafik tren', function () { if (window.DashApp.renderGrafik) window.DashApp.renderGrafik(); }]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
@@ -1611,7 +1611,7 @@
     else if (m.stale) { badge.className = 'badge err'; badge.textContent = 'Data tersimpan (gagal memuat ulang)'; }
     else { badge.className = 'badge snap'; badge.textContent = 'Data belum terhubung'; }
     var t = m.generatedAt ? new Date(m.generatedAt) : null;
-    $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (t ? 'diambil ' + t.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
+    $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (t ? 'di-update ' + t.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
     var w = [];
     if (m.source !== 'live') w.push(esc(m.reason || 'Data tidak terhubung ke Google Sheets.'));
     if (m.stale) w.push('Gagal memuat data terbaru: ' + esc(m.stale));
