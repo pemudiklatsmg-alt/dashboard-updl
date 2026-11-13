@@ -1211,6 +1211,35 @@
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
+  /* ---------- analisis di samping grafik bulanan ---------- */
+  function renderCapSide() {
+    var el = $('capSide'); if (!el) return;
+    var Bn = B(), bl = namaBulan(S.bulan);
+    var data = D.BULAN.slice(0, S.bulan).map(function (b, i) { return { m: i + 1, v: konmanAda(b) ? totalSkor(b) : null }; }).filter(function (x) { return x.v !== null; });
+    if (!data.length) { el.innerHTML = '<div class="empty">Belum ada data Konman ' + S.tahun + '.</div>'; return; }
+    var kini = data.filter(function (x) { return x.m === S.bulan; })[0], lalu = data.filter(function (x) { return x.m < S.bulan; }).pop();
+    var rata = data.reduce(function (a, x) { return a + x.v; }, 0) / data.length, capai = data.filter(function (x) { return x.v >= 99.995; }).length;
+    var hi = data.reduce(function (a, x) { return x.v > a.v ? x : a; }), lo = data.reduce(function (a, x) { return x.v < a.v ? x : a; });
+    var st = status(kini ? kini.v / 100 : null), dl = kini && lalu ? kini.v - lalu.v : null;
+    var pg = konmanAda(Bn) ? pengurang(Bn) : 0;
+    var ind = konmanAda(Bn) ? K().items.filter(function (it) { return !it.isGroup && !it.pengurang && D.hasData(it, Bn); }).map(function (it) { return { it: it, v: D.capaianItem(it, Bn) }; }).filter(function (x) { return x.v !== null && x.v !== undefined; }) : [];
+    var bawah = ind.filter(function (x) { return x.v < 0.9999; }).sort(function (a, b) { return a.v - b.v; }).slice(0, 3);
+    var atas = ind.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 5);
+    var baris = function (x) { var s2 = status(x.v); return '<div class="cs-i"><span>' + esc(x.it.pendek) + '</span><b class="num ' + s2.c + '">' + D.fmt(x.v * 100, 0) + '%</b></div>'; };
+    el.innerHTML = '<div class="cs-h"><div><span class="sub-h">' + bl + ' ' + S.tahun + '</span><b class="cs-big num ' + st.c + '">' + (kini ? D.fmt(kini.v, 1) : '–') + '</b></div>' +
+      '<div class="cs-st"><span class="pill ' + st.c + '">' + st.t + '</span>' + (dl !== null ? '<span class="cs-d ' + (dl >= 0 ? 'good' : 'bad') + '">' + (dl >= 0 ? '▲ +' : '▼ ') + D.fmt(dl, 1) + ' poin vs ' + namaBulan(lalu.m).slice(0, 3) + '</span>' : '') + '</div></div>' +
+      '<div class="cs-g">' +
+        '<div><b class="num">' + D.fmt(rata, 1) + '</b><span>rata-rata s.d. ' + bl.slice(0, 3) + '</span></div>' +
+        '<div><b class="num">' + capai + '<small> / ' + data.length + '</small></b><span>bulan mencapai target</span></div>' +
+        '<div><b class="num">' + D.fmt(hi.v, 1) + '</b><span>tertinggi · ' + namaBulan(hi.m) + '</span></div>' +
+        '<div><b class="num">' + D.fmt(lo.v, 1) + '</b><span>terendah · ' + namaBulan(lo.m) + '</span></div></div>' +
+      '<div class="cs-pg ' + (pg ? 'bad' : 'good') + '">' + (pg ? 'Pengurang kepatuhan ' + bl + ': <b>−' + D.fmt(pg, 2) + ' poin</b>' : 'Tidak ada pengurang kepatuhan ' + bl) + '</div>' +
+      '<div class="sub-h">' + (bawah.length ? 'Indikator di bawah 100%' : 'Indikator tertinggi') + '</div><div class="cs-l">' + (bawah.length ? bawah : atas).map(baris).join('') + '</div>' +
+      // saat presentasi ada ruang lebih: tampilkan juga indikator tertinggi
+      (bawah.length ? '<div class="cs-pres"><div class="sub-h">Indikator tertinggi</div><div class="cs-l">' + ind.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 5).map(baris).join('') + '</div></div>' : '') +
+      '<div class="cs-pres cs-ket">' + ind.filter(function (x) { return x.v >= 0.9999; }).length + ' dari ' + ind.length + ' indikator mencapai target ' + bl + '.</div>';
+  }
+
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
   var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
@@ -1275,7 +1304,7 @@
 
   function renderAll() {
     var gagal = [];
-    [['Ringkasan', renderRingkasan], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
+    [['Ringkasan', renderRingkasan], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
      ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });

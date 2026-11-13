@@ -982,7 +982,6 @@ html.glass .fr-skema span { background: var(--g-btn); border-color: var(--g-bord
 html.glass .vtabs button:not([aria-selected="true"]) { background: var(--g-btn); border-color: var(--g-border); }
 body[data-vt]:not([data-vt="semua"]) #perhatian { display: none; }
 .minis-sec .minis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-.row2:not(:has(.minis)) { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 1100px) { .minis-sec .minis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .minis-sec .minis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
@@ -1034,3 +1033,30 @@ body.pres .vtabs, body.pres #perhatian, body.pres #warn { display: none !importa
 body.pres main .pres-on { animation: presmasuk .35s ease both; }
 @keyframes presmasuk { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { body.pres main .pres-on { animation: none; } }
+
+/* analisis di samping grafik bulanan */
+.row2 { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); }
+.cap-side { display: flex; flex-direction: column; gap: 12px; }
+.cs-h { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.cs-h > div:first-child { display: grid; gap: 2px; }
+.cs-big { font-family: var(--f-display); font-size: 40px; line-height: 1; font-weight: 700; }
+.cs-big.good { color: var(--good); } .cs-big.warn { color: var(--warn); } .cs-big.bad { color: var(--bad); }
+.cs-st { display: grid; gap: 4px; justify-items: end; }
+.cs-d { font-size: 12px; font-weight: 600; } .cs-d.good { color: var(--good); } .cs-d.bad { color: var(--bad); }
+.cs-g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs-g div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; gap: 1px; }
+.cs-g b { font-family: var(--f-display); font-size: 20px; line-height: 1.15; }
+.cs-g b small { font-size: 12px; color: var(--ink-3); }
+.cs-g span { font-size: 11px; color: var(--ink-3); }
+html.glass .cs-g div { background: var(--g-btn); border-color: var(--g-border); border-radius: 12px; }
+.cs-pg { font-size: 12.5px; border-radius: 8px; padding: 7px 10px; }
+.cs-pg.good { background: var(--good-bg); } .cs-pg.bad { background: var(--bad-bg); }
+.cs-l { display: grid; gap: 2px; }
+.cs-i { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.cs-i:last-child { border-bottom: 0; }
+.cs-i span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-i b.good { color: var(--good); } .cs-i b.warn { color: var(--warn); } .cs-i b.bad { color: var(--bad); }
+@media (max-width: 900px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+.cs-pres { display: none; }
+body.pres .cs-pres { display: grid; gap: 8px; }
+.cs-ket { font-size: 12.5px; color: var(--ink-2); margin-top: auto; }
