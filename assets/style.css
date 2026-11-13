@@ -1253,3 +1253,61 @@ body.memuat main [data-bagian], body.memuat #rgk, body.memuat #tugas, body.memua
   .ikb { display: none !important; }
 }
 body.memuat #notifBtn { visibility: hidden; }
+
+/* ---------- Cetak / Simpan PDF (laporan A4 tegak) ---------- */
+#cetakWrap { position: absolute; left: -99999px; top: 0; }
+#cetakWrap, .cetak-mode #cetakWrap {
+  --bg: #fff; --sheet: #fff; --ink: #18233f; --ink-2: #4a5470; --ink-3: #6b7287; --line: #dfe2ea; --frame: #cfd4e0; --accent: #7b1e3a; --accent-soft: #f6e9ee; --track: #e7e9ef;
+  --good: #1f8a4c; --good-bg: #e3f4ea; --warn: #b7791f; --warn-bg: #fbf0dc; --bad: #c53030; --bad-bg: #fbe5e5; --idle: #8a90a3; --idle-bg: #eef0f4; --bar: #3a4f8c; --bar-dim: #c9cfe0;
+  --g-card: #fff; --g-btn: #fff; --g-border: #dfe2ea; --g-hi: transparent; --g-shadow: none; color-scheme: light; color: var(--ink); font-size: 14px; }
+.cp-page { width: 190mm; height: 277mm; display: flex; flex-direction: column; gap: 4mm; background: #fff; overflow: hidden; break-after: page; page-break-after: always; box-sizing: border-box; }
+.cp-page:last-child { break-after: auto; page-break-after: auto; }
+.cp-kop { display: flex; align-items: center; gap: 10px; padding-bottom: 3mm; border-bottom: 2px solid var(--accent); }
+.cp-logo { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: #fff; display: grid; place-items: center; padding: 7px; flex: none; }
+.cp-logo svg { width: 100%; height: 100%; }
+.cp-kop > div { display: grid; } .cp-kop b { font-family: var(--f-display); font-size: 17px; } .cp-kop span { font-size: 11px; color: var(--ink-2); }
+.cp-per { margin-left: auto; text-align: right; } .cp-per b { font-size: 15px; }
+.cp-body { flex: 1; min-height: 0; overflow: hidden; }
+.cp-isi { transform-origin: top left; display: grid; gap: 14px; }
+.cp-foot { display: flex; justify-content: space-between; gap: 10px; font-size: 9.5px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 2mm; }
+.cp-dua { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cp-box { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.cp-box h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.cp-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 13px; }
+.cp-ul li { display: flex; gap: 8px; align-items: flex-start; } .cp-ul i { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex: none; background: var(--idle); }
+.cp-ul li[data-st="bad"] i { background: var(--bad); } .cp-ul li[data-st="warn"] i { background: var(--warn); } .cp-ul li[data-st="good"] i { background: var(--good); }
+.cp-tb { width: 100%; border-collapse: collapse; font-size: 13px; } .cp-tb td { padding: 5px 4px; border-bottom: 1px solid var(--line); } .cp-tb td:last-child { text-align: right; }
+.cp-tb td.bad { color: var(--bad); } .cp-tb td.warn { color: var(--warn); }
+.cp-ok { margin: 0; color: var(--good); font-weight: 600; font-size: 13px; }
+/* isi salinan dashboard: tampil utuh, tanpa efek kaca/animasi/tombol */
+#cetakWrap .panel, #cetakWrap .card, #cetakWrap .rgk-hero, #cetakWrap .rgk-tile { background: #fff !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: var(--line) !important; animation: none !important; }
+#cetakWrap .fill, #cetakWrap .ml, #cetakWrap .ind, #cetakWrap .tbl-wrap { height: auto !important; max-height: none !important; overflow: visible !important; flex: none !important; }
+#cetakWrap .btn, #cetakWrap .rgk-tile::after, #cetakWrap .more, #cetakWrap .seg, #cetakWrap .chips, #cetakWrap .follow, #cetakWrap .rgk-more { display: none !important; }
+#cetakWrap .rgk-big { text-shadow: none !important; }
+#cetakWrap .ph-i em, #cetakWrap .sorot-k { box-shadow: none !important; }
+.cp-opts { display: grid; gap: 8px; }
+.cp-opt { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.cp-opt:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cp-opt input { margin-top: 3px; accent-color: var(--accent); }
+.cp-opt b { display: block; font-size: 14px; } .cp-opt small { display: block; font-size: 12px; color: var(--ink-3); }
+.cp-aksi { display: flex; justify-content: flex-end; }
+@media print {
+  body.cetak-mode > *:not(#cetakWrap) { display: none !important; }
+  body.cetak-mode #cetakWrap { position: static !important; left: auto !important; display: block !important; }
+  body.cetak-mode { background: #fff !important; padding: 0 !important; }
+  body.cetak-mode::before { display: none !important; }
+}
+@media print { @page { size: A4 portrait; margin: 10mm; } }
+
+.cp-logo svg { stroke: #fff; }
+#cetakWrap .row2 { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr) !important; }
+#cetakWrap .cs-pres { display: none !important; }
+#cetakWrap .minis { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+@media print {
+  /* aturan cetak lama menyembunyikan beberapa bagian — di laporan cetak semua bagian salinan ditampilkan */
+  body.cetak-mode #cetakWrap [data-bagian] { display: grid !important; }
+  body.cetak-mode #cetakWrap [data-bagian] > .panel { display: block !important; }
+  body.cetak-mode #cetakWrap .card .more, body.cetak-mode #cetakWrap .ph-i em { display: none !important; }
+}
+#cetakWrap .pair { grid-template-columns: minmax(0, 1fr) !important; }
+@media print { body.cetak-mode #cetakWrap [data-bagian="indikator"] .ind { columns: 2 !important; } }

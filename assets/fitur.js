@@ -215,7 +215,7 @@
     $('printInfo').textContent = 'Periode ' + A.namaBulan(S.bulan) + ' ' + S.tahun + ' · dicetak ' + new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' · ' + $('who').textContent;
   }
   window.addEventListener('beforeprint', isiCetak);
-  $('printBtn').addEventListener('click', function () { isiCetak(); setTimeout(function () { window.print(); }, 250); });
+  $('printBtn').addEventListener('click', function () { if (A.openCetak) return A.openCetak(); isiCetak(); setTimeout(function () { window.print(); }, 250); });
 
   /* ---------- ringkasan login (Admin) ---------- */
   function tgl(iso) { var d = new Date(iso); return isNaN(d) ? '–' : d.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
