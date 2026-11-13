@@ -1206,7 +1206,7 @@
     $('bulanSel').value = String(m);
     Array.prototype.forEach.call(document.querySelectorAll('.per'), function (e) { e.textContent = namaBulan(m) + ' ' + y; });
     renderAll();
-    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } pilihTab(vt0 || 'ringkasan'); }
+    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } pilihTab(vt0 || (admin() ? 'semua' : 'ringkasan')); }
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
@@ -1251,16 +1251,16 @@
     var indOk = ind.filter(function (it) { var v = D.capaianItem(it, Bn); return v !== null && v >= 0.9999; }).length;
     T.push({ vt: 'kinerja', l: 'Indikator Konman', v: ind.length ? indOk + '<small> / ' + ind.length + '</small>' : '–', c: !ind.length ? 'idle' : indOk === ind.length ? 'good' : indOk / ind.length >= 0.8 ? 'warn' : 'bad', s: ind.length ? 'indikator mencapai target' : 'belum ada data' });
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, p), pctP = r.rencanaPeserta ? r.peserta / r.rencanaPeserta : null;
-    T.push({ vt: 'pembelajaran', l: 'Peserta pelatihan', v: r.kelas ? D.fmt(r.peserta, 0) : '–', c: r.kelas ? status(pctP).c : 'idle', s: r.kelas ? r.kelas + ' kelas selesai · ' + D.pct(pctP) + ' dari rencana' : 'belum ada kelas selesai' });
+    var pctK = r.terjadwal ? r.kelas / r.terjadwal : null;
+    T.push({ vt: 'pembelajaran', l: 'Kelas terlaksana', v: r.kelas ? D.fmt(r.kelas, 0) + '<small> / ' + D.fmt(r.terjadwal, 0) + '</small>' : '–', c: r.kelas ? status(pctK).c : 'idle', s: r.kelas ? D.pct(pctK) + ' dari jadwal · ' + D.fmt(r.peserta, 0) + ' peserta' + (r.pakaiRencana || r.tanpaPeserta ? ' (sebagian perkiraan)' : '') : 'belum ada kelas selesai' });
     var H = hop(S.tahun, S.bulan), itH = find(/Tingkat Pelaksanaan Pembelajaran/i), tgH = itH && konmanAda(Bn) ? D.num(itH.target[Bn].v) : null, hc = H.nilai !== null && tgH ? H.nilai / tgH : null;
     T.push({ vt: 'pembelajaran', l: 'Hari orang pelatihan', v: H.nilai !== null ? D.fmt(H.nilai, 2) : '–', c: status(hc).c, s: tgH ? D.pct(hc) + ' dari target ' + D.fmt(tgH, 2) : 'target belum ada' });
     var Kp = ev('kepuasan'), sk = skala5(Kp ? Kp.nilai : null, p.targetL1);
     T.push({ vt: 'pembelajaran', l: 'Kepuasan peserta', v: Kp ? D.fmt(Kp.nilai, 2) + '<small> / 5</small>' : '–', c: sk.c, s: Kp ? sk.t + ' · ' + D.fmt(Kp.responden, 0) + ' responden' : 'belum ada data' });
-    var M = (S.data.maturity || []).map(function (x) { var v = D.num(x[3]); return v !== null ? v : D.num(x[2]); }).filter(function (v) { return v !== null; });
-    var itM = find(/Pengelolaan Proses Bisnis/i), tgM = itM ? (konmanAda(Bn) ? D.num(itM.target[Bn].v) : null) : null;
-    if (itM && tgM === null) tgM = D.num(S.bulan <= 6 ? itM.target1 : itM.target2);
-    var avgM = M.length ? M.reduce(function (a, b) { return a + b; }, 0) / M.length : null;
-    T.push({ vt: 'kinerja', l: 'Maturity proses bisnis', v: avgM === null ? '–' : D.fmt(avgM, 2) + '<small> / 5</small>', c: avgM === null ? 'idle' : tgM === null ? 'good' : avgM >= tgM ? 'good' : 'bad', s: tgM !== null ? (avgM >= tgM ? 'mencapai' : 'di bawah') + ' target ' + D.fmt(tgM, 2) : 'skala 0–5' });
+    var TLc = { 'Selesai': 0, 'Proses': 0, 'Belum Dimulai': 0, 'OFI': 0 }; tlRows().forEach(function (x) { TLc[tlStatus(x)]++; });
+    var perluTL = TLc['Selesai'] + TLc['Proses'] + TLc['Belum Dimulai'], tuntas = perluTL ? TLc['Selesai'] / perluTL : null;
+    T.push({ vt: 'kinerja', l: 'Perbaikan berkelanjutan', v: tuntas === null ? '–' : D.fmt(tuntas * 100, 0) + '<small>% tuntas</small>', c: tuntas === null ? 'idle' : TLc['Belum Dimulai'] >= 5 ? 'bad' : TLc['Belum Dimulai'] || TLc['Proses'] ? 'warn' : 'good',
+      s: tuntas === null ? 'belum ada data' : D.fmt(TLc['Belum Dimulai'], 0) + ' belum dimulai · ' + D.fmt(TLc['Proses'], 0) + ' proses' });
     var kriM = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'bad'; }).length, kriK = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'warn'; }).length;
     var G = fra() && fra().ringkas, resT = G ? (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0) : 0;
     T.push({ vt: 'risiko', l: 'Risiko', v: kriM + '<small> KRI merah</small>', c: kriM || (G && G.kejadian) ? 'bad' : kriK || resT ? 'warn' : 'good', s: [kriK ? kriK + ' KRI kuning' : '', G ? resT + ' risiko fraud tinggi' : ''].filter(Boolean).join(' · ') || 'semua terkendali' });

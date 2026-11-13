@@ -654,9 +654,10 @@ html.glass .mi:hover,html.glass .mi:focus-visible{background:var(--g-btn)}
 .top h1 .heart{display:inline-block;margin-left:.3em;font-size:.82em;transform-origin:50% 60%;animation:detak 2.4s ease-in-out infinite}
 @keyframes detak{0%,60%,100%{transform:scale(1)}10%{transform:scale(1.18)}20%{transform:scale(1)}30%{transform:scale(1.12)}}
 @media (prefers-reduced-motion:reduce){.top h1 .heart{animation:none}}
-.credit{display:flex;flex-direction:column;align-items:center;gap:2px;margin:2px auto 0;padding:8px 18px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;color:var(--ink-2);text-align:center;width:max-content;max-width:100%}
-.credit small{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
-html.glass .credit{background:var(--g-btn);border-color:var(--g-border);box-shadow:inset 0 1px 0 var(--g-hi)}
+.credit{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 8px;margin:0 auto;padding-top:14px;border-top:1px solid var(--line);width:min(520px,100%);font-size:11.5px;color:var(--ink-3);letter-spacing:.01em;text-align:center}
+.credit b{font-weight:600;color:var(--ink-2)}
+.credit .dot{opacity:.6}
+@media (max-width:480px){.credit .dot{display:none}.credit{flex-direction:column;gap:2px}}
 
 /* ===================== STRUKTUR ORGANISASI (kartu avatar, jalur per Asman) ===================== */
 :root{--og-mgr:#7b1e3a;--og-staf:#6b5b95;--og-kuning:#a37812;--og-biru:#3a4f8c;--og-1:#1f7a6b;--og-2:#8a3f8c;--og-3:#b4651b;--og-conn:#c3c9d8;--og-av-ink:#fff;
