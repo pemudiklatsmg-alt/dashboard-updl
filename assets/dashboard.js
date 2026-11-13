@@ -1354,12 +1354,80 @@
       bln.map(function (m) { var n = 0, ada = false; kriRows().forEach(function (k) { var v = k.bulan[m - 1]; if (v === null || v === undefined || v === '') return; ada = true; var st2 = kriStatus(k, v); if (st2 === 'bad' || st2 === 'warn') n++; }); return ada ? -n : null; })
     ];
     var IK_T = ['target', 'kelas', 'jam', 'senyum', 'ulang', 'waspada'];
+    var tgtHop = bln.map(function (m) { var b = D.BULAN[m - 1]; return itH && konmanAda(b) ? D.num(itH.target[b].v) : null; });
+    S.rgkInfo = [
+      { judul: 'Indikator Konman mencapai target', ket: 'Jumlah indikator Kontrak Manajemen yang capaiannya ≥ 100% di tiap bulan.', satuan: 'indikator', des: 0,
+        v: bln.map(function (m) { var b = D.BULAN[m - 1]; if (!konmanAda(b)) return null; return K().items.filter(function (it) { return !it.isGroup && !it.pengurang && D.hasData(it, b) && D.capaianItem(it, b) >= 0.9999; }).length; }),
+        maks: ind.length || null, ke: ['indikator', '#indList'], keNama: 'Indikator Kinerja' },
+      { judul: 'Kelas terlaksana (kumulatif)', ket: 'Jumlah kelas berstatus Selesai sejak Januari sampai akhir tiap bulan.', satuan: 'kelas', des: 0, v: tr[1], ke: ['ringkasan', '#kpis > .card:nth-child(3)'], keNama: 'Total Kelas (tab Pembelajaran)' },
+      { judul: 'Hari Orang Pelatihan', ket: 'Rata-rata hari pelatihan per pegawai, kumulatif sejak Januari. Garis putus-putus = target Konman bulan itu.', satuan: '', des: 2, v: tr[2], target: tgtHop, ke: ['ringkasan', '#kpis [data-act=hop]'], keNama: 'Hari Orang Pelatihan (tab Pembelajaran)' },
+      { judul: 'Kepuasan peserta (EL1)', ket: 'Rata-rata nilai kepuasan peserta skala 1–5, kumulatif sejak Januari.', satuan: '/ 5', des: 2, v: tr[3], target: p.targetL1 ? bln.map(function () { return p.targetL1; }) : null, ke: ['ringkasan', '#kpis [data-act=kepuasan]'], keNama: 'Kepuasan Peserta (tab Pembelajaran)' },
+      { judul: 'Perbaikan berkelanjutan', ke: ['kepatuhan', '#tlBody'], keNama: 'Perbaikan Berkelanjutan' },
+      { judul: 'KRI kuning & merah per bulan', ket: 'Jumlah Key Risk Indicator yang berstatus kuning atau merah di tiap bulan. Makin rendah makin baik.', satuan: 'KRI', des: 0, turunBaik: true,
+        v: tr[5] ? tr[5].map(function (x) { return x === null ? null : -x; }) : [], ke: ['kri', '#kriPanel'], keNama: 'Key Risk Indicator' }
+    ];
     var tiles = '<div class="rgk-t">' + T.map(function (x, i) {
       var sp = tr[i] ? spark(tr[i], x.c) : (i === 4 && perluTL ? '<span class="tl-mini" aria-hidden="true"><i class="good" style="flex:' + TLc['Selesai'] + '"></i><i class="warn" style="flex:' + TLc['Proses'] + '"></i><i class="bad" style="flex:' + TLc['Belum Dimulai'] + '"></i></span>' : '');
-      return '<button type="button" class="rgk-tile ' + x.c + '" data-vt="' + x.vt + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
+      return '<button type="button" class="rgk-tile ' + x.c + '" data-rgk="' + i + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
     }).join('') + '</div>';
     el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles +
       '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak atau pilih tab di atas untuk melihat rinciannya.</p>';
+  }
+
+  /* detail tren: grafik garis per bulan yang mudah dibaca orang awam, lalu tombol menuju kartu rinciannya */
+  function lompatKe(bagian, panel) {
+    closeModal();
+    var t = tabDari(bagian); if (t && S.vt !== 'semua') pilihTab(t);
+    var sec = document.querySelector('main [data-bagian="' + bagian + '"]'); if (!sec) return;
+    var el = panel ? document.querySelector(panel) : null, target = el ? (el.matches('.panel, .card') ? el : el.closest('.panel, .card') || el) : sec;
+    setTimeout(function () {
+      var h = $('top') ? $('top').getBoundingClientRect().height : 0;
+      window.scrollTo({ top: Math.max(0, target.getBoundingClientRect().top + window.scrollY - h - 14), behavior: 'smooth' });
+      target.classList.remove('sorot-k'); void target.offsetWidth; target.classList.add('sorot-k');
+      setTimeout(function () { target.classList.remove('sorot-k'); }, 2200);
+    }, 60);
+  }
+  function grafikTren(o) {
+    var d = o.v.map(function (v, i) { return { m: i + 1, v: v }; }), ada = d.filter(function (x) { return x.v !== null && x.v !== undefined; });
+    var tg = (o.target || []).map(function (v, i) { return { m: i + 1, v: v }; }).filter(function (x) { return x.v !== null && x.v !== undefined; });
+    var semua = ada.map(function (x) { return x.v; }).concat(tg.map(function (x) { return x.v; })).concat(o.maks ? [o.maks] : []);
+    var mx = Math.max.apply(null, semua.concat([0])), mn = Math.min.apply(null, semua.concat([o.maks ? 0 : Infinity]));
+    if (!isFinite(mn)) mn = 0;
+    var pad = (mx - mn) * 0.15 || 1; mx += pad; mn = Math.max(0, mn - pad);
+    if (!o.des) { mn = Math.floor(mn); var st = Math.max(1, Math.ceil((mx - mn) / 4)); mx = mn + st * 4; }   // sumbu bilangan bulat tanpa label kembar
+    var W = 680, H = 260, L = 40, R = 16, T = 22, B = 30, n = 12, X = function (m) { return L + (m - 0.5) * (W - L - R) / n; }, Y = function (v) { return T + (1 - (v - mn) / (mx - mn || 1)) * (H - T - B); };
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tren-svg" role="img" aria-label="' + esc(o.judul) + ' per bulan">';
+    for (var g = 0; g <= 4; g++) { var gv = mn + (mx - mn) * g / 4; s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(gv) + '" y2="' + Y(gv) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (Y(gv) + 4) + '" text-anchor="end">' + D.fmt(gv, o.des ? 1 : 0) + '</text>'; }
+    if (tg.length) s += '<path class="tgt" d="' + tg.map(function (x, k) { return (k ? 'L' : 'M') + X(x.m) + ' ' + Y(x.v); }).join(' ') + '"/><text class="tgt-l" x="' + (W - R) + '" y="' + (Y(tg[tg.length - 1].v) - 6) + '" text-anchor="end">Target</text>';
+    if (o.maks) s += '<line class="tgt" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(o.maks) + '" y2="' + Y(o.maks) + '"/><text class="tgt-l" x="' + (W - R) + '" y="' + (Y(o.maks) - 6) + '" text-anchor="end">Semua (' + o.maks + ')</text>';
+    if (ada.length > 1) s += '<path class="tl-a" d="' + ada.map(function (x, k) { return (k ? 'L' : 'M') + X(x.m) + ' ' + Y(x.v); }).join(' ') + ' L' + X(ada[ada.length - 1].m) + ' ' + (H - B) + ' L' + X(ada[0].m) + ' ' + (H - B) + ' Z"/>';
+    if (ada.length > 1) s += '<path class="tl-l" d="' + ada.map(function (x, k) { return (k ? 'L' : 'M') + X(x.m) + ' ' + Y(x.v); }).join(' ') + '"/>';
+    ada.forEach(function (x, k) {
+      var naik = k ? x.v - ada[k - 1].v : 0, baik = o.turunBaik ? naik < 0 : naik > 0, kls = !k || !naik ? '' : baik ? 'up' : 'dn';
+      s += '<circle class="tl-p ' + (x.m === S.bulan ? 'on ' : '') + kls + '" cx="' + X(x.m) + '" cy="' + Y(x.v) + '" r="' + (x.m === S.bulan ? 6 : 4.5) + '"><title>' + namaBulan(x.m) + ': ' + D.fmt(x.v, o.des) + '</title></circle>' +
+        '<text class="tl-v" x="' + X(x.m) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + D.fmt(x.v, o.des) + '</text>';
+    });
+    for (var m = 1; m <= 12; m++) s += '<text class="ax' + (m === S.bulan ? ' on' : '') + '" x="' + X(m) + '" y="' + (H - 9) + '" text-anchor="middle">' + D.BLN3[m - 1] + '</text>';
+    return s + '</svg>';
+  }
+  function openTren(i) {
+    var o = (S.rgkInfo || [])[i]; if (!o) return;
+    if (!o.v) return lompatKe(o.ke[0], o.ke[1]);
+    var ada = o.v.map(function (v, k) { return { m: k + 1, v: v }; }).filter(function (x) { return x.v !== null && x.v !== undefined; });
+    var kal = 'Belum ada data per bulan.';
+    if (ada.length) {
+      var a = ada[0], z = ada[ada.length - 1], hi = ada.reduce(function (p, x) { return (o.turunBaik ? x.v < p.v : x.v > p.v) ? x : p; }), lo = ada.reduce(function (p, x) { return (o.turunBaik ? x.v > p.v : x.v < p.v) ? x : p; });
+      var lalu = ada.length > 1 ? ada[ada.length - 2] : null, dl = lalu ? z.v - lalu.v : 0, baik = o.turunBaik ? dl < 0 : dl > 0;
+      kal = '<b>' + namaBulan(z.m) + ': ' + D.fmt(z.v, o.des) + (o.satuan ? ' ' + o.satuan : '') + '</b>' +
+        (lalu ? (dl === 0 ? ', sama dengan ' : baik ? ', <span class="good">membaik</span> dari ' : ', <span class="bad">memburuk</span> dari ') + namaBulan(lalu.m) + ' (' + D.fmt(lalu.v, o.des) + ')' : '') + '. ' +
+        (ada.length > 2 ? 'Terbaik di ' + namaBulan(hi.m) + ' (' + D.fmt(hi.v, o.des) + '), ' + (o.turunBaik ? 'terburuk' : 'terendah') + ' di ' + namaBulan(lo.m) + ' (' + D.fmt(lo.v, o.des) + ').' : '') +
+        (a.m !== z.m ? ' Sejak ' + namaBulan(a.m) + ': ' + D.fmt(a.v, o.des) + ' → ' + D.fmt(z.v, o.des) + '.' : '');
+    }
+    openModal('<div class="modal-h"><div><div class="desc">Tren ' + S.tahun + ' · s.d. ' + namaBulan(S.bulan) + '</div><h3>' + esc(o.judul) + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      '<p class="tren-kal">' + kal + '</p><div class="tren-wrap">' + grafikTren(o) + '</div>' +
+      '<div class="legend"><span><i class="lg-up"></i>membaik dari bulan sebelumnya</span><span><i class="lg-dn"></i>memburuk</span><span><i class="lg-on"></i>bulan terpilih</span></div>' +
+      '<p class="note">' + esc(o.ket) + '</p>' +
+      '<div><button class="btn btn-p" type="button" data-lompat="' + o.ke[0] + '|' + o.ke[1] + '">Lihat rincian di kartu ' + esc(o.keNama) + ' →</button></div>', 'tren');
   }
 
   function renderAll() {
@@ -1508,6 +1576,8 @@
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
+    var rg = t.closest('[data-rgk]'); if (rg) return openTren(+rg.getAttribute('data-rgk'));
+    var lp = t.closest('[data-lompat]'); if (lp) { var q = lp.getAttribute('data-lompat').split('|'); return lompatKe(q[0], q[1]); }
     var vtb = t.closest('[data-vt]'); if (vtb && vtb.tagName === 'BUTTON') { pilihTab(vtb.getAttribute('data-vt'), true); return; }
     if (t.closest('[data-rgksemua]')) { S.rgkSemua = !S.rgkSemua; return renderRingkasan(); }
     var phx = t.closest('[data-ph]');
