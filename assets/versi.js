@@ -4,6 +4,9 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '4.5', t: '14 Nov 2026', b: ['Navigasi bawah di HP ala Safari: mengecil saat digulir ke bawah, membesar saat digulir ke atas'],
+      l: ['Akun Lihat lebih ringkas: tanpa kartu "Perlu perhatian" dan lonceng', 'Isi halaman menghilang di balik kepala halaman, tidak lagi terlihat di atasnya'],
+      p: ['Tab Ringkasan kembali tersorot saat website pertama dibuka'] },
     { v: '4.4', t: '14 Nov 2026', b: ['Dashboard langsung tampil dari data terakhir, lalu memperbarui diri di belakang layar'],
       l: ['Server mengirim paket data yang sudah jadi, sehingga data termuat jauh lebih cepat', 'Website selalu dibuka di tab Ringkasan; tidak perlu login ulang setelah menutup tab (selama sesi 6 jam masih berlaku)'],
       p: ['Di HP, halaman di belakang menu ☰ dan jendela pop-up tidak lagi ikut bergulir'] },

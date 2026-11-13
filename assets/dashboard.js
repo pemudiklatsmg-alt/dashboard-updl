@@ -412,6 +412,8 @@
   }
   function renderPerhatian() {
     var el = $('perhatian'); if (!el) return;
+    // akun Lihat: kartu "Perlu perhatian" dan lonceng tidak ditampilkan
+    if (!admin()) { el.hidden = true; el.innerHTML = ''; var nbt = $('notifBtn'); if (nbt) nbt.hidden = true; return; }
     var L = perhatian(), bl = namaBulan(S.bulan) + ' ' + S.tahun, nb = L.filter(function (x) { return x.c === 'bad'; }).length;
     S.phL = L; el.hidden = false;
     var btn = $('notifBtn'), n = $('notifN');
@@ -1309,7 +1311,7 @@
     $('bulanSel').value = String(m);
     Array.prototype.forEach.call(document.querySelectorAll('.per'), function (e) { e.textContent = namaBulan(m) + ' ' + y; });
     renderAll();
-    if (!S.vt) pilihTab('ringkasan');   // saat website dibuka selalu mulai dari Ringkasan
+    if (!S.tabSiap) { S.tabSiap = true; pilihTab(S.vt || 'ringkasan'); }   // saat website dibuka selalu mulai dari Ringkasan
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
@@ -1547,7 +1549,7 @@
       }).join('') + '<b class="rgk-100" style="bottom:calc((100% - 34px) * ' + (100 / mxT).toFixed(4) + ' + 18px)"></b></div></div>';
     // 2. hal yang perlu perhatian (maksimal 3)
     var L = perhatian(), L3 = S.rgkSemua ? L : L.slice(0, 3);
-    var ph = '<div class="rgk-ph"><div class="sub-h">Perlu perhatian' + (L.length ? ' · ' + L.length : '') + '</div>' + (L.length ? L3.map(function (x) {
+    var ph = !admin() ? '' : '<div class="rgk-ph"><div class="sub-h">Perlu perhatian' + (L.length ? ' · ' + L.length : '') + '</div>' + (L.length ? L3.map(function (x) {
       return '<button type="button" class="ph-i ' + x.c + '"' + (x.act ? ' data-act="' + x.act + '"' : ' data-loncat="' + x.go + '"') + '><i aria-hidden="true"></i><span>' + x.t + '</span><em aria-hidden="true">→</em></button>';
     }).join('') + (L.length > 3 ? '<button type="button" class="rgk-more" data-rgksemua>' + (S.rgkSemua ? 'Ringkas' : 'Lihat semua (' + L.length + ') →') + '</button>' : '') : '<div class="rgk-ok">✓ Tidak ada yang perlu perhatian untuk ' + bl + '.</div>') + '</div>';
     // 3. enam angka kunci
@@ -1595,7 +1597,7 @@
       var sp = tr[i] ? spark(tr[i], x.c) : (i === 4 && perluTL ? '<span class="tl-mini" aria-hidden="true"><i class="good" style="flex:' + TLc['Selesai'] + '"></i><i class="warn" style="flex:' + TLc['Proses'] + '"></i><i class="bad" style="flex:' + TLc['Belum Dimulai'] + '"></i></span>' : '');
       return '<button type="button" class="rgk-tile ' + x.c + '" data-rgk="' + i + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
     }).join('') + '</div>';
-    el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles;
+    el.innerHTML = '<div class="rgk-top' + (ph ? '' : ' satu') + '">' + hero + ph + '</div>' + tiles;
   }
 
   /* detail tren: grafik garis per bulan yang mudah dibaca orang awam, lalu tombol menuju kartu rinciannya */
