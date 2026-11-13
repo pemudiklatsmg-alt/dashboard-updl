@@ -38,20 +38,44 @@
   });
 
   /* ---------- mode presentasi ---------- */
-  /* Tiap slide hanya menampilkan satu bagian dan diperkecil otomatis agar muat satu layar */
-  var URUT = ['rgk', 'bulanan', 'indikator', 'kepatuhan', 'ringkasan+evaluasi', 'pengembangan', 'isu', 'risiko', 'kri', 'fraud'];
-  var NAMA_SLIDE = { rgk: 'Ringkasan', 'ringkasan+evaluasi': 'Pembelajaran & Evaluasi' };
-  function slideEls(n) { return n.split('+').map(function (x) { return x === 'rgk' ? $('rgk') : bagian(x); }).filter(Boolean); }
+  /* Slide disusun otomatis: bagian sejenis yang pendek digabung dalam satu slide, lalu tiap slide
+     diperbesar atau diperkecil (CSS zoom) agar mengisi satu layar tanpa terpotong. */
+  var KELOMPOK = [['rgk'], ['bulanan', 'kepatuhan', 'indikator'], ['ringkasan', 'evaluasi', 'pengembangan'], ['isu', 'risiko', 'kri', 'fraud']];
+  var URUT = [];
+  function el1(x) { return x === 'rgk' ? $('rgk') : bagian(x); }
+  function slideEls(sl) { return sl.map(el1).filter(Boolean); }
+  function namaSlide(sl) { return sl.map(function (x) { return x === 'rgk' ? 'Ringkasan' : x === 'ringkasan' ? 'Pembelajaran' : BAGIAN[x]; }).join(' · '); }
+  function ruangLayar() { var atas = $('top') ? $('top').getBoundingClientRect().bottom : 0; return window.innerHeight - atas - 24 - 96; }
+  function susun() {
+    var semua = [].concat.apply([], KELOMPOK), tinggi = {};
+    semua.forEach(function (x) { var e = el1(x); if (e) { e.hidden = false; e.style.zoom = ''; } });
+    semua.forEach(function (x) { var e = el1(x); tinggi[x] = e ? e.getBoundingClientRect().height : 0; });
+    var ruang = ruangLayar(), out = [];
+    KELOMPOK.forEach(function (g) {
+      var cur = [], jml = 0;
+      g.forEach(function (x) {
+        if (!el1(x) || !tinggi[x]) return;
+        var t = tinggi[x] + (cur.length ? 18 : 0);
+        // gabung selama hasilnya masih terbaca (diperkecil paling banyak ke 66%)
+        if (cur.length && (jml + t) * 0.66 > ruang) { out.push(cur); cur = []; jml = 0; t = tinggi[x]; }
+        cur.push(x); jml += t;
+      });
+      if (cur.length) out.push(cur);
+    });
+    URUT = out;
+  }
+  function tinggiSlide(E) { return E[E.length - 1].getBoundingClientRect().bottom - E[0].getBoundingClientRect().top; }
   function pasSlide() {
     if (!P.on) return;
-    var E = slideEls(URUT[P.i]); if (!E.length) return;
+    var E = slideEls(URUT[P.i] || []); if (!E.length) return;
     window.scrollTo({ top: 0, behavior: 'auto' });
-    E.forEach(function (e) { e.style.zoom = ''; });
-    var awal = E[0].getBoundingClientRect().top, akhir = E[E.length - 1].getBoundingClientRect().bottom;
-    var ruang = window.innerHeight - awal - 96, tinggi = akhir - awal, s = tinggi > ruang ? Math.max(0.45, ruang / tinggi) : 1;
-    if (s < 1) E.forEach(function (e) { e.style.zoom = s.toFixed(3); });
+    var ruang = ruangLayar(), lo = 0.45, hi = 1.2, z = 1;   // diperbesar paling banyak 120% agar tata letak tidak pecah
+    var coba = function (v) { E.forEach(function (e) { e.style.zoom = v === 1 ? '' : v.toFixed(3); }); return tinggiSlide(E); };
+    if (coba(1) <= ruang) lo = 1; else hi = 1;
+    for (var k = 0; k < 7; k++) { z = (lo + hi) / 2; if (coba(z) <= ruang) lo = z; else hi = z; }
+    coba(lo);
   }
-  window.addEventListener('resize', function () { if (P.on) pasSlide(); });
+  window.addEventListener('resize', function () { if (!P.on) return; var n = URUT[P.i] && URUT[P.i][0]; susun(); var j = 0; URUT.forEach(function (sl, i) { if (sl.indexOf(n) >= 0) j = i; }); tampil(j); });
   var P = { on: false, i: 0, jeda: false, t: null, dur: 20000, layar: false, kunci: null };
   var bar = document.createElement('div');
   bar.className = 'pres-bar'; bar.id = 'presBar'; bar.hidden = true; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Kontrol presentasi');
@@ -73,12 +97,12 @@
   }
   function tampil(i) {
     P.i = (i + URUT.length) % URUT.length;
-    var n = URUT[P.i];
-    $('presNama').textContent = NAMA_SLIDE[n] || BAGIAN[n]; $('presNo').textContent = (P.i + 1) + ' / ' + URUT.length;
+    var sl = URUT[P.i], E = slideEls(sl);
+    $('presNama').textContent = namaSlide(sl); $('presNo').textContent = (P.i + 1) + ' / ' + URUT.length;
     Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian], #rgk'), function (sec) {
-      var aktif = slideEls(n).indexOf(sec) >= 0; sec.hidden = !aktif; sec.classList.toggle('pres-on', aktif); if (!aktif) sec.style.zoom = '';
+      var aktif = E.indexOf(sec) >= 0; sec.hidden = !aktif; sec.classList.toggle('pres-on', aktif); if (!aktif) sec.style.zoom = '';
     });
-    if (n === 'bulanan' && A.renderChart) A.renderChart();
+    if (sl.indexOf('bulanan') >= 0 && A.renderChart) A.renderChart();
     pasSlide(); jadwal();
   }
   function jeda(v) {
@@ -96,7 +120,7 @@
     }
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (k) { P.kunci = k; }, function () {}); } catch (e) {}
     $('presJeda').textContent = '❚❚'; bar.classList.remove('jeda');
-    setTimeout(function () { tampil(0); }, 250);
+    setTimeout(function () { susun(); tampil(0); }, 250);
   }
   function berhenti() {
     if (!P.on) return;
