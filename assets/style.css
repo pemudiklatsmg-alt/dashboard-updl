@@ -949,3 +949,24 @@ html.glass .fr-skema span { background: var(--g-btn); border-color: var(--g-bord
 @media (max-width: 700px) { .fr { grid-template-columns: minmax(0, 1fr); } .fr-map { grid-template-columns: 48px repeat(5, minmax(0, 1fr)); } .fg-r { grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr); } }
 .fr-map .pd { display: none; }
 @media (max-width: 700px) { .fr-map .pj { display: none; } .fr-map .pd { display: inline; } }
+
+/* FRA: sel peta seukuran, ringkasan jumlah untuk sel padat, proses bisnis bertumpuk */
+.fr-map .c { aspect-ratio: auto; height: 66px; overflow: hidden; align-content: center; }
+.fr-map .ry { min-height: 0; }
+.fr-many { border: 0; border-radius: 10px; background: var(--sheet); color: var(--ink); padding: 3px 9px; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; cursor: pointer; font-size: 10px; font-weight: 600; }
+.fr-many b { font-family: var(--f-display); font-size: 17px; }
+.fr-many:hover, .fr-many:focus-visible { outline: 2px solid var(--accent); }
+.fr-pro { display: grid; gap: 9px; }
+.fp { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; align-items: end; font-size: 12.5px; }
+.fp-l { line-height: 1.25; }
+.fp .num { font-weight: 600; }
+.fp .t { grid-column: 1 / -1; height: 9px; border-radius: 5px; background: var(--track); overflow: hidden; display: flex; gap: 1px; }
+.fp .t i { display: block; height: 100%; }
+@media (max-width: 700px) { .fr-map .c { height: 44px; gap: 2px; } .fr-map .fr-dot { min-width: 17px; height: 17px; padding: 0 2px; font-size: 9px; } .fr-many { padding: 2px 5px; font-size: 8.5px; } .fr-many b { font-size: 13px; } }
+/* Inovasi: daftar ringkas mengisi ruang panel */
+.ino-l { display: grid; gap: 4px; }
+.ino-i { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 2px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.ino-i:last-child { border-bottom: 0; }
+.ino-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ino-t b { font-weight: 600; }
+.ino-m { font-size: 11px; color: var(--ink-3); }

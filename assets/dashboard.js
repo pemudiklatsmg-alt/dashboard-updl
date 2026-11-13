@@ -617,9 +617,12 @@
       g += '<div class="ry">' + KEM[k] + '</div>';
       for (var d = 1; d <= 5; d++) {
         var key = KEM[k] + '|' + DAM[d - 1], n = peta[key] || 0, lv = MATRIKS[k][d - 1], isi = '';
-        if (n && R) isi = R.filter(function (r) { return (v === 'inh' ? r.km : (r.kmR || r.km)) === KEM[k] && (v === 'inh' ? r.dm : (r.dmR || r.dm)) === DAM[d - 1]; })
-          .map(function (r) { return '<button type="button" class="rdot fr-dot" data-fr="' + esc(r.id) + '" title="' + esc(r.id + ': ' + r.des) + '">' + esc(r.id.replace(/^FR0?/, '')) + '</button>'; }).join('');
-        else if (n) isi = '<span class="fr-n">' + n + '</span>';
+        if (n && R) {
+          var di = R.filter(function (r) { return (v === 'inh' ? r.km : (r.kmR || r.km)) === KEM[k] && (v === 'inh' ? r.dm : (r.dmR || r.dm)) === DAM[d - 1]; });
+          // sel tetap seukuran: lebih dari 4 risiko diringkas jadi satu tombol jumlah
+          isi = di.length > 4 ? '<button type="button" class="fr-many" data-frsel="' + esc(key) + '" title="' + esc(di.map(function (r) { return r.id; }).join(', ')) + '"><b>' + di.length + '</b>risiko</button>'
+            : di.map(function (r) { return '<button type="button" class="rdot fr-dot" data-fr="' + esc(r.id) + '" title="' + esc(r.id + ': ' + r.des) + '">' + esc(r.id.replace(/^FR0?/, '')) + '</button>'; }).join('');
+        } else if (n) isi = '<span class="fr-n">' + n + '</span>';
         g += '<div class="c" data-l="' + LV[lv] + '" title="' + esc(KEM[k] + ' × ' + DAM[d - 1] + ' · ' + lv + (n ? ' · ' + n + ' risiko' : '')) + '">' + isi + '</div>';
       }
     });
@@ -642,10 +645,10 @@
       '<div><b class="num">' + (aksiN ? G.aksi.Selesai + '/' + aksiN : '–') + '</b><span>kegiatan mitigasi selesai</span></div></div>';
     // per proses bisnis
     var P = Object.keys(G.proses), mp = Math.max.apply(null, P.map(function (p) { return LV_FRA.reduce(function (a, l) { return a + (G.proses[p][v][l] || 0); }, 0); }).concat([1]));
-    var proses = '<div class="sub-h">Per proses bisnis · ' + nmV + '</div><div class="bars fr-pro">' + P.map(function (p) {
+    var proses = '<div class="sub-h">Per proses bisnis · ' + nmV + '</div><div class="fr-pro">' + P.map(function (p) {
       var x = G.proses[p][v], tot = LV_FRA.reduce(function (a, l) { return a + (x[l] || 0); }, 0);
-      return '<div class="r" title="' + esc(p + ': ' + LV_FRA.filter(function (l) { return x[l]; }).map(function (l) { return l + ' ' + x[l]; }).join(', ')) + '"><span>' + esc(p.replace(/\s*\(.*\)$/, '')) + '</span><span class="t">' +
-        LV_FRA.slice().reverse().map(function (l) { return x[l] ? '<i style="width:' + (x[l] / mp * 100) + '%;background:var(--risk-' + LV[l] + ')"></i>' : ''; }).join('') + '</span><span class="num">' + tot + '</span></div>';
+      return '<div class="fp" title="' + esc(p + ': ' + LV_FRA.filter(function (l) { return x[l]; }).map(function (l) { return l + ' ' + x[l]; }).join(', ')) + '"><span class="fp-l">' + esc(p.replace(/\s*\(.*\)$/, '')) + '</span><span class="num">' + tot + '</span><span class="t">' +
+        LV_FRA.slice().reverse().map(function (l) { return x[l] ? '<i style="width:' + (x[l] / mp * 100) + '%;background:var(--risk-' + LV[l] + ')"></i>' : ''; }).join('') + '</span></div>';
     }).join('') + '</div>';
     var SKN = { Corruption: 'Korupsi', AssetMisappropriation: 'Penyalahgunaan aset', FraudulentStatement: 'Kecurangan laporan', ScammingDataTheft: 'Penipuan & pencurian data' };
     var skema = '<div class="sub-h">Skema fraud</div><div class="fr-skema">' + Object.keys(G.skema).sort(function (a, b) { return G.skema[b] - G.skema[a]; }).map(function (k) {
@@ -654,16 +657,16 @@
     el.innerHTML = '<div class="fr-l">' + g + '</div><div class="fr-m">' + stat + geser + '</div><div class="fr-r">' + proses + skema + aksi + '</div>';
   }
   function frLv(l) { return l ? '<span class="lv" style="background:var(--risk-' + (LV[l] || 1) + ')">' + esc(l) + '</span>' : '–'; }
-  function openFra(fokus) {
+  function openFra(fokus, sel) {
     var F = fra(); if (!F || !F.risiko || !admin()) return;
     openModal('<div class="modal-h"><div><h3>Risiko Fraud (FRA)</h3><div class="desc">' + F.risiko.length + ' risiko · ' + (F.periode ? 'Monev ' + esc(F.periode) + ' · ' : '') + 'klik baris untuk rincian · khusus Admin</div></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="tools"><input class="inp" id="frQ" type="search" placeholder="Cari risiko, PIC, skema…" aria-label="Cari"><select class="inp" id="frF" aria-label="Saring level residual" style="max-width:220px"><option value="">Semua level residual</option>' + LV_FRA.map(function (l) { return '<option>' + l + '</option>'; }).join('') + '</select></div>' +
       '<div class="tbl-wrap scroll"><table class="tbl"><thead><tr><th>ID</th><th>Risiko fraud</th><th>Proses</th><th>Inheren</th><th>Residual</th><th>PIC</th></tr></thead><tbody id="frT"></tbody></table></div><div class="note" id="frN"></div>');
     function fill() {
       var q = $('frQ').value.toLowerCase(), f = $('frF').value;
-      var L = F.risiko.filter(function (r) { return (!f || (r.res || r.inh) === f) && (!q || [r.id, r.des, r.pic, r.skema, r.tipe, r.proses].join(' ').toLowerCase().indexOf(q) >= 0); });
+      var L = F.risiko.filter(function (r) { return (!sel || (S.fraView === 'inh' ? r.km + '|' + r.dm : (r.kmR || r.km) + '|' + (r.dmR || r.dm)) === sel) && (!f || (r.res || r.inh) === f) && (!q || [r.id, r.des, r.pic, r.skema, r.tipe, r.proses].join(' ').toLowerCase().indexOf(q) >= 0); });
       $('frT').innerHTML = L.map(function (r) { return '<tr class="klik" tabindex="0" data-fr="' + esc(r.id) + '"><td><b>' + esc(r.id) + '</b></td><td>' + esc(r.des) + (/^ya/i.test(r.rfMuncul) ? ' <span class="pill warn">red flag</span>' : '') + (/^terjadi/i.test(r.kejadian) ? ' <span class="pill bad">terjadi</span>' : '') + '</td><td class="tl-m">' + esc(r.proses) + '</td><td>' + frLv(r.inh) + '</td><td>' + frLv(r.res || r.inh) + '</td><td class="tl-m">' + esc(r.pic) + '</td></tr>'; }).join('') || '<tr><td colspan="6" class="desc">Tidak ada yang cocok.</td></tr>';
-      $('frN').textContent = L.length + ' dari ' + F.risiko.length + ' risiko';
+      $('frN').innerHTML = L.length + ' dari ' + F.risiko.length + ' risiko' + (sel ? ' · sel ' + esc(sel.replace('|', ' × ')) + ' (' + (S.fraView === 'inh' ? 'inheren' : 'residual') + ') · <a href="#" data-frsel="">tampilkan semua</a>' : '');
     }
     $('frQ').addEventListener('input', fill); $('frF').addEventListener('change', fill); fill();
     if (fokus) openFr(fokus, true);
@@ -769,8 +772,7 @@
     return n >= 1e9 ? 'Rp ' + D.fmt(n / 1e9, 2) + ' M' : n >= 1e6 ? 'Rp ' + D.fmt(n / 1e6, 1) + ' jt' : 'Rp ' + D.fmt(n, 0);
   }
   function renderIno() {
-    var el = $('inoBody'), it = find(/Pengembangan Inovasi/i), Bn = B(), kv = it && konmanAda(Bn) && D.hasData(it, Bn) ? D.capaianItem(it, Bn) : null, kst = status(kv);
-    $('inoKon').className = 'kon ' + (kv === null ? '' : kst.c); $('inoKon').textContent = 'Konman no. 9 · ' + namaBulan(S.bulan) + ': ' + (kv === null ? '–' : D.fmt(kv * 100, 0) + '%');
+    var el = $('inoBody');
     $('inoDesc').textContent = 'Tab Data - Inovasi · tahun ' + S.tahun;
     if (!S.data.inovasi || !S.data.inovasi.length) { el.innerHTML = '<div class="empty">Data inovasi belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - Inovasi</b> ada.</div>'; return; }
     var L = inoRows();
@@ -786,7 +788,16 @@
       }).join('') + (L.some(function (x) { return !x.tahap; }) ? '<div class="note">' + L.filter(function (x) { return !x.tahap; }).length + ' inovasi belum diisi kolom Tahap.</div>' : '') + '</div>' +
       '<div class="legend" style="margin-top:0"><span><i style="background:var(--accent)"></i>Kinerja (Konman)</span><span><i style="background:var(--bar)"></i>UPDL</span></div>' +
       '<div class="sub-h">Status &amp; ketepatan waktu</div><div class="chips2">' + urutW.filter(function (k) { return wk[k]; }).map(function (k) { return '<span class="' + wk[k][1] + '">' + k + ' ' + wk[k][0] + '</span>'; }).join('') + '</div>' +
+      inoRingkas(L) +
       '<button class="btn" type="button" data-act="ino">Lihat daftar inovasi →</button>';
+  }
+  /* daftar ringkas: yang perlu perhatian dulu, lalu tahap tertinggi; maksimal 4 */
+  function inoRingkas(L) {
+    var bobot = { bad: 0, warn: 1, '': 2, good: 3 };
+    var A = L.slice().sort(function (a, b) { return (bobot[a.w[1]] - bobot[b.w[1]]) || (b.tahap - a.tahap); }).slice(0, 4);
+    return '<div class="sub-h">Daftar inovasi' + (L.length > 4 ? ' · 4 dari ' + L.length : '') + '</div><div class="ino-l">' + A.map(function (x) {
+      return '<div class="ino-i" title="' + esc(x.r['Judul Inovasi']) + '"><span class="ino-t"><b>' + esc(x.r['Judul Inovasi']) + '</b> <span class="ino-m">· ' + (x.tahap ? esc(TAHAP[x.tahap - 1].replace(/^\d\.\s*/, '')) : 'tahap belum diisi') + (x.kinerja ? ' · Kinerja' : '') + '</span></span><span class="pill ' + x.w[1] + '">' + esc(x.w[0]) + '</span></div>';
+    }).join('') + '</div>';
   }
   function openIno() {
     var L = inoRows(), tot = L.reduce(function (s, x) { return s + (x.nilai || 0); }, 0), nk = L.filter(function (x) { return x.kinerja; }).length, f = '';
@@ -1358,6 +1369,7 @@
     var rv = t.closest('[data-rv]'); if (rv) { S.riskView = rv.getAttribute('data-rv'); return renderRisk(); }
     var kv = t.closest('[data-kv]'); if (kv) { S.kriView = kv.getAttribute('data-kv'); return renderKri(); }
     var fv = t.closest('[data-fv]'); if (fv) { S.fraView = fv.getAttribute('data-fv'); return renderFra(); }
+    var fs = t.closest('[data-frsel]'); if (fs) { e.preventDefault && e.preventDefault(); return openFra(null, fs.getAttribute('data-frsel') || null); }
     var fr = t.closest('[data-fr]'); if (fr) return openFr(fr.getAttribute('data-fr'), !!fr.closest('#frT'));
     var r = t.closest('[data-r]'); if (r) { var n = r.getAttribute('data-r'); S.riskOn = S.riskOn === n ? null : n; return renderRisk(); }
     if (t.closest('[data-close]') || t === $('modal')) return closeModal();
