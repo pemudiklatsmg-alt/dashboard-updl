@@ -1302,7 +1302,8 @@ body.memuat #notifBtn { visibility: hidden; }
 .cp-logo svg { stroke: #fff; }
 #cetakWrap .row2 { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr) !important; }
 #cetakWrap .cs-pres { display: none !important; }
-#cetakWrap .minis { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+#cetakWrap .minis { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+#cetakWrap .kri-tbl table { min-width: 0 !important; } #cetakWrap .kri-tbl td:first-child { min-width: 200px; }
 @media print {
   /* aturan cetak lama menyembunyikan beberapa bagian — di laporan cetak semua bagian salinan ditampilkan */
   body.cetak-mode #cetakWrap [data-bagian] { display: grid !important; }
@@ -1311,3 +1312,18 @@ body.memuat #notifBtn { visibility: hidden; }
 }
 #cetakWrap .pair { grid-template-columns: minmax(0, 1fr) !important; }
 @media print { body.cetak-mode #cetakWrap [data-bagian="indikator"] .ind { columns: 2 !important; } }
+/* Tugas: cara mengganti PIC */
+.tg-cara summary { cursor: pointer; font-weight: 600; color: var(--ink-2); }
+.tg-cara ol { margin: 8px 0; padding-left: 20px; display: grid; gap: 4px; }
+.tg-kode { border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+.tg-kode th { text-align: left; padding: 3px 12px 3px 0; white-space: nowrap; color: var(--ink); }
+.tg-kode td { padding: 3px 0; color: var(--ink-2); }
+.tg-cara p { margin: 6px 0 0; }
+/* KRI saat dicetak: bulan yang belum berjalan disembunyikan, teks boleh turun baris */
+#cetakWrap .kri-tbl .nanti { display: none !important; }
+#cetakWrap .kri-tbl .kri-t { white-space: normal !important; }
+#cetakWrap .minis-sec .minis, #cetakWrap .minis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+/* Peta risiko saat dicetak: daftar risiko tampil penuh (tidak bergulir) */
+#cetakWrap .rk-rows { height: auto !important; max-height: none !important; min-height: 0 !important; overflow: visible !important; flex: none !important; }
+#cetakWrap .rk-list { overflow: visible !important; }
+#cetakWrap .kri-tbl .kri-t { min-width: 96px; }

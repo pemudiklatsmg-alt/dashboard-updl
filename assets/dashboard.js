@@ -1387,7 +1387,13 @@
           '<div class="tg-when"><span class="tg-pic-c">' + esc(x.pic) + '</span>' + (x.akhirTeks !== '—' ? '<span>' + esc(x.akhirTeks) + '</span>' : '') + (x.batas !== '—' ? '<small>' + esc(x.batas) + '</small>' : '') + '</div>' +
           '<div class="tg-st"><span class="pill ' + (x.st === 'idle' ? '' : x.st) + '">' + esc(x.status) + '</span>' + (x.act ? '<button type="button" class="btn sm" data-act="' + x.act + '">Lihat</button>' : '') + '</div></div>';
       }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini. 🎉</div>') + '</div>' +
-      '<div class="note">PIC per sumber bisa diganti di tab Pengaturan dengan kunci <b>PIC_&lt;KODE&gt;</b> (mis. PIC_EL1 = ADM EPMK). Batas hari: <b>BATAS_HARI_DATA</b>, batas tanggal isian bulanan: <b>BATAS_TANGGAL_BULANAN</b>.</div></div>';
+      '<details class="note tg-cara"><summary>Cara mengganti PIC atau batas waktu</summary>' +
+      '<ol><li>Buka spreadsheet → tab <b>Pengaturan</b>, pergi ke baris kosong paling bawah.</li>' +
+      '<li>Kolom A: <b>PIC_</b> + kode tugas (mis. <b>PIC_KSA</b>). Kolom B: <b>TL EPMK</b>, <b>OF EPMK</b>, atau <b>ADM EPMK</b>.</li>' +
+      '<li>Muat ulang dashboard. Hapus barisnya untuk kembali ke PIC bawaan.</li></ol>' +
+      '<table class="tg-kode"><tbody>' + ['TL EPMK', 'OF EPMK', 'ADM EPMK'].map(function (p) {
+        return '<tr><th>' + p + '</th><td>' + Object.keys(PIC_DEF).filter(function (k) { return PIC_DEF[k] === p; }).join(' · ') + '</td></tr>'; }).join('') + '</tbody></table>' +
+      '<p>Batas waktu: <b>BATAS_HARI_DATA</b> (umur data tarikan, hari) dan <b>BATAS_TANGGAL_BULANAN</b> (tanggal paling lambat isian bulanan) — ubah angkanya di kolom B.</p></details></div>';
   }
   function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
 

@@ -3,7 +3,7 @@
 (function () {
   var A = window.DashApp, D = window.Dash; if (!A || !D) return;
   var $ = function (id) { return document.getElementById(id); }, esc = D.esc;
-  var LEBAR = 900;                  // lebar tata letak isi (px) sebelum diperkecil ke kertas
+  var LEBAR_COBA = [1200, 1100, 1000, 920, 860, 800, 740, 680, 620, 560, 520];   // lebar tata letak isi (px) yang dicoba sebelum diperkecil ke kertas
   var MM = 96 / 25.4;               // px per mm
   var KERTAS = { w: 190 * MM, h: 277 * MM };   // A4 tegak dikurangi margin 10 mm
 
@@ -57,32 +57,94 @@
     var el = b.k.map(sec).filter(Boolean).map(salin); if (!el.length) return null;
     return halaman(b.n, el);
   }
+  /* Pengukuran dilakukan di bingkai tersembunyi selebar kertas (190 mm) dengan aturan cetak aktif,
+     sehingga ukuran yang dihitung sama persis dengan hasil cetak (Safari & Chrome). */
+  var F = null;
+  function bingkai() {
+    if (F) return F;
+    var css = '', links = '';
+    Array.prototype.forEach.call(document.styleSheets, function (sh) {
+      try {
+        Array.prototype.forEach.call(sh.cssRules, function (r) {
+          var cetakSaja = r.media && r.cssRules && /\bprint\b/.test(r.media.mediaText) && !/\b(screen|all)\b/.test(r.media.mediaText);
+          css += (cetakSaja ? Array.prototype.map.call(r.cssRules, function (x) { return x.cssText; }).join('\n') : r.cssText) + '\n';
+        });
+      } catch (e) { if (sh.href) links += '<link rel="stylesheet" href="' + sh.href + '">'; }
+    });
+    var f = document.createElement('iframe'); f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+    f.style.cssText = 'position:fixed;left:-20000px;top:0;width:190mm;height:277mm;border:0;visibility:hidden;pointer-events:none';
+    document.body.appendChild(f);
+    var d = f.contentDocument; d.open();
+    d.write('<!doctype html><html class="' + document.documentElement.className + '" data-theme="light"><head><meta charset="utf-8"><base href="' + document.baseURI + '">' + links + '<style>' + css + '</style></head><body class="cetak-mode"><div id="cetakWrap"></div></body></html>');
+    d.close(); F = f; return f;
+  }
+  // Hindari ruang kosong: coba beberapa lebar tata letak, pilih yang membuat isi paling besar
+  // (tata letak lebar -> pendek; sempit -> tinggi), agar kertas terisi penuh.
+  function sesak(isi) {
+    var el = isi.querySelectorAll('.card, .panel, .mini, .rgk-tile, td, th, .kpi, .cp-box, b, .num');
+    for (var i = 0; i < el.length; i++) { var e = el[i]; if (e.clientWidth && e.scrollWidth > e.clientWidth + 3) return true; }
+    return false;
+  }
+  function ukur(p) {
+    var body = p.querySelector('.cp-body'), isi = p.querySelector('.cp-isi');
+    var rW = body.clientWidth, rH = body.clientHeight, best = null;
+    isi.style.transform = '';
+    LEBAR_COBA.forEach(function (L) {
+      isi.style.width = L + 'px';
+      var w = Math.max(L, isi.scrollWidth), sk = Math.min(rW / w, rH / isi.scrollHeight);
+      if (best && sk <= best.s + 0.002) return;
+      if (L < 900 && sesak(isi)) return;          // tata letak terlalu sempit: ada teks yang terpotong/meluber
+      best = { L: L, s: sk };
+    });
+    isi.style.width = best.L + 'px'; isi.style.transform = 'scale(' + best.s.toFixed(4) + ')';
+    return best.s;
+  }
   function susun(jenis) {
-    var w = $('cetakWrap'); w.innerHTML = '';
+    var unit = [];   // { n: judul, el: fungsi pembuat isi }
+    var dariBag = function (b, ks) { ks = ks || b.k; return { n: b.n, el: function () { return ks.map(sec).filter(Boolean).map(salin); }, ada: ks.some(sec) }; };
     var pages = [];
     if (jenis === 'ringkas') pages.push(halRingkas());
-    else if (jenis === 'lengkap') { pages.push(halRingkas()); BAG.forEach(function (b) { if (b.k[0] === 'bulanan') return; var p = halBagian(b); if (p) pages.push(p); }); }   // grafik bulanan sudah ada di halaman ringkas
+    else if (jenis === 'lengkap') { pages.push(halRingkas()); BAG.forEach(function (b) { if (b.k[0] !== 'bulanan') unit.push(dariBag(b)); }); }
     else {
       var t = A.S.vt || 'semua';
       if (t === 'ringkasan') pages.push(halRingkas());
       else if (t === 'tugas') pages.push(halaman('Tugas Tim EPMK', salin($('tugas'))));
-      else BAG.filter(function (b) { return t === 'semua' || b.k.some(function (k) { return (TAB[t] || []).indexOf(k) >= 0; }); })
-        .forEach(function (b) { var p = halBagian({ k: t === 'semua' ? b.k : b.k.filter(function (k) { return TAB[t].indexOf(k) >= 0; }), n: b.n }); if (p) pages.push(p); });
+      else BAG.forEach(function (b) {
+        var ks = t === 'semua' ? b.k : b.k.filter(function (k) { return (TAB[t] || []).indexOf(k) >= 0; });
+        if (ks.length) unit.push(dariBag(b, ks));
+      });
     }
-    pages.forEach(function (p, i) { p.querySelector('.cp-no').textContent = 'Halaman ' + (i + 1) + ' dari ' + pages.length; w.appendChild(p); });
-    // skala tiap halaman: isi ditata pada lebar LEBAR lalu diperkecil agar muat satu kertas
-    w.hidden = false;
-    pages.forEach(function (p) {
-      var body = p.querySelector('.cp-body'), isi = p.querySelector('.cp-isi');
-      var ruangH = body.clientHeight, ruangW = body.clientWidth;
-      isi.style.width = LEBAR + 'px'; isi.style.transform = '';
-      var s = Math.min(ruangW / LEBAR, ruangH / isi.scrollHeight);
-      isi.style.transform = 'scale(' + s.toFixed(4) + ')';
+    unit = unit.filter(function (u) { return u.ada; });
+    var f = bingkai(), fd = f.contentDocument, fw = fd.getElementById('cetakWrap'); fw.innerHTML = '';
+    var pasang = function (pg) { var x = fd.adoptNode(pg); fw.appendChild(x); return x; };
+    pages = pages.map(function (pg) { pg = pasang(pg); ukur(pg); return pg; });
+    // gabungkan bagian pendek berurutan ke satu halaman bila isinya tetap terbaca (tidak mengecil > 12%)
+    var cur = null;
+    unit.forEach(function (u) {
+      var pg = pasang(halaman(u.n, u.el())), s = ukur(pg);
+      if (cur) {
+        var gab = pasang(halaman(cur.n + ' · ' + u.n, cur.els().concat(u.el()))), sg = ukur(gab);
+        if (sg >= 0.88 * Math.min(cur.s, s) && sg >= 0.6) {
+          fw.removeChild(cur.pg); fw.removeChild(pg);
+          var a = cur; cur = { n: a.n + ' · ' + u.n, els: function () { return a.els().concat(u.el()); }, pg: gab, s: sg }; return;
+        }
+        fw.removeChild(gab); pages.push(cur.pg);
+      }
+      cur = { n: u.n, els: u.el, pg: pg, s: s };
     });
+    if (cur) pages.push(cur.pg);
+    // susun ulang urutan & nomor halaman, lalu salin ke dokumen utama untuk dicetak
+    fw.innerHTML = ''; pages.forEach(function (p, i) { p.querySelector('.cp-no').textContent = 'Halaman ' + (i + 1) + ' dari ' + pages.length; fw.appendChild(p); });
+    var w = $('cetakWrap'); w.innerHTML = fw.innerHTML; w.hidden = false;
     return pages.length;
   }
   function cetak(jenis) {
-    var n = susun(jenis);
+    var fd = bingkai().contentDocument, n = susun(jenis);
+    if (fd.fonts && fd.fonts.status !== 'loaded') return fd.fonts.ready.then(function () { cetakSiap(jenis); });
+    return cetakSiap(jenis, n);
+  }
+  function cetakSiap(jenis, n) {
+    n = n || susun(jenis);
     document.body.classList.add('cetak-mode');
     var selesai = function () { document.body.classList.remove('cetak-mode'); $('cetakWrap').hidden = true; window.removeEventListener('afterprint', selesai); };
     window.addEventListener('afterprint', selesai);
@@ -95,7 +157,7 @@
     var pil = function (k, j, d, on) { return '<label class="cp-opt"><input type="radio" name="cpJenis" value="' + k + '"' + (on ? ' checked' : '') + '><span><b>' + j + '</b><small>' + d + '</small></span></label>'; };
     A.openModal('<div class="modal-h"><div><div class="desc">A4 tegak · ' + A.namaBulan(A.S.bulan) + ' ' + A.S.tahun + '</div><h3>Cetak / Simpan PDF</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="cp-opts">' + pil('ringkas', 'Ringkas 1 halaman', 'Capaian, tren, 6 angka kunci, perlu perhatian, indikator di bawah target. Cocok untuk pimpinan.', true) +
-      pil('lengkap', 'Lengkap per bagian', 'Halaman ringkas + satu halaman untuk tiap bagian (sekitar 9 halaman). Cocok untuk arsip & rapat.') +
+      pil('lengkap', 'Lengkap per bagian', 'Halaman ringkas + tiap bagian; bagian pendek digabung agar tidak ada ruang kosong. Cocok untuk arsip & rapat.') +
       pil('ini', 'Halaman yang sedang dibuka', 'Hanya bagian: ' + esc(nama) + '.') + '</div>' +
       '<div class="cp-aksi"><button class="btn primary" type="button" id="cpGo">Cetak / Simpan PDF</button></div>' +
       '<p class="note">Di jendela cetak, pilih <b>Simpan sebagai PDF</b> (Safari: tombol PDF di kiri bawah → Simpan sebagai PDF). Agar lebih rapi, matikan pilihan <b>Header dan footer</b> bila tersedia.</p>', 'cetak');
@@ -115,4 +177,5 @@
   });
   var w = document.createElement('div'); w.id = 'cetakWrap'; w.hidden = true; document.body.appendChild(w);
   A.openCetak = openCetak; A.susunCetak = susun;
+  setTimeout(function hangat() { try { if (!A.S.data) return setTimeout(hangat, 1500); susun('lengkap'); $('cetakWrap').hidden = true; } catch (e) {} }, 1500);   // memuat font di bingkai lebih awal
 })();
