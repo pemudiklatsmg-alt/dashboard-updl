@@ -176,6 +176,7 @@ function buildData_() {
       },
       links: {
         data: ss.getUrl(),
+        gid: (function () { var o = {}; ss.getSheets().forEach(function (sh) { o[sh.getName()] = sh.getSheetId(); }); return o; })(),
         mli: cfg.MLI_ID ? 'https://docs.google.com/spreadsheets/d/' + cfg.MLI_ID + '/edit' : '',
         profilRisiko: cfg.PROFIL_RISIKO_ID ? 'https://docs.google.com/spreadsheets/d/' + cfg.PROFIL_RISIKO_ID + '/edit' : '',
         rendiklat: {}

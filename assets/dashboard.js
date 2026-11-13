@@ -273,30 +273,55 @@
     return out;
   }
   /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai di luar aturan */
+  function picUntuk(k) { var T = (S.data.meta || {}).tugas || {}, v = T.pic && T.pic[k]; if (typeof v === 'string') v = v.split(/\s*[,;\/&]\s*/); return v && v.length ? v : [PIC_DEF[k]]; }
+  function urlTab(tab, baris) {
+    var L = (S.data.meta && S.data.meta.links) || {}, u = L.data || DEFAULT_LINKS.data, g = L.gid && L.gid[tab];
+    return u + (g !== undefined ? '#gid=' + g + (baris ? '&range=A' + baris : '') : '');
+  }
+  /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai janggal. Tiap temuan membawa daftar baris untuk ditelusuri */
   function cekKualitas() {
-    var out = [], y = S.tahun;
-    var tambah = function (n, c, judul, ket, tab) { if (n) out.push({ n: n, c: c, judul: judul, ket: ket, tab: tab }); };
-    var K0 = kelas(), idH = {}, dup = 0;
-    K0.forEach(function (k) { if (!k.id) return; idH[k.id] = (idH[k.id] || 0) + 1; if (idH[k.id] === 2) dup++; });
-    tambah(dup, 'bad', 'ID kelas ganda di Rendiklat', 'ID jadwal yang sama muncul lebih dari sekali; peserta bisa terhitung dua kali.', 'file Rendiklat');
-    var thn = K0.filter(function (k) { return k.selesai && k.selesai.getFullYear() === y; });
-    tambah(thn.filter(function (k) { return !/^(Selesai|Berlangsung|Terjadwal|Ditunda|Dibatalkan)$/.test(k.status); }).length, 'warn', 'Status kelas kosong / tidak baku', 'Kelas tahun ini yang kolom status-nya kosong atau bukan Selesai/Berlangsung/Terjadwal/Ditunda/Dibatalkan.', 'file Rendiklat');
-    tambah(thn.filter(function (k) { return !k.metode; }).length, 'warn', 'Metode pelaksanaan kosong', 'Kelas tanpa metode (ICT/DL/BL/SL/IHT/HL) tidak masuk grafik Metode Pembelajaran.', 'file Rendiklat');
-    tambah(thn.filter(function (k) { return k.mulai && k.selesai && k.selesai < k.mulai; }).length, 'bad', 'Tanggal selesai sebelum tanggal mulai', 'Hari pelatihan & HOP jadi salah.', 'file Rendiklat');
-    tambah(thn.filter(function (k) { return k.status === 'Selesai' && k.realisasi !== null && k.rencana && k.realisasi > k.rencana * 2; }).length, 'warn', 'Realisasi peserta > 2× rencana', 'Periksa kemungkinan salah ketik jumlah peserta.', 'file Rendiklat');
-    var r = D.hitungRendiklat(K0, y, S.bulan, set()), nk = r.pakaiRencana || r.tanpaPeserta;
-    tambah(nk, 'warn', 'Kelas selesai tanpa realisasi peserta', 'Dihitung memakai rencana peserta (ditandai perkiraan). Isi realisasi di Rendiklat atau Koreksi Rendiklat.', 'Koreksi Rendiklat');
-    var tl = tlRows(), kunci = {}, dTl = 0;
-    tl.forEach(function (x) { var kk = [x['Judul Diklat'], x['Angkatan'], String(x['Komentar'] || '').trim().toLowerCase()].join('|'); if (!String(x['Komentar'] || '').trim()) return; kunci[kk] = (kunci[kk] || 0) + 1; if (kunci[kk] === 2) dTl++; });
-    tambah(dTl, 'warn', 'Masukan perbaikan ganda', 'Komentar yang sama untuk pelatihan & angkatan yang sama tercatat lebih dari sekali.', 'Perbaikan Berkelanjutan');
-    tambah(tl.filter(function (x) { return !String(x['PIC'] || '').trim() && x['Kategori Komentar'] !== 'OFI'; }).length, 'warn', 'Masukan perbaikan tanpa PIC', 'Tidak bisa dipantau siapa yang menindaklanjuti.', 'Perbaikan Berkelanjutan');
-    tambah(tl.filter(function (x) { return !String(x['Status'] || '').trim() && x['Kategori Komentar'] !== 'OFI'; }).length, 'warn', 'Masukan perbaikan tanpa Status', 'Dianggap Belum Dimulai.', 'Perbaikan Berkelanjutan');
-    if (S.data.inovasi) { var ino = D.rows(S.data.inovasi);
-      tambah(ino.filter(function (x) { return !String(x['Tahun'] || '').trim(); }).length, 'bad', 'Inovasi tanpa Tahun', 'Kolom Tahun wajib; baris ini tidak tampil di dashboard.', 'Data - Inovasi');
-      var jI = {}, dI = 0; ino.forEach(function (x) { var t = String(x['Judul Inovasi'] || '').trim().toLowerCase(); if (!t) return; jI[t] = (jI[t] || 0) + 1; if (jI[t] === 2) dI++; });
-      tambah(dI, 'warn', 'Judul inovasi ganda', 'Judul yang sama tercatat lebih dari sekali.', 'Data - Inovasi'); }
-    (S.data.warnings || []).forEach(function (w) { tambah(1, 'warn', 'Peringatan saat membaca data', String(w), '–'); });
-    return out;
+    var out = [], y = S.tahun, tglId = function (d) { return d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'tanpa tanggal'; };
+    var renUrl = ((S.data.meta.links || {}).rendiklat || {})[y] || '';
+    var kor = {}; D.rows(S.data.koreksi).forEach(function (r) { kor[String(r['ID REN']).replace(/^'/, '').trim()] = 1; });
+    var kls = function (k) { var id = String(k.id || '').replace(/^'/, '').trim(); return { t: (k.judul || '(tanpa judul)'), s: id + ' · ' + tglId(k.mulai) + ' – ' + tglId(k.selesai) + (k.status ? ' · ' + k.status : ''), id: id, kor: !!kor[id], url: renUrl }; };
+    var tambah = function (c, judul, ket, tab, kode, rows) { if (rows.length) out.push({ n: rows.length, c: c, judul: judul, ket: ket, tab: tab, pic: picUntuk(kode), rows: rows }); };
+    var K0 = kelas(), thn = K0.filter(function (k) { return k.selesai && k.selesai.getFullYear() === y; });
+    // kelas sama = ID + judul + tanggal mulai + selesai sama (batch/kelas paralel boleh memakai ID yang sama)
+    var grp = {}; thn.forEach(function (k) { if (!k.id) return; var key = k.id + '|' + String(k.judul || '').trim().toLowerCase() + '|' + (k.mulai ? +k.mulai : '') + '|' + (k.selesai ? +k.selesai : ''); (grp[key] = grp[key] || []).push(k); });
+    var dup = []; Object.keys(grp).forEach(function (key) { if (grp[key].length > 1) grp[key].forEach(function (k) { dup.push(kls(k)); }); });
+    tambah('bad', 'Kelas tercatat dua kali di Rendiklat', 'ID, judul, dan tanggal pelaksanaan sama persis; peserta & HOP bisa terhitung ganda. Hapus salah satu baris di file Rendiklat.', 'file Rendiklat', 'RENDIKLAT', dup);
+    tambah('bad', 'Tanggal selesai sebelum tanggal mulai', 'Hari pelatihan & HOP jadi salah.', 'file Rendiklat', 'RENDIKLAT', thn.filter(function (k) { return k.mulai && k.selesai < k.mulai; }).map(kls));
+    tambah('warn', 'Realisasi peserta lebih dari 2× rencana', 'Kemungkinan salah ketik jumlah peserta. Koreksi lewat Koreksi Rendiklat bila memang salah.', 'file Rendiklat', 'RENDIKLAT', thn.filter(function (k) { return k.status === 'Selesai' && k.realisasi !== null && k.rencana && k.realisasi > k.rencana * 2; }).map(kls));
+    tambah('warn', 'Status kelas kosong / tidak baku', 'Status harus Selesai, Berlangsung, Terjadwal, Ditunda, atau Dibatalkan.', 'file Rendiklat', 'RENDIKLAT', thn.filter(function (k) { return !/^(Selesai|Berlangsung|Terjadwal|Ditunda|Dibatalkan)$/.test(k.status); }).map(kls));
+    tambah('warn', 'Metode pelaksanaan kosong', 'Kelas tanpa metode (ICT/DL/BL/SL/IHT/HL) tidak masuk grafik Metode Pembelajaran.', 'file Rendiklat', 'RENDIKLAT', thn.filter(function (k) { return !k.metode; }).map(kls));
+    var tl = tlRows().filter(function (x) { return x['Kategori Komentar'] !== 'OFI'; });
+    var tlr = function (x) { return { t: String(x['Komentar'] || '(tanpa komentar)').slice(0, 120), s: (x['Judul Diklat'] || '') + (x['Angkatan'] ? ' · ' + x['Angkatan'] : '') + ' · baris ' + x._baris, url: urlTab('Perbaikan Berkelanjutan', x._baris) }; };
+    tambah('warn', 'Masukan perbaikan tanpa PIC', 'Tidak jelas siapa yang menindaklanjuti.', 'Perbaikan Berkelanjutan', 'PERBAIKAN_ISI', tl.filter(function (x) { return !String(x['PIC'] || '').trim(); }).map(tlr));
+    tambah('warn', 'Masukan perbaikan tanpa Status', 'Dianggap Belum Dimulai.', 'Perbaikan Berkelanjutan', 'PERBAIKAN_ISI', tl.filter(function (x) { return !String(x['Status'] || '').trim(); }).map(tlr));
+    if (S.data.inovasi) {
+      var ino = D.rows(S.data.inovasi);
+      tambah('bad', 'Inovasi tanpa Tahun', 'Kolom Tahun wajib; baris ini tidak tampil di dashboard.', 'Data - Inovasi', 'INOVASI', ino.filter(function (x) { return !String(x['Tahun'] || '').trim(); }).map(function (x) { return { t: x['Judul Inovasi'] || '(tanpa judul)', s: x['Bidang / PIC'] || '', url: urlTab('Data - Inovasi') }; }));
+    }
+    (S.data.warnings || []).forEach(function (w) { out.push({ n: 1, c: 'warn', judul: 'Peringatan saat membaca data', ket: String(w), tab: '–', pic: [], rows: [] }); });
+    return out.sort(function (a, b) { return (a.c === 'bad' ? 0 : 1) - (b.c === 'bad' ? 0 : 1); });
+  }
+  /* rincian satu temuan: daftar baris + pintasan ke tempat memperbaikinya */
+  function openKualitas(i) {
+    var q = cekKualitas()[i]; if (!q) return;
+    var rows = q.rows.slice(0, 300);
+    openModal('<div class="modal-h"><div><div class="desc">Kualitas data · ' + esc(q.tab) + (q.pic.length ? ' · PIC ' + esc(q.pic.join(', ')) : '') + '</div><h3>' + esc(q.judul) + ' (' + D.fmt(q.n, 0) + ')</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      '<p class="desc">' + esc(q.ket) + '</p><div class="tbl-wrap scroll" style="max-height:58vh"><table class="tbl"><tbody>' +
+      rows.map(function (r) {
+        return '<tr><td><b>' + esc(r.t) + '</b><div class="tl-m">' + esc(r.s) + '</div></td><td class="r" style="white-space:nowrap">' +
+          (r.kor ? '<button type="button" class="btn sm" data-korid="' + esc(r.id) + '">Koreksi di dashboard</button> ' : '') +
+          (r.url ? '<a class="btn sm" href="' + esc(r.url) + '" target="_blank" rel="noopener">Buka di spreadsheet ↗</a>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' + (q.rows.length > rows.length ? '<p class="note">Menampilkan 300 pertama dari ' + q.rows.length + '.</p>' : '') +
+      (q.tab === 'file Rendiklat' ? '<p class="note">File Rendiklat milik pihak lain: perbaiki langsung di file itu bila punya akses, atau ajukan koreksi angka lewat tab Koreksi Rendiklat.</p>' : ''), 'wide');
+  }
+  function daftarKualitasHtml(Q) {
+    return '<ul class="sg-q">' + Q.map(function (q, i) {
+      return '<li data-st="' + q.c + '"' + (q.rows.length ? ' class="klik" tabindex="0" role="button" data-kq="' + i + '"' : '') + '><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + (q.pic.length ? ' · PIC ' + esc(q.pic.join(', ')) : '') + '</small></div>' + (q.rows.length ? '<em class="kq-go" aria-hidden="true">→</em>' : '') + '</li>';
+    }).join('') + '</ul>';
   }
   function openSegar() {
     var L = kesegaran(), m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null, Q = cekKualitas();
@@ -308,8 +333,7 @@
       return '<h4 class="sg-h" data-st="' + g[2] + '">' + g[0] + ' · ' + X.length + '</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Sumber</th><th>Data terakhir</th><th>Status</th></tr></thead><tbody>' +
         X.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b><div class="desc">' + esc(x.tab) + '</div></td><td class="num">' + esc(x.label) + '</td><td><span class="pill ' + x.c + '">' + esc(x.t) + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
     }).join('');
-    var kual = '<h4 class="sg-h" data-st="' + (Q.length ? 'warn' : 'good') + '">Pemeriksaan kualitas isian · ' + Q.length + ' temuan</h4>' + (Q.length ? '<ul class="sg-q">' + Q.map(function (q) {
-      return '<li data-st="' + q.c + '"><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + '</small></div></li>'; }).join('') + '</ul>' : '<p class="desc">Tidak ditemukan data ganda, kolom wajib kosong, atau nilai janggal.</p>');
+    var kual = '<h4 class="sg-h" data-st="' + (Q.length ? 'warn' : 'good') + '">Pemeriksaan kualitas isian · ' + Q.length + ' temuan</h4>' + (Q.length ? daftarKualitasHtml(Q) : '<p class="desc">Tidak ditemukan data ganda, kolom wajib kosong, atau nilai janggal.</p>');
     openModal('<div class="modal-h"><div><div class="desc">Patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (t ? ' · di-update ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
       sum + kual + tbl + '<div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>', 'wide');
   }
@@ -1696,13 +1720,15 @@
     var L = tugasList().filter(function (x) { return x.st === 'bad' || x.st === 'warn'; });
     var jam = new Date().getHours(), sapa = jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 18 ? 'Selamat sore' : 'Selamat malam';
     var nB = L.filter(function (x) { return x.st === 'bad'; }).length, nW = L.length - nB;
+    var Q = cekKualitas().filter(function (q) { return q.rows.length; });
     var per = PIC_EPMK.map(function (p) {
       var X = L.filter(function (x) { return x.pics.indexOf(p) >= 0; }); if (!X.length) return '';
       return '<div class="ig-pic"><div class="ig-pic-h"><span class="tg-av">' + p.split(' ')[0] + '</span><b>' + p + '</b><small>' + X.length + ' tugas</small></div><ul class="ig-ul">' +
         X.map(function (x) { return '<li data-st="' + x.st + '"><i></i><span><b>' + esc(x.judul) + '</b><small>' + esc(x.status) + (x.tab ? ' · ' + esc(x.tab) : '') + '</small></span></li>'; }).join('') + '</ul></div>';
     }).join('');
-    openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim beres 🎉') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
-      (L.length ? '<div class="ig-sum"><span class="pill bad">' + nB + ' terlambat</span><span class="pill warn">' + nW + ' segera</span></div><div class="ig-list">' + per + '</div>' :
+    openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length || Q.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim & data beres 🎉') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      (L.length || Q.length ? '<div class="ig-sum"><span class="pill bad">' + nB + ' terlambat</span><span class="pill warn">' + nW + ' segera</span>' + (Q.length ? '<span class="pill bad">' + Q.length + ' masalah data</span>' : '') + '</div><div class="ig-list">' + per +
+        (Q.length ? '<div class="ig-pic ig-q"><div class="ig-pic-h"><span class="tg-av">!</span><b>Kualitas data</b><small>' + Q.length + ' temuan · klik untuk lihat baris & perbaiki</small></div>' + daftarKualitasHtml(Q) + '</div>' : '') + '</div>' :
         '<p class="desc">Tidak ada data yang usang atau isian yang terlambat. Terima kasih!</p>') +
       '<div class="ig-aksi"><label class="ig-off"><input type="checkbox" id="igOff"> Jangan tampilkan lagi hari ini</label>' +
       (L.length ? '<button type="button" class="btn primary" id="igBuka">Buka Tugas Tim EPMK</button>' : '') + '<button type="button" class="btn" data-close>Nanti saja</button></div>', 'ingat');
@@ -1801,6 +1827,8 @@
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
+    var kq = t.closest('[data-kq]'); if (kq) { var ci = +kq.getAttribute('data-kq'), Qa = cekKualitas(), Qs = kq.closest('.ig-q') ? Qa.filter(function (q) { return q.rows.length; }) : Qa; return openKualitas(Qa.indexOf(Qs[ci])); }
+    var ko = t.closest('[data-korid]'); if (ko) { if (window.DashInput) window.DashInput.bukaKoreksi(ko.getAttribute('data-korid')); return; }
     var kr = t.closest('[data-kri]'); if (kr && !t.closest('#cetakWrap')) { modalKri(kr.getAttribute('data-kri')); return; }
     var tp = t.closest('[data-tgpic]'); if (tp) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; var pv = tp.getAttribute('data-tgpic'); S.tgF.pic = S.tgF.pic === pv ? '' : pv; return renderTugas(); }
     var ts = t.closest('[data-tgst]'); if (ts) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; S.tgF.st = ts.getAttribute('data-tgst'); return renderTugas(); }
@@ -1841,7 +1869,7 @@
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
-    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
+    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink, openKualitas: openKualitas, cekKualitas: cekKualitas, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
     pilihTab: pilihTab, renderChart: renderChart, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }

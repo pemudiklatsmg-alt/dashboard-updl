@@ -1690,3 +1690,8 @@ svg .bl { opacity: .6; } svg .bl.on { opacity: 1; font-weight: 700; }
 .sg-q i { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex: none; background: var(--warn); } .sg-q li[data-st="bad"] i { background: var(--bad); }
 .sg-q small { display: block; color: var(--ink-3); font-size: 12px; margin-top: 2px; }
 @media (max-width: 700px) { .sg-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sg-q li.klik { cursor: pointer; } .sg-q li.klik:hover { background: var(--idle-bg); }
+.sg-q .kq-go { margin-left: auto; flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); font-style: normal; font-size: 10px; color: var(--ink-3); }
+.sg-q li.klik:hover .kq-go { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ig-q .tg-av { background: var(--bad); }
+.btn.sm { padding: 4px 10px; font-size: 12px; }

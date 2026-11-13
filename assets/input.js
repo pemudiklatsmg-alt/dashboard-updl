@@ -335,4 +335,15 @@
       $('sErr').hidden = false; $('sErr').textContent = er.message; btn.disabled = false; btn.textContent = '✓ Coba simpan lagi'; $('sBack').disabled = false;
     });
   }
+  /* pintasan dari dashboard: buka form Koreksi Rendiklat dengan kelas sudah terpilih */
+  window.DashInput = { bukaKoreksi: function (id) {
+    var m = document.querySelector('#modal [data-close]'); if (m && !$('modal').hidden) m.click();
+    setTimeout(function () {
+      $('inputBtn').click(); pilih('koreksi');
+      setTimeout(function () {
+        var lbl = Object.keys(korMap).filter(function (k) { return String(korMap[k]['ID REN']).replace(/^'/, '').trim() === String(id); })[0];
+        if (lbl && $('kSel')) { $('kSel').value = lbl; $('kSel').dispatchEvent(new Event('change')); }
+      }, 60);
+    }, 250);
+  } };
 })();
