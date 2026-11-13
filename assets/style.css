@@ -1089,3 +1089,24 @@ body.pres .cs-pres { display: grid; gap: 8px; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .rgk-hero .rgk-big { text-shadow: none; } }
 :root[data-theme="light"] .rgk-hero .rgk-big { text-shadow: none; }
 @media (max-width: 700px) { .spark, .tl-mini { width: 42%; } .rgk-tile .ikb { display: none; } }
+
+/* presentasi: satu panel per slide untuk bagian dua-panel yang padat */
+body.pres .pair.solo-0, body.pres .pair.solo-1 { grid-template-columns: minmax(0, 1fr); }
+body.pres .pair.solo-0 > .panel:nth-child(2), body.pres .pair.solo-1 > .panel:nth-child(1) { display: none; }
+body.pres .pair.solo-0 #indList { display: block; columns: 2; column-gap: 32px; }
+body.pres .pair.solo-0 #indList .ind-row { break-inside: avoid; }
+body.pres .pair.solo-1 #mlList { max-height: none; overflow: visible; display: block; columns: 2; column-gap: 32px; }
+body.pres .pair.solo-1 #mlList .ml-row { break-inside: avoid; }
+body.pres main .panel:not(.pres-fokus), body.pres main .rgk-hero, body.pres main .rgk-ph { cursor: zoom-in; }
+/* fokus: satu panel memenuhi layar */
+.fokus-tirai { position: fixed; inset: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 78%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: zoom-out; }
+.pres-fokus { position: fixed !important; z-index: 45; overflow: auto; cursor: zoom-out; margin: 0 !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .45); animation: fokusmasuk .25s ease both; }
+@keyframes fokusmasuk { from { opacity: 0; } to { opacity: 1; } }
+.pres-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; flex: none; }
+.pres-bar button.pz { width: auto; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; font-family: var(--f-compact); }
+.fr-map .rx { overflow-wrap: normal; word-break: keep-all; }
+body.pres .pair.solo-1 #mlList { height: auto !important; flex: none !important; }
+/* label dampak FRA: pakai versi singkat bila peta sempit */
+.fr-l { container-type: inline-size; }
+@container (max-width: 440px) { .fr-map .pj { display: none; } .fr-map .pd { display: inline; } }

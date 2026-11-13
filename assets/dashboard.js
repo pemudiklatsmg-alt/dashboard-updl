@@ -352,13 +352,21 @@
   }
 
   /* ---------- monthly chart ---------- */
+  /* saat presentasi: tinggi grafik = tinggi isi panel analisis di sampingnya (semua dalam satuan CSS yang sama) */
+  function tinggiChartPres(lebar) {
+    var cs = $('capSide'), mc = $('monthChart'); if (!cs || !mc || !mc.clientWidth) return 320;
+    var r = mc.getBoundingClientRect().width / mc.clientWidth || 1, kids = cs.children; if (!kids.length) return 320;
+    var isi = (kids[kids.length - 1].getBoundingClientRect().bottom - cs.getBoundingClientRect().top) / r + 16;
+    var kepala = (mc.getBoundingClientRect().top - mc.closest('.panel').getBoundingClientRect().top) / r + 16;
+    return Math.max(260, Math.round(isi - kepala));
+  }
   function renderChart() {
     var months = K().months;
     if (!months.length) { $('monthChart').innerHTML = '<div class="empty">Tab Konman ' + S.tahun + ' belum ada.</div>'; return; }
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? 320 : 250, L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : 250, L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
