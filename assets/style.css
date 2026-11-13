@@ -1543,3 +1543,45 @@ body.top-nempel .top, html.glass body.top-nempel .top {
 
 #cetakWrap .cp-doc { font-size: 12px; } #cetakWrap .rgk-t, #cetakWrap .minis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 #cetakWrap .row2 { grid-template-columns: minmax(0, 1fr) !important; } #cetakWrap .gx-row, #cetakWrap .gx-row.gx-sama { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+
+/* ===== Revisi tampilan 13 Nov malam ===== */
+:root { --rk: 18px; }
+/* lengkung seragam untuk semua kartu, panel, menu samping, lembar utama, kepala, jendela */
+.sheet, html.glass .sheet, .sidenav, .panel, .card, .rgk-hero, .rgk-ph, .rgk-tile, .perhatian, .modal-c, html.glass .card, html.glass .panel, html.glass .rgk-hero, html.glass .rgk-ph, html.glass .rgk-tile, html.glass .modal-c, .lbox, .at-pic, .at-akun, .at-tb, .ig-pic, .gx-p { border-radius: var(--rk) !important; }
+.top, html.glass .top { border-radius: var(--rk) var(--rk) 0 0; }
+/* atas & bawah lembar utama sejajar dengan menu samping (16px dari tepi layar) */
+@media (min-width: 1100px) {
+  body.ada-side { padding-block: 16px; }
+  body.ada-side .sheet { min-height: calc(100vh - 32px); min-height: calc(100dvh - 32px); }
+}
+/* sumber & kredit menempel ke garis bawah lembar */
+.sheet { padding-bottom: 10px; }
+.sheet > .credit { padding-bottom: 0; }
+/* kepala halaman saat digulir: mengambang melengkung, sejajar menu samping */
+.top { top: calc(16px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 700px) { .top { top: calc(8px + env(safe-area-inset-top, 0px)); } }
+body.top-nempel .top, html.glass body.top-nempel .top { border-radius: var(--rk); border: 1px solid var(--g-border, var(--frame)); margin-left: -24px; margin-right: -24px; box-shadow: 0 12px 30px rgba(0,0,0,.28); }
+@media (max-width: 700px) { body.top-nempel .top, html.glass body.top-nempel .top { margin-left: -14px; margin-right: -14px; border-radius: 14px; } }
+/* garis tren kecil di kotak angka: warna netral (merah/kuning hanya pada titik status) */
+.rgk-tile .spark, .rgk-tile .spark.good, .rgk-tile .spark.warn, .rgk-tile .spark.bad { color: var(--bar); }
+/* persen di atas batang capaian kinerja */
+.rgk-tren { height: 150px; }
+.rgk-tren i { max-height: calc(100% - 34px); }
+.rgk-pv { font-size: 9.5px; font-weight: 700; color: var(--ink-2); line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rgk-tren span.on .rgk-pv { color: var(--ink); font-size: 10.5px; }
+@media (max-width: 520px) { .rgk-pv { font-size: 8px; letter-spacing: -.02em; } }
+
+.kv-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.kv-g > div { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; display: grid; gap: 2px; }
+.kv-g span { font-size: 11.5px; color: var(--ink-3); } .kv-g b { font-size: 15px; } .kv-g small { font-size: 11.5px; color: var(--ink-3); }
+.tbl tr.nanti { opacity: .45; }
+.pres-salin, html.glass .pres-salin { background: var(--g-bg, var(--sheet)) !important; }
+.gx-klik { cursor: pointer; } .gx-klik:hover { background: var(--idle-bg); border-radius: 8px; }
+.gx-bar, .gx-ghost { cursor: pointer; }
+#cetakWrap .cp-doc { table-layout: fixed; width: 190mm !important; max-width: 190mm; }
+#cetakWrap .cp-doc td { width: 190mm; max-width: 190mm; overflow: hidden; }
+#cetakWrap .cp-isi .ind { columns: auto !important; display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 18px; }
+#cetakWrap .cp-isi * { max-width: 100%; }
+#cetakWrap .cp-isi .panel { overflow: hidden; }
+@media print { body.cetak-mode #cetakWrap .ind { columns: auto !important; } }
+#cetakWrap .rgk-pv { font-size: 7px; letter-spacing: -.03em; }

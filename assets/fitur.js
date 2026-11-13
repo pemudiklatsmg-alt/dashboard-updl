@@ -104,8 +104,11 @@
   var tirai = document.createElement('div'); tirai.className = 'fokus-tirai'; tirai.hidden = true; document.body.appendChild(tirai);
   function fokusPanel(pn) {
     tutupFokus();
-    P.fokus = pn; P.fokusSec = pn.closest('[data-bagian], #rgk'); P.zSec = P.fokusSec.style.zoom; P.fokusSec.style.zoom = '';
-    pn.classList.add('pres-fokus'); tirai.hidden = false; jeda(true);
+    // salinan panel ditaruh langsung di <body> agar tidak terjebak lapisan efek kaca (yang membuat tampilan buram)
+    var asli = pn; pn = asli.cloneNode(true);
+    Array.prototype.forEach.call(pn.querySelectorAll('[id]'), function (x) { x.removeAttribute('id'); }); pn.removeAttribute('id');
+    pn.classList.add('pres-fokus', 'pres-salin'); document.body.appendChild(pn);
+    P.fokus = pn; P.fokusSec = null; tirai.hidden = false; jeda(true);
     var atas = ($('top') ? $('top').getBoundingClientRect().bottom : 0) + 14, ruangH = window.innerHeight - atas - 96, lo = 0.5, hi = 2.4, z;
     var lebar = Math.min(1320, window.innerWidth - 48);
     hi = Math.max(1, Math.min(hi, lebar / 980));   // jaga lebar isi minimal ~980px agar tata letak panel tidak menyempit
@@ -116,7 +119,8 @@
   }
   function tutupFokus() {
     if (!P.fokus) return;
-    P.fokus.classList.remove('pres-fokus'); ['zoom', 'top', 'left', 'width', 'maxHeight'].forEach(function (k) { P.fokus.style[k] = ''; });
+    if (P.fokus.classList.contains('pres-salin')) P.fokus.remove();
+    else { P.fokus.classList.remove('pres-fokus'); ['zoom', 'top', 'left', 'width', 'maxHeight'].forEach(function (k) { P.fokus.style[k] = ''; }); }
     if (P.fokusSec) P.fokusSec.style.zoom = P.zSec || '';
     P.fokus = null; tirai.hidden = true;
   }
@@ -251,7 +255,7 @@
   /* tandai saat kepala halaman menempel di atas layar */
   (function () {
     var top = document.getElementById('top'), jalan = false;
-    function cek() { jalan = false; if (!top) return; var n = window.scrollY > 4 && top.getBoundingClientRect().top <= 1; document.body.classList.toggle('top-nempel', n); }
+    function cek() { jalan = false; if (!top) return; var n = window.scrollY > 4 && top.getBoundingClientRect().top <= (parseFloat(getComputedStyle(top).top) || 0) + 1; document.body.classList.toggle('top-nempel', n); }
     window.addEventListener('scroll', function () { if (!jalan) { jalan = true; requestAnimationFrame(cek); } }, { passive: true });
     window.addEventListener('resize', cek); cek();
   })();

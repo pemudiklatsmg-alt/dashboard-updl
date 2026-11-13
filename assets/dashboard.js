@@ -583,6 +583,21 @@
   /* realisasi terakhir s.d. bulan terpilih (tahun KRI = tahun berjalan file) */
   function kriAkhir(k) { for (var m = S.bulan - 1; m >= 0; m--) { var v = k.bulan[m]; if (v !== null && v !== undefined && v !== '') return { m: m, v: v, st: kriStatus(k, v) }; } return null; }
   var KRI_TEKS = { good: 'Hijau', warn: 'Kuning', bad: 'Merah' };
+  /* rincian satu KRI: target, nilai & status tiap bulan */
+  function modalKri(no) {
+    var k = kriRows().filter(function (x) { return String(x.no) === String(no); })[0]; if (!k) return;
+    var a = kriAkhir(k), st = a && a.st;
+    var bar = k.bulan.map(function (v, i) {
+      var s2 = kriStatus(k, v), ada = !(v === null || v === undefined || v === '');
+      return '<tr' + (i + 1 > S.bulan ? ' class="nanti"' : '') + '><td>' + BLN_KRI[i] + '</td><td class="r num">' + (ada ? esc(kriFmt(k, v)) : '–') + '</td><td>' + (s2 ? '<span class="pill ' + s2 + '">' + KRI_TEKS[s2] + '</span>' : '<span class="desc">' + (ada ? '–' : 'belum diisi') + '</span>') + '</td></tr>';
+    }).join('');
+    openModal('<div class="modal-h"><div><div class="desc">Key Risk Indicator · ' + esc(k.no + '. ' + (k.peristiwa || '')) + '</div><h3>' + esc(k.kri) + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="kv-g"><div><span>Target</span><b>' + (k.target === null || k.target === '' ? '–' : (k.pol === 'Min' ? '≤ ' : '≥ ') + esc(kriFmt(k, k.pol === 'Min' ? k.bb : k.ba))) + '</b><small>' + (k.pol === 'Min' ? 'makin rendah makin baik' : 'makin tinggi makin baik') + '</small></div>' +
+      '<div><span>Batas hijau / kuning</span><b>' + esc(kriFmt(k, k.ba)) + ' / ' + esc(kriFmt(k, k.bb)) + '</b></div>' +
+      '<div><span>Terakhir</span><b>' + (a ? esc(kriFmt(k, a.v)) + ' · ' + BLN_KRI[a.m] : '–') + '</b>' + (st ? '<small><span class="pill ' + st + '">' + KRI_TEKS[st] + '</span></small>' : '') + '</div>' +
+      '<div><span>PIC</span><b>' + esc(String(k.pic || '–').replace(/\s*\(R\)$/, '')) + '</b></div></div>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Bulan</th><th class="r">Realisasi</th><th>Status</th></tr></thead><tbody>' + bar + '</tbody></table></div>', 'kri');
+  }
   function renderKri() {
     var el = $('kriBody'); if (!el) return;
     var R = kriRows();
@@ -597,7 +612,7 @@
     var head = '<tr><th>KRI</th><th>Target</th>' + BLN_KRI.map(function (b, i) { return '<th class="c' + (i + 1 > S.bulan ? ' nanti' : '') + '">' + b + '</th>'; }).join('') + '<th class="r">Terakhir</th><th>Status</th><th>PIC</th></tr>';
     var body = tampil.map(function (x) {
       var k = x.k, st = x.a && x.a.st;
-      return '<tr><td><b>' + esc(k.kri) + '</b><div class="tl-m">' + esc(k.no + '. ' + k.peristiwa) + (k.jenis === 'Peluang' ? ' · <span class="pill good">Peluang</span>' : '') + '</div></td>' +
+      return '<tr class="klik" tabindex="0" data-kri="' + esc(k.no) + '" title="Klik untuk rincian"><td><b>' + esc(k.kri) + '</b><div class="tl-m">' + esc(k.no + '. ' + k.peristiwa) + (k.jenis === 'Peluang' ? ' · <span class="pill good">Peluang</span>' : '') + '</div></td>' +
         '<td class="kri-t">' + (k.target === null || k.target === '' ? '–' : (k.pol === 'Min' ? '≤ ' : '≥ ') + kriFmt(k, k.pol === 'Min' ? k.bb : k.ba)) + '<div class="tl-m">' + esc(k.pol === 'Min' ? 'makin rendah makin baik' : 'makin tinggi makin baik') + '</div></td>' +
         k.bulan.map(function (v, i) { var s2 = kriStatus(k, v); return '<td class="c' + (i + 1 > S.bulan ? ' nanti' : '') + '">' + (v === null || v === '' ? '<i class="kd"></i>' : '<i class="kd ' + (s2 || 'idle') + '" title="' + esc(BLN_KRI[i] + ': ' + kriFmt(k, v) + (s2 ? ' · ' + KRI_TEKS[s2] : '')) + '"></i>') + '</td>'; }).join('') +
         '<td class="r num"><b>' + (x.a ? kriFmt(k, x.a.v) : '–') + '</b>' + (x.a ? '<div class="tl-m">' + BLN_KRI[x.a.m] + '</div>' : '') + '</td>' +
@@ -1449,7 +1464,7 @@
     var hero = '<div class="rgk-hero ' + st.c + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
       '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 1) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
       '<div class="rgk-tren" role="img" aria-label="Capaian kinerja per bulan">' + tren.map(function (x) {
-        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '"><i style="height:' + (x.v === null ? 6 : Math.max(8, x.v / mxT * 100)) + '%"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
+        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? 6 : Math.max(8, x.v / mxT * 100)) + '%"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
       }).join('') + '<b class="rgk-100" style="bottom:calc(' + (100 / mxT * 100) + '% * .78 + 18px)"></b></div></div>';
     // 2. hal yang perlu perhatian (maksimal 3)
     var L = perhatian(), L3 = S.rgkSemua ? L : L.slice(0, 3);
@@ -1631,6 +1646,7 @@
     setPeriode(S.tahun, S.bulan);
     $('footNote').textContent = 'Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
     if (m.source === 'live' && !m.stale) setTimeout(pengingatAdmin, 350);
+    if (!S.sudahAtas) { S.sudahAtas = true; window.scrollTo(0, 0); }
   }
 
   /* Pop-up pengingat untuk Admin: sekali tiap login, berisi tugas tim yang terlambat / segera jatuh tempo */
@@ -1748,6 +1764,7 @@
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
+    var kr = t.closest('[data-kri]'); if (kr && !t.closest('#cetakWrap')) { modalKri(kr.getAttribute('data-kri')); return; }
     var tp = t.closest('[data-tgpic]'); if (tp) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; var pv = tp.getAttribute('data-tgpic'); S.tgF.pic = S.tgF.pic === pv ? '' : pv; return renderTugas(); }
     var ts = t.closest('[data-tgst]'); if (ts) { S.tgF = S.tgF || { pic: '', st: 'perlu' }; S.tgF.st = ts.getAttribute('data-tgst'); return renderTugas(); }
     var rg = t.closest('[data-rgk]'); if (rg) return openTren(+rg.getAttribute('data-rgk'));
@@ -1791,6 +1808,8 @@
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* abaikan */ }
+  window.scrollTo(0, 0);
   var s0 = D.sesi();
   if (s0) { aturPeran(s0.peran, s0.user); tampilApp(); load(); } else tampilLogin('');
   setInterval(function () {
