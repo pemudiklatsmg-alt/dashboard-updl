@@ -357,7 +357,8 @@
     if (!months.length) { $('monthChart').innerHTML = '<div class="empty">Tab Konman ' + S.tahun + ' belum ada.</div>'; return; }
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
-    var W = 640, H = 240, L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(38, step * 0.56);
+    var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
+    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? Math.max(250, Math.min(560, window.innerHeight - 330)) : 250, L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -1223,6 +1224,7 @@
       var bg = sec.getAttribute('data-bagian'); sec.hidden = !(t === 'semua' || (VT[t] && VT[t].indexOf(bg) >= 0));
     });
     $('rgk').hidden = t !== 'ringkasan';
+    if (t === 'semua' || t === 'kinerja') { try { renderChart(); } catch (e) { /* abaikan */ } }
     if (gulir) { var nv = $('vtabs'); if (nv && nv.getBoundingClientRect().top < 0) nv.scrollIntoView({ block: 'start' }); }
   }
   function renderRingkasan() {
@@ -1451,7 +1453,7 @@
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
     kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink,
-    pilihTab: pilihTab, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
+    pilihTab: pilihTab, renderChart: renderChart, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 

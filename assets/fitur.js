@@ -2,7 +2,7 @@
    dan ringkasan login untuk Admin. Memakai window.DashApp dari dashboard.js. */
 (function () {
   var $ = function (id) { return document.getElementById(id); }, A = window.DashApp, D = window.Dash, esc = D.esc;
-  var BAGIAN = { ringkasan: 'Ringkasan', bulanan: 'Capaian per bulan', indikator: 'Indikator & Maturity', kepatuhan: 'Kepatuhan & Perbaikan', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko', kri: 'Key Risk Indicator', fraud: 'Risiko Fraud' };
+  var BAGIAN = { ringkasan: 'Pembelajaran', evaluasi: 'Evaluasi pembelajaran', bulanan: 'Capaian per bulan', indikator: 'Indikator & Maturity', kepatuhan: 'Kepatuhan & Perbaikan', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko', kri: 'Key Risk Indicator', fraud: 'Risiko Fraud' };
   function bagian(n) { return document.querySelector('[data-bagian="' + n + '"]'); }
   function siap() { return !!(A.S.data) && !$('app').hidden; }
 
@@ -38,7 +38,20 @@
   });
 
   /* ---------- mode presentasi ---------- */
-  var URUT = ['ringkasan', 'indikator', 'kepatuhan', 'pengembangan', 'isu', 'risiko', 'kri', 'fraud'];
+  /* Tiap slide hanya menampilkan satu bagian dan diperkecil otomatis agar muat satu layar */
+  var URUT = ['rgk', 'bulanan', 'indikator', 'kepatuhan', 'ringkasan+evaluasi', 'pengembangan', 'isu', 'risiko', 'kri', 'fraud'];
+  var NAMA_SLIDE = { rgk: 'Ringkasan', 'ringkasan+evaluasi': 'Pembelajaran & Evaluasi' };
+  function slideEls(n) { return n.split('+').map(function (x) { return x === 'rgk' ? $('rgk') : bagian(x); }).filter(Boolean); }
+  function pasSlide() {
+    if (!P.on) return;
+    var E = slideEls(URUT[P.i]); if (!E.length) return;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    E.forEach(function (e) { e.style.zoom = ''; });
+    var awal = E[0].getBoundingClientRect().top, akhir = E[E.length - 1].getBoundingClientRect().bottom;
+    var ruang = window.innerHeight - awal - 96, tinggi = akhir - awal, s = tinggi > ruang ? Math.max(0.45, ruang / tinggi) : 1;
+    if (s < 1) E.forEach(function (e) { e.style.zoom = s.toFixed(3); });
+  }
+  window.addEventListener('resize', function () { if (P.on) pasSlide(); });
   var P = { on: false, i: 0, jeda: false, t: null, dur: 20000, layar: false, kunci: null };
   var bar = document.createElement('div');
   bar.className = 'pres-bar'; bar.id = 'presBar'; bar.hidden = true; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Kontrol presentasi');
@@ -61,8 +74,12 @@
   function tampil(i) {
     P.i = (i + URUT.length) % URUT.length;
     var n = URUT[P.i];
-    $('presNama').textContent = BAGIAN[n]; $('presNo').textContent = (P.i + 1) + ' / ' + URUT.length;
-    ke(n, true); jadwal();
+    $('presNama').textContent = NAMA_SLIDE[n] || BAGIAN[n]; $('presNo').textContent = (P.i + 1) + ' / ' + URUT.length;
+    Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian], #rgk'), function (sec) {
+      var aktif = slideEls(n).indexOf(sec) >= 0; sec.hidden = !aktif; sec.classList.toggle('pres-on', aktif); if (!aktif) sec.style.zoom = '';
+    });
+    if (n === 'bulanan' && A.renderChart) A.renderChart();
+    pasSlide(); jadwal();
   }
   function jeda(v) {
     P.jeda = v === undefined ? !P.jeda : v;
@@ -71,7 +88,7 @@
   }
   function mulai() {
     if (!siap() || P.on) return;
-    if (A.pilihTab) A.pilihTab('semua');
+    P.tabLama = A.S.vt || 'semua';
     P.on = true; P.jeda = false; document.body.classList.add('pres'); bar.hidden = false;
     var el = document.documentElement;
     if (el.requestFullscreen && !document.fullscreenElement) {
@@ -84,6 +101,8 @@
   function berhenti() {
     if (!P.on) return;
     P.on = false; clearTimeout(P.t); document.body.classList.remove('pres'); bar.hidden = true;
+    Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian], #rgk'), function (sec) { sec.style.zoom = ''; sec.classList.remove('pres-on'); });
+    if (A.pilihTab) A.pilihTab(P.tabLama || 'semua');
     if (document.fullscreenElement && document.exitFullscreen) { try { document.exitFullscreen(); } catch (e) {} }
     if (P.kunci) { try { P.kunci.release(); } catch (e) {} P.kunci = null; }
     P.layar = false;
