@@ -434,7 +434,7 @@
       else {
         var top = y(Math.max(v, 0));
         s += '<g data-m="' + m + '"><rect class="hit" x="' + (cx - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>' +
-          '<path class="b' + (sel ? ' sel' : '') + '" d="M' + x + ' ' + (T + ih) + 'V' + (top + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (T + ih) + 'z"><title>' + D.cap(Bn) + ': ' + D.fmt(v, 2) + '</title></path>' +
+          '<path class="b ' + status(v / 100).c + (sel ? ' sel' : '') + '" d="M' + x + ' ' + (T + ih) + 'V' + (top + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (T + ih) + 'z"><title>' + D.cap(Bn) + ': ' + D.fmt(v, 2) + '</title></path>' +
           '<text class="bl num' + (sel ? ' on' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
       }
       s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (sel ? ' font-weight="700" fill="var(--ink)"' : '') + '>' + D.BLN3[m - 1] + '</text>';
@@ -1526,8 +1526,8 @@
     var hero = '<div class="rgk-hero ' + st.c + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
       '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 1) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
       '<div class="rgk-tren" role="img" aria-label="Capaian kinerja per bulan">' + tren.map(function (x) {
-        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? 6 : Math.max(8, x.v / mxT * 100)) + '%"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
-      }).join('') + '<b class="rgk-100" style="bottom:calc(' + (100 / mxT * 100) + '% * .78 + 18px)"></b></div></div>';
+        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? '6px' : 'calc((100% - 34px) * ' + Math.max(0.06, x.v / mxT).toFixed(4) + ')') + '"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
+      }).join('') + '<b class="rgk-100" style="bottom:calc((100% - 34px) * ' + (100 / mxT).toFixed(4) + ' + 18px)"></b></div></div>';
     // 2. hal yang perlu perhatian (maksimal 3)
     var L = perhatian(), L3 = S.rgkSemua ? L : L.slice(0, 3);
     var ph = '<div class="rgk-ph"><div class="sub-h">Perlu perhatian' + (L.length ? ' · ' + L.length : '') + '</div>' + (L.length ? L3.map(function (x) {
