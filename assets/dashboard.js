@@ -1211,6 +1211,47 @@
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
+  /* ---------- ikon garis untuk judul panel & kotak Ringkasan ---------- */
+  var IKON = {
+    grafik: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+    lapis: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+    perisai: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+    ulang: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+    toga: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
+    kelas: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+    jam: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    senyum: '<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.4 2.2 4 2.2s3-.7 4-2.2"/><path d="M9 9.5h.01M15 9.5h.01"/>',
+    orang: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    lampu: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+    bumi: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+    grup: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',
+    peta: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+    meter: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>',
+    waspada: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M12 8v5M12 16h.01"/>',
+    sertifikat: '<circle cx="12" cy="9" r="5"/><path d="M9 13.5L7.5 21l4.5-2.5 4.5 2.5L15 13.5"/>'
+  };
+  function ikon(n) { return IKON[n] ? '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + IKON[n] + '</svg>' : ''; }
+  var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'],
+    [/^Pengembangan Pegawai/, 'orang'], [/^Pengembangan Inovasi/, 'lampu'], [/^Isu/, 'bumi'], [/^Pihak/, 'grup'], [/^Peta Risiko/, 'peta'], [/^Key Risk/, 'meter'], [/^Risiko Fraud/, 'waspada']];
+  function pasangIkonPanel() {
+    Array.prototype.forEach.call(document.querySelectorAll('main .panel h2'), function (h) {
+      if (h.querySelector('.ik')) return;
+      var m = IKON_PANEL.filter(function (x) { return x[0].test(h.textContent.trim()); })[0];
+      if (m) { h.insertAdjacentHTML('afterbegin', '<span class="ikb">' + ikon(m[1]) + '</span>'); h.classList.add('ber-ikon'); }
+    });
+  }
+  /* garis tren mini 12 bulan: titik terakhir = bulan terpilih */
+  function spark(v, c) {
+    var pts = v.map(function (x, i) { return { i: i, x: x }; }).filter(function (p) { return p.x !== null && p.x !== undefined && !isNaN(p.x); });
+    if (pts.length < 2) return '';
+    var mn = Math.min.apply(null, pts.map(function (p) { return p.x; })), mx = Math.max.apply(null, pts.map(function (p) { return p.x; })), rg = mx - mn || 1;
+    var W = 120, H = 30, X = function (i) { return 3 + i / Math.max(1, v.length - 1) * (W - 6); }, Y = function (x) { return H - 4 - (x - mn) / rg * (H - 8); };
+    var d = pts.map(function (p, k) { return (k ? 'L' : 'M') + X(p.i).toFixed(1) + ' ' + Y(p.x).toFixed(1); }).join(' ');
+    var a = pts[pts.length - 1], area = d + ' L' + X(a.i).toFixed(1) + ' ' + H + ' L' + X(pts[0].i).toFixed(1) + ' ' + H + ' Z';
+    return '<svg class="spark ' + c + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path class="sa" d="' + area + '"/><path class="sl" d="' + d + '"/><circle cx="' + X(a.i).toFixed(1) + '" cy="' + Y(a.x).toFixed(1) + '" r="2.6"/></svg>';
+  }
+
   /* ---------- analisis di samping grafik bulanan ---------- */
   function renderCapSide() {
     var el = $('capSide'); if (!el) return;
@@ -1295,8 +1336,19 @@
     var kriM = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'bad'; }).length, kriK = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'warn'; }).length;
     var G = fra() && fra().ringkas, resT = G ? (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0) : 0;
     T.push({ vt: 'risiko', l: 'Risiko', v: kriM + '<small> KRI merah</small>', c: kriM || (G && G.kejadian) ? 'bad' : kriK || resT ? 'warn' : 'good', s: [kriK ? kriK + ' KRI kuning' : '', G ? resT + ' risiko fraud tinggi' : ''].filter(Boolean).join(' · ') || 'semua terkendali' });
-    var tiles = '<div class="rgk-t">' + T.map(function (x) {
-      return '<button type="button" class="rgk-tile ' + x.c + '" data-vt="' + x.vt + '"><span class="rgk-lbl">' + x.l + '</span><b class="num">' + x.v + '</b><span class="rgk-s"><i></i>' + x.s + '</span></button>';
+    var bln = []; for (var m = 1; m <= S.bulan; m++) bln.push(m);
+    var tr = [
+      bln.map(function (m) { var b = D.BULAN[m - 1]; if (!konmanAda(b)) return null; var L2 = K().items.filter(function (it) { return !it.isGroup && !it.pengurang && D.hasData(it, b); }); return L2.length ? L2.filter(function (it) { var v = D.capaianItem(it, b); return v !== null && v >= 0.9999; }).length / L2.length : null; }),
+      bln.map(function (m) { var x = D.hitungRendiklat(kelas(), S.tahun, m, p); return x.kelas || null; }),
+      bln.map(function (m) { return hop(S.tahun, m).nilai; }),
+      bln.map(function (m) { var x = ev('kepuasan', S.tahun, m); return x ? x.nilai : null; }),
+      null,
+      bln.map(function (m) { var n = 0, ada = false; kriRows().forEach(function (k) { var v = k.bulan[m - 1]; if (v === null || v === undefined || v === '') return; ada = true; var st2 = kriStatus(k, v); if (st2 === 'bad' || st2 === 'warn') n++; }); return ada ? -n : null; })
+    ];
+    var IK_T = ['target', 'kelas', 'jam', 'senyum', 'ulang', 'waspada'];
+    var tiles = '<div class="rgk-t">' + T.map(function (x, i) {
+      var sp = tr[i] ? spark(tr[i], x.c) : (i === 4 && perluTL ? '<span class="tl-mini" aria-hidden="true"><i class="good" style="flex:' + TLc['Selesai'] + '"></i><i class="warn" style="flex:' + TLc['Proses'] + '"></i><i class="bad" style="flex:' + TLc['Belum Dimulai'] + '"></i></span>' : '');
+      return '<button type="button" class="rgk-tile ' + x.c + '" data-vt="' + x.vt + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
     }).join('') + '</div>';
     el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles +
       '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak atau pilih tab di atas untuk melihat rinciannya.</p>';
@@ -1304,6 +1356,7 @@
 
   function renderAll() {
     var gagal = [];
+    try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
     [['Ringkasan', renderRingkasan], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
      ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }

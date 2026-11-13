@@ -1060,3 +1060,32 @@ html.glass .cs-g div { background: var(--g-btn); border-color: var(--g-border); 
 .cs-pres { display: none; }
 body.pres .cs-pres { display: grid; gap: 8px; }
 .cs-ket { font-size: 12.5px; color: var(--ink-2); margin-top: auto; }
+
+/* ---------- sentuhan visual: ikon, tren mini, cahaya halus ---------- */
+.ik { width: 100%; height: 100%; display: block; }
+.ikb { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; padding: 5px; flex: none;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); vertical-align: middle; }
+.panel h2.ber-ikon { display: flex; align-items: center; gap: 9px; }
+.rgk-tile .rgk-lbl { display: flex; align-items: center; gap: 8px; }
+.rgk-tile .ikb { width: 24px; height: 24px; padding: 4px; }
+.rgk-tile.good .ikb { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.rgk-tile.warn .ikb { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.rgk-tile.bad .ikb { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.rgk-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; min-width: 0; }
+.spark { width: 46%; max-width: 140px; height: 32px; flex: none; overflow: visible; color: var(--bar); }
+.spark.good { color: var(--good); } .spark.warn { color: var(--warn); } .spark.bad { color: var(--bad); }
+.spark .sl { fill: none; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.spark .sa { fill: currentColor; opacity: .12; stroke: none; }
+.spark circle { fill: currentColor; }
+.tl-mini { display: flex; gap: 2px; width: 46%; max-width: 140px; height: 8px; margin-bottom: 8px; border-radius: 4px; overflow: hidden; flex: none; }
+.tl-mini i { display: block; height: 100%; min-width: 2px; } .tl-mini .good { background: var(--good); } .tl-mini .warn { background: var(--warn); } .tl-mini .bad { background: var(--bad); }
+/* cahaya halus hanya pada yang penting: angka utama & hal yang perlu perhatian */
+.rgk-hero.good .rgk-big { text-shadow: 0 0 28px color-mix(in srgb, var(--good) 45%, transparent); }
+.rgk-hero.warn .rgk-big { text-shadow: 0 0 28px color-mix(in srgb, var(--warn) 45%, transparent); }
+.rgk-hero.bad .rgk-big { text-shadow: 0 0 28px color-mix(in srgb, var(--bad) 45%, transparent); }
+.rgk-tile.bad { box-shadow: 0 0 0 1px color-mix(in srgb, var(--bad) 45%, transparent), 0 0 22px -6px color-mix(in srgb, var(--bad) 55%, transparent); }
+.rgk-ph .ph-i.bad { box-shadow: 0 0 18px -8px color-mix(in srgb, var(--bad) 70%, transparent); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+.rgk-tren span.on i { box-shadow: 0 0 0 2px var(--sheet), 0 0 0 3.5px var(--ink), 0 0 18px color-mix(in srgb, var(--good) 40%, transparent); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .rgk-hero .rgk-big { text-shadow: none; } }
+:root[data-theme="light"] .rgk-hero .rgk-big { text-shadow: none; }
+@media (max-width: 700px) { .spark, .tl-mini { width: 42%; } .rgk-tile .ikb { display: none; } }
