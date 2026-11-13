@@ -1702,3 +1702,14 @@ svg .bl { opacity: .6; } svg .bl.on { opacity: 1; font-weight: 700; }
 .chart .b.good { fill: var(--good); } .chart .b.warn { fill: var(--warn); } .chart .b.bad { fill: var(--bad); }
 .chart .b { opacity: .6; } .chart .b.sel { opacity: 1; stroke: var(--ink); stroke-width: 2; }
 .chart .b.sel.good { fill: var(--good); } .chart .b.sel.warn { fill: var(--warn); } .chart .b.sel.bad { fill: var(--bad); }
+/* versi & catatan rilis */
+.ver-btn { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ver-btn:hover { color: var(--ink); }
+.mi-ver { margin-left: auto; font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.rl { display: grid; gap: 12px; max-height: 60vh; overflow: auto; padding-right: 4px; }
+.rl-i { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.rl-i.kini { border-color: var(--accent); }
+.rl-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.rl-h b { font-family: var(--f-display); font-size: 15px; } .rl-h span { font-weight: 600; } .rl-h small { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+.rl ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); display: grid; gap: 3px; }
+@media print { .ver-btn { text-decoration: none; } }
