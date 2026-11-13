@@ -1585,3 +1585,26 @@ body.top-nempel .top, html.glass body.top-nempel .top { border-radius: var(--rk)
 #cetakWrap .cp-isi .panel { overflow: hidden; }
 @media print { body.cetak-mode #cetakWrap .ind { columns: auto !important; } }
 #cetakWrap .rgk-pv { font-size: 7px; letter-spacing: -.03em; }
+
+/* ===== Revisi 13 Nov 22.30 ===== */
+/* 1. persen di batang capaian: bulan terpilih selalu tampil, bulan lain saat diarahkan */
+.rgk-tren span .rgk-pv { visibility: hidden; }
+.rgk-tren span.on .rgk-pv, .rgk-tren span:hover .rgk-pv, .rgk-tren span:focus-visible .rgk-pv { visibility: visible; }
+@media (hover: none) { .rgk-tren span .rgk-pv { visibility: visible; } }
+#cetakWrap .rgk-tren span .rgk-pv { visibility: visible; }
+/* 3 & 5. sorot pink hanya untuk yang bisa diklik; panel biasa tidak lagi bersinar saat diarahkan */
+html.glass .panel:hover { box-shadow: var(--g-shadow), inset 0 1px 0 var(--g-hi); }
+.ke-rinci { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink-3); font: 600 15px/1 var(--f-body); cursor: pointer; display: inline-grid; place-items: center; transition: transform .15s, color .15s, border-color .15s; }
+.ke-rinci:hover, .ke-rinci:focus-visible { color: var(--ink); border-color: var(--accent); transform: translateX(2px); outline: none; }
+.gx-klik:hover .gx-hl, tr.klik:hover td { color: var(--ink); }
+tr.klik { cursor: pointer; } tr.klik:hover td { background: var(--accent-soft); }
+.gx-klik .gx-hv::after, tr.klik td:last-child::after { content: " ›"; color: var(--ink-3); font-weight: 700; }
+#cetakWrap .gx-klik .gx-hv::after, #cetakWrap tr.klik td:last-child::after { content: none; }
+/* 6. nomor di daftar risiko berbentuk lingkaran seperti penanda di peta */
+.rk-row .num { width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rk-row.on .num { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* 7. kepala halaman mengambang: isi yang lewat di atasnya memudar, tidak terlihat "tembus" */
+body::after { content: ""; position: fixed; left: 0; right: 0; top: 0; height: calc(22px + env(safe-area-inset-top, 0px)); z-index: 19; pointer-events: none;
+  background: linear-gradient(var(--g-bg, var(--bg)) 55%, transparent); opacity: 0; transition: opacity .2s; }
+body.top-nempel::after { opacity: 1; }
+@media print { body::after { display: none; } }

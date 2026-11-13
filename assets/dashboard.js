@@ -1240,7 +1240,7 @@
     target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
     lapis: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
     perisai: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
-    ulang: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+    ulang: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
     toga: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
     kelas: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
     jam: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -1516,8 +1516,7 @@
       var sp = tr[i] ? spark(tr[i], x.c) : (i === 4 && perluTL ? '<span class="tl-mini" aria-hidden="true"><i class="good" style="flex:' + TLc['Selesai'] + '"></i><i class="warn" style="flex:' + TLc['Proses'] + '"></i><i class="bad" style="flex:' + TLc['Belum Dimulai'] + '"></i></span>' : '');
       return '<button type="button" class="rgk-tile ' + x.c + '" data-rgk="' + i + '"><span class="rgk-lbl"><span class="ikb">' + ikon(IK_T[i]) + '</span>' + x.l + '</span><span class="rgk-mid"><b class="num">' + x.v + '</b>' + sp + '</span><span class="rgk-s"><i></i>' + x.s + '</span></button>';
     }).join('') + '</div>';
-    el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles +
-      '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak untuk melihat tren, atau pilih menu untuk rinciannya.</p>';
+    el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles;
   }
 
   /* detail tren: grafik garis per bulan yang mudah dibaca orang awam, lalu tombol menuju kartu rinciannya */
@@ -1644,7 +1643,7 @@
     if (!S.tahun || years.indexOf(S.tahun) < 0) { S.tahun = years[years.length - 1]; S.bulan = bulanBawaan(S.tahun); }
     if (!S.riskView) S.riskView = /inheren/i.test(data.risiko && data.risiko.tampilan) ? 'inheren' : /residu/i.test(data.risiko && data.risiko.tampilan) ? 'residual' : 'target';
     setPeriode(S.tahun, S.bulan);
-    $('footNote').textContent = 'Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
+    $('footNote').textContent = 'Angka mengikuti Tahun & Bulan yang dipilih · Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
     if (m.source === 'live' && !m.stale) setTimeout(pengingatAdmin, 350);
     if (!S.sudahAtas) { S.sudahAtas = true; window.scrollTo(0, 0); }
   }

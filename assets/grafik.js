@@ -140,8 +140,10 @@
     var S = A.S, m = S.bulan, pb = perBulanKelas(), E = S.data.eval || {};
     var kep = perBulanNilai(E.kepuasan, 0, 3, 4);
     var box = document.createElement('div'); box.className = 'gx-row gx-sama gx-rgk';
-    box.innerHTML = panel('Kelas Selesai per Bulan', 'Batang samar = kelas terjadwal. <button type="button" class="lnk" data-vt="pembelajaran">Rincian pembelajaran →</button>', batang(pb.kelas.map(function (v, i) { return i < m ? v : 0; }), { sel: m, klik: true, bayang: pb.jadwal, namaBayang: 'kelas terjadwal', h: 190, label: 'Kelas selesai per bulan' })) +
-      panel('Kepuasan Peserta per Bulan', 'Rata-rata Evaluasi Level 1 tiap bulan, skala 1–5. <button type="button" class="lnk" data-vt="evaluasi">Rincian evaluasi →</button>', garis([{ n: 'Kepuasan peserta', v: potong(kep, m), c: 'a' }], { sel: m, h: 190, target: A.set().targetL1 || null, label: 'Kepuasan per bulan' }));
+    box.innerHTML = panel('Kelas Selesai per Bulan', 'Batang samar = kelas terjadwal. Klik batang untuk daftar kelas.', batang(pb.kelas.map(function (v, i) { return i < m ? v : 0; }), { sel: m, klik: true, bayang: pb.jadwal, namaBayang: 'kelas terjadwal', h: 190, label: 'Kelas selesai per bulan' })) +
+      panel('Kepuasan Peserta per Bulan', 'Rata-rata Evaluasi Level 1 tiap bulan, skala 1–5.', garis([{ n: 'Kepuasan peserta', v: potong(kep, m), c: 'a' }], { sel: m, h: 190, target: A.set().targetL1 || null, label: 'Kepuasan per bulan' }));
+    var hs = box.querySelectorAll('.panel-h');
+    [['pembelajaran', 'Rekap Pembelajaran'], ['evaluasi', 'Evaluasi']].forEach(function (x, i) { if (hs[i]) hs[i].insertAdjacentHTML('beforeend', '<button type="button" class="ke-rinci" data-vt="' + x[0] + '" aria-label="Buka ' + x[1] + '" title="Buka ' + x[1] + '">→</button>'); });
     var lama = rgk.querySelector('.gx-rgk'); if (lama) lama.remove();
     rgk.appendChild(box);
   }
