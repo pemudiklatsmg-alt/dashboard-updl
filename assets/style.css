@@ -1760,3 +1760,14 @@ html.kunci-gulir { overflow: hidden; overscroll-behavior: none; }
    sampai ke tengah kepala halaman. */
 body::after { height: calc(16px + 44px + env(safe-area-inset-top, 0px)); background: inherit; background-attachment: fixed; }
 @media (max-width: 700px) { body::after { height: calc(8px + 44px + env(safe-area-inset-top, 0px)); } }
+
+/* v4.6 — penutup celah di atas kepala halaman: elemen nyata dengan warna latar padat (bukan hanya pseudo-elemen),
+   supaya Safari iOS juga mewarnai area bilah status dengan warna ini dan isi halaman tidak terlihat di atas header. */
+body::after { display: none; }
+.tutup-atas { position: fixed; z-index: 19; top: 0; left: 0; right: 0; height: calc(16px + 44px + env(safe-area-inset-top, 0px)); pointer-events: none;
+  background: inherit; background-color: var(--g-bg, var(--bg)); visibility: hidden; }
+body.top-nempel .tutup-atas { visibility: visible; }
+@media (max-width: 700px) { .tutup-atas { height: calc(8px + 44px + env(safe-area-inset-top, 0px)); } }
+@media print { .tutup-atas { display: none; } }
+/* HP: pilihan tab hanya di bilah bawah */
+@media (max-width: 640px) { #vtabs { display: none !important; } }

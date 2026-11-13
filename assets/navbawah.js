@@ -29,21 +29,22 @@
   function setKecil(v) { if (v === mengecil) return; mengecil = v; document.body.classList.toggle('nb-kcl', v); if (!v) setTimeout(tengah, 60); }
   function cek() {
     var y = window.scrollY, d = y - yLalu, r = asli.getBoundingClientRect();
-    var keluar = r.height > 0 && r.bottom < atas() + 4;
+    // di HP baris tab atas disembunyikan, jadi bilah bawah selalu tampil; di layar lebar bilah ini tidak dipakai
+    var keluar = window.innerWidth <= 640 || (r.height > 0 && r.bottom < atas() + 4);
     if (keluar !== aktif) { aktif = keluar; document.body.classList.toggle('nb-aktif', keluar); if (keluar) { setKecil(false); tengah(false); } }
     if (aktif) {
       if (d > 8) setKecil(true);                    // menggulir ke bawah: kecilkan
       else if (d < -8) setKecil(false);             // menggulir ke atas: besarkan
-      if (window.innerHeight + y >= document.documentElement.scrollHeight - 4) setKecil(false);   // di dasar halaman: besarkan
+      if (window.innerHeight + y >= document.documentElement.scrollHeight - 4 || y < 40) setKecil(false);   // di puncak/dasar halaman: besarkan
     }
     if (Math.abs(d) > 8) yLalu = y;
   }
   window.addEventListener('scroll', function () { if (!jalan) { jalan = true; requestAnimationFrame(function () { jalan = false; cek(); }); } }, { passive: true });
-  window.addEventListener('resize', cek);
+  window.addEventListener('resize', cek); cek();
   kecil.addEventListener('click', function () { setKecil(false); });
   // pindah tab dari bilah bawah: mulai dari atas bagian tersebut
   isi.addEventListener('click', function (e) {
     if (!e.target.closest('[data-vt]')) return;
-    setTimeout(function () { tengah(); var y = asli.getBoundingClientRect().top + window.scrollY - atas() - 8; window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); }, 30);
+    setTimeout(function () { tengah(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 30);
   });
 })();

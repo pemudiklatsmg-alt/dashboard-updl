@@ -4,6 +4,8 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '4.6', t: '14 Nov 2026', b: [], l: ['Di HP, pilihan tab hanya ada di bilah bawah'],
+      p: ['Safari di iPhone: isi halaman tidak lagi terlihat di atas kepala halaman'] },
     { v: '4.5', t: '14 Nov 2026', b: ['Navigasi bawah di HP ala Safari: mengecil saat digulir ke bawah, membesar saat digulir ke atas'],
       l: ['Akun Lihat lebih ringkas: tanpa kartu "Perlu perhatian" dan lonceng', 'Isi halaman menghilang di balik kepala halaman, tidak lagi terlihat di atasnya'],
       p: ['Tab Ringkasan kembali tersorot saat website pertama dibuka'] },
