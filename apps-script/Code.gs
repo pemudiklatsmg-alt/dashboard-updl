@@ -299,6 +299,14 @@ function tabKonman_(ss, cfg) {
    openById bisa macet sampai batas 6 menit dan seluruh dashboard ikut kosong; lewat API
    kegagalan itu langsung kembali sebagai galat sehingga cadangan bisa dipakai. */
 function sheetsApi_(id, range) {
+  // Utamakan layanan lanjutan "Google Sheets API" (Services → Sheets) karena API-nya otomatis aktif
+  // di proyek Apps Script; bila belum ditambahkan, pakai jalur UrlFetchApp.
+  if (typeof Sheets !== 'undefined' && Sheets.Spreadsheets) {
+    try {
+      var res = Sheets.Spreadsheets.Values.get(String(id).trim(), range, { valueRenderOption: 'UNFORMATTED_VALUE', dateTimeRenderOption: 'SERIAL_NUMBER' });
+      return res.values || [];
+    } catch (e) { throw new Error('server Google menjawab: ' + e.message); }
+  }
   var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + String(id).trim() + '/values/' + encodeURIComponent(range) +
     '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER';
   var r = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
