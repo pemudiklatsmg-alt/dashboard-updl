@@ -185,7 +185,7 @@ function buildData_() {
 
   var CEPAT = ambilUbah_();   // cap waktu perubahan per tab (dari onEdit), untuk mengenali cache yang basi
   function lokal(key, tabs, fn) { return sekCache_(key, sidikTab_(ss, tabs, CEPAT), fn); }
-  function luar(key, fn) { return sekCache_(key, 'v' + VERSI + '|' + (CEPAT['ubah_Pengaturan'] || ''), fn, 600); }   // file luar: disegarkan tiap 10 menit
+  function luar(key, fn) { return sekCache_(key, 'v' + VERSI + '|' + (CEPAT['ubah_Pengaturan'] || '') + '|' + (CEPAT.CACHE_EPOCH || '0'), fn, 600); }   // file luar: disegarkan tiap 10 menit
 
   // Konman per tahun (tab lokal)
   out.konman = tabKonman_(ss, cfg);
