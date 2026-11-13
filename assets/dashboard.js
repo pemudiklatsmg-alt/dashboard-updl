@@ -1206,12 +1206,74 @@
     $('bulanSel').value = String(m);
     Array.prototype.forEach.call(document.querySelectorAll('.per'), function (e) { e.textContent = namaBulan(m) + ' ' + y; });
     renderAll();
+    if (!S.vt) { var vt0 = null; try { vt0 = localStorage.getItem(VT_KEY); } catch (e) { /* abaikan */ } pilihTab(vt0 || 'ringkasan'); }
     document.dispatchEvent(new CustomEvent('dash:periode'));
   }
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
+  /* ---------- tampilan bertab + halaman Ringkasan ---------- */
+  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'evaluasi'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT_KEY = 'updl_tab';
+  function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
+  function pilihTab(t, gulir) {
+    if (!t || (!VT[t] && t !== 'ringkasan' && t !== 'semua')) t = 'ringkasan';
+    S.vt = t; try { localStorage.setItem(VT_KEY, t); } catch (e) { /* abaikan */ }
+    document.body.setAttribute('data-vt', t);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-vt]'), function (b) { if (b.tagName === 'BUTTON') b.setAttribute('aria-selected', b.getAttribute('data-vt') === t); });
+    Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian]'), function (sec) {
+      var bg = sec.getAttribute('data-bagian'); sec.hidden = !(t === 'semua' || (VT[t] && VT[t].indexOf(bg) >= 0));
+    });
+    $('rgk').hidden = t !== 'ringkasan';
+    if (gulir) { var nv = $('vtabs'); if (nv && nv.getBoundingClientRect().top < 0) nv.scrollIntoView({ block: 'start' }); }
+  }
+  function renderRingkasan() {
+    var el = $('rgk'); if (!el) return;
+    var bl = namaBulan(S.bulan), Bn = B(), p = set();
+    // 1. capaian kinerja + tren
+    var tot = konmanAda(Bn) ? totalSkor(Bn) : null, tv = tot === null ? null : tot / 100, st = status(tv);
+    var Bp = S.bulan > 1 ? D.BULAN[S.bulan - 2] : null, totP = Bp && konmanAda(Bp) ? totalSkor(Bp) : null;
+    var tren = D.BULAN.map(function (b, i) { return { m: i + 1, v: konmanAda(b) ? totalSkor(b) : null }; });
+    var mxT = Math.max.apply(null, [110].concat(tren.map(function (x) { return x.v || 0; })));
+    var kalimat = tot === null ? 'Data Kontrak Manajemen ' + bl + ' belum diisi.' :
+      (totP !== null ? (tot >= totP ? 'Naik ' : 'Turun ') + D.fmt(Math.abs(tot - totP), 1) + ' poin dari ' + namaBulan(S.bulan - 1) + '. ' : '') + (tot >= 100 ? 'Target 100% terpenuhi.' : 'Kurang ' + D.fmt(100 - tot, 1) + ' poin dari target 100%.');
+    var hero = '<div class="rgk-hero ' + st.c + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
+      '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 1) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
+      '<div class="rgk-tren" role="img" aria-label="Capaian kinerja per bulan">' + tren.map(function (x) {
+        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '"><i style="height:' + (x.v === null ? 6 : Math.max(8, x.v / mxT * 100)) + '%"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
+      }).join('') + '<b class="rgk-100" style="bottom:calc(' + (100 / mxT * 100) + '% * .78 + 18px)"></b></div></div>';
+    // 2. hal yang perlu perhatian (maksimal 3)
+    var L = perhatian(), L3 = S.rgkSemua ? L : L.slice(0, 3);
+    var ph = '<div class="rgk-ph"><div class="sub-h">Perlu perhatian' + (L.length ? ' · ' + L.length : '') + '</div>' + (L.length ? L3.map(function (x) {
+      return '<button type="button" class="ph-i ' + x.c + '"' + (x.act ? ' data-act="' + x.act + '"' : ' data-loncat="' + x.go + '"') + '><i aria-hidden="true"></i><span>' + x.t + '</span><em aria-hidden="true">→</em></button>';
+    }).join('') + (L.length > 3 ? '<button type="button" class="rgk-more" data-rgksemua>' + (S.rgkSemua ? 'Ringkas' : 'Lihat semua (' + L.length + ') →') + '</button>' : '') : '<div class="rgk-ok">✓ Tidak ada yang perlu perhatian untuk ' + bl + '.</div>') + '</div>';
+    // 3. enam angka kunci
+    var T = [];
+    var ind = konmanAda(Bn) ? K().items.filter(function (it) { return !it.isGroup && !it.pengurang && D.hasData(it, Bn); }) : [];
+    var indOk = ind.filter(function (it) { var v = D.capaianItem(it, Bn); return v !== null && v >= 0.9999; }).length;
+    T.push({ vt: 'kinerja', l: 'Indikator Konman', v: ind.length ? indOk + '<small> / ' + ind.length + '</small>' : '–', c: !ind.length ? 'idle' : indOk === ind.length ? 'good' : indOk / ind.length >= 0.8 ? 'warn' : 'bad', s: ind.length ? 'indikator mencapai target' : 'belum ada data' });
+    var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, p), pctP = r.rencanaPeserta ? r.peserta / r.rencanaPeserta : null;
+    T.push({ vt: 'pembelajaran', l: 'Peserta pelatihan', v: r.kelas ? D.fmt(r.peserta, 0) : '–', c: r.kelas ? status(pctP).c : 'idle', s: r.kelas ? r.kelas + ' kelas selesai · ' + D.pct(pctP) + ' dari rencana' : 'belum ada kelas selesai' });
+    var H = hop(S.tahun, S.bulan), itH = find(/Tingkat Pelaksanaan Pembelajaran/i), tgH = itH && konmanAda(Bn) ? D.num(itH.target[Bn].v) : null, hc = H.nilai !== null && tgH ? H.nilai / tgH : null;
+    T.push({ vt: 'pembelajaran', l: 'Hari orang pelatihan', v: H.nilai !== null ? D.fmt(H.nilai, 2) : '–', c: status(hc).c, s: tgH ? D.pct(hc) + ' dari target ' + D.fmt(tgH, 2) : 'target belum ada' });
+    var Kp = ev('kepuasan'), sk = skala5(Kp ? Kp.nilai : null, p.targetL1);
+    T.push({ vt: 'pembelajaran', l: 'Kepuasan peserta', v: Kp ? D.fmt(Kp.nilai, 2) + '<small> / 5</small>' : '–', c: sk.c, s: Kp ? sk.t + ' · ' + D.fmt(Kp.responden, 0) + ' responden' : 'belum ada data' });
+    var M = (S.data.maturity || []).map(function (x) { var v = D.num(x[3]); return v !== null ? v : D.num(x[2]); }).filter(function (v) { return v !== null; });
+    var itM = find(/Pengelolaan Proses Bisnis/i), tgM = itM ? (konmanAda(Bn) ? D.num(itM.target[Bn].v) : null) : null;
+    if (itM && tgM === null) tgM = D.num(S.bulan <= 6 ? itM.target1 : itM.target2);
+    var avgM = M.length ? M.reduce(function (a, b) { return a + b; }, 0) / M.length : null;
+    T.push({ vt: 'kinerja', l: 'Maturity proses bisnis', v: avgM === null ? '–' : D.fmt(avgM, 2) + '<small> / 5</small>', c: avgM === null ? 'idle' : tgM === null ? 'good' : avgM >= tgM ? 'good' : 'bad', s: tgM !== null ? (avgM >= tgM ? 'mencapai' : 'di bawah') + ' target ' + D.fmt(tgM, 2) : 'skala 0–5' });
+    var kriM = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'bad'; }).length, kriK = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'warn'; }).length;
+    var G = fra() && fra().ringkas, resT = G ? (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0) : 0;
+    T.push({ vt: 'risiko', l: 'Risiko', v: kriM + '<small> KRI merah</small>', c: kriM || (G && G.kejadian) ? 'bad' : kriK || resT ? 'warn' : 'good', s: [kriK ? kriK + ' KRI kuning' : '', G ? resT + ' risiko fraud tinggi' : ''].filter(Boolean).join(' · ') || 'semua terkendali' });
+    var tiles = '<div class="rgk-t">' + T.map(function (x) {
+      return '<button type="button" class="rgk-tile ' + x.c + '" data-vt="' + x.vt + '"><span class="rgk-lbl">' + x.l + '</span><b class="num">' + x.v + '</b><span class="rgk-s"><i></i>' + x.s + '</span></button>';
+    }).join('') + '</div>';
+    el.innerHTML = '<div class="rgk-top">' + hero + ph + '</div>' + tiles +
+      '<p class="rgk-note">Angka di atas mengikuti Tahun &amp; Bulan yang dipilih. Klik kotak atau pilih tab di atas untuk melihat rinciannya.</p>';
+  }
+
   function renderAll() {
     var gagal = [];
-    [['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
+    [['Ringkasan', renderRingkasan], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Indikator', renderInd], ['Kepatuhan', renderKep],
      ['Tindak lanjut', renderTL], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
@@ -1354,8 +1416,11 @@
       if (a === 'ino') return openIno();
       if (a.indexOf('rekap:') === 0) return openRekap(a.split(':')[1]);
     }
+    var vtb = t.closest('[data-vt]'); if (vtb && vtb.tagName === 'BUTTON') { pilihTab(vtb.getAttribute('data-vt'), true); return; }
+    if (t.closest('[data-rgksemua]')) { S.rgkSemua = !S.rgkSemua; return renderRingkasan(); }
     var phx = t.closest('[data-ph]');
     if (phx) { var pe = $('perhatian'); if (phx.getAttribute('data-ph') === 'tutup') { if (pe.classList.contains('ok')) pe.classList.remove('lihat'); else phMode('tutup'); } else phMode(pe.classList.contains('kecil') ? 'buka' : 'kecil'); return; }
+    if (t.closest('#notifBtn') && S.vt !== 'semua') { S.rgkSemua = true; if (S.vt !== 'ringkasan') pilihTab('ringkasan'); renderRingkasan(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (t.closest('#notifBtn')) {
       var pn = $('perhatian'), tertutup = pn.classList.contains('tutup') || pn.classList.contains('kecil') || (pn.classList.contains('ok') && !pn.classList.contains('lihat'));
       phMode(tertutup ? 'buka' : 'tutup');
@@ -1385,7 +1450,8 @@
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
-    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink
+    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink,
+    pilihTab: pilihTab, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }
 

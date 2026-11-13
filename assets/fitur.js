@@ -9,6 +9,7 @@
   /* ---------- tautan langsung ke bagian ---------- */
   function ke(n, halus) {
     if (n === 'organisasi') { var o = document.querySelector('#mainMenu [data-act="org"]'); if (o && siap()) o.click(); return; }
+    if (A.tabUntuk && siap()) A.tabUntuk(n);
     var e = bagian(n); if (!e || !siap()) return;
     var h = $('top') ? $('top').getBoundingClientRect().height : 0;
     var y = n === 'ringkasan' ? 0 : e.getBoundingClientRect().top + window.scrollY - h - 12;
@@ -70,6 +71,7 @@
   }
   function mulai() {
     if (!siap() || P.on) return;
+    if (A.pilihTab) A.pilihTab('semua');
     P.on = true; P.jeda = false; document.body.classList.add('pres'); bar.hidden = false;
     var el = document.documentElement;
     if (el.requestFullscreen && !document.fullscreenElement) {
