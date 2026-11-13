@@ -1239,6 +1239,8 @@
     waspada: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M12 8v5M12 16h.01"/>',
     sertifikat: '<circle cx="12" cy="9" r="5"/><path d="M9 13.5L7.5 21l4.5-2.5 4.5 2.5L15 13.5"/>',
     rumah: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    lonceng: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    gir: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     daftar: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8.5 8l1.5 1.5L13 6.5M8.5 14l1.5 1.5 3-3M15 8h1.5M15 14h1.5"/>',
     grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
     petir: '<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/>'
@@ -1299,7 +1301,7 @@
     PEGAWAI: 'ADM EPMK', EL1: 'ADM EPMK', INSTRUKTUR: 'ADM EPMK', KSA: 'ADM EPMK', CC: 'ADM EPMK', SERTIFIKAT: 'ADM EPMK', PERBAIKAN_ISI: 'ADM EPMK',
     RENDIKLAT: 'OF EPMK', L3: 'OF EPMK', L4: 'OF EPMK', ROTI: 'OF EPMK', IDP: 'OF EPMK', INOVASI: 'OF EPMK', PERBAIKAN: 'OF EPMK' };
   function tugasList() {
-    var T = (S.data.meta && S.data.meta.tugas) || {}, pic = function (k) { return (T.pic && T.pic[k]) || PIC_DEF[k]; };
+    var T = (S.data.meta && S.data.meta.tugas) || {}, pic = function (k) { var v = T.pic && T.pic[k]; if (typeof v === 'string') v = v.split(/\s*[,;\/&]\s*/); return v && v.length ? v : [PIC_DEF[k]]; };
     var kini = T.sekarang ? new Date(T.sekarang) : new Date(), hariIni = new Date(kini.getFullYear(), kini.getMonth(), kini.getDate());
     var batas = T.batasHari || 7, tglB = T.batasTanggal || 7, y = S.tahun, out = [];
     var fmtT = function (d) { return d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; };
@@ -1357,14 +1359,15 @@
     manual('IDP', 'Perbarui data IDP pegawai', 'Data - IDP', 30);
     manual('INOVASI', 'Perbarui data inovasi', 'Data - Inovasi', 30);
     manual('PERBAIKAN', 'Perbarui status perbaikan berkelanjutan', 'Perbaikan Berkelanjutan', batas);
+    out.forEach(function (x) { x.pics = x.pic; x.pic = x.pics.join(' · '); });
     out.forEach(function (x) { if (!x.akhirTeks) x.akhirTeks = x.akhir ? fmtT(x.akhir) + (x.umur !== null ? ' · ' + (x.umur === 0 ? 'hari ini' : x.umur + ' hari lalu') : '') : '—'; });
     var urut = { bad: 0, warn: 1, idle: 2, good: 3 };
-    return out.sort(function (a, b) { return (urut[a.st] - urut[b.st]) || PIC_EPMK.indexOf(a.pic) - PIC_EPMK.indexOf(b.pic); });
+    return out.sort(function (a, b) { return (urut[a.st] - urut[b.st]) || PIC_EPMK.indexOf(a.pics[0]) - PIC_EPMK.indexOf(b.pics[0]); });
   }
   function renderTugas() {
     var el = $('tugas'); if (!el || !admin() || !S.data) return;
     var L = tugasList(), f = S.tgF || { pic: '', st: 'perlu' }, T = (S.data.meta && S.data.meta.tugas) || {};
-    var hit = function (p) { var X = L.filter(function (x) { return x.pic === p; }); return { bad: X.filter(function (x) { return x.st === 'bad'; }).length, warn: X.filter(function (x) { return x.st === 'warn'; }).length, ok: X.filter(function (x) { return x.st === 'good'; }).length, n: X.length }; };
+    var hit = function (p) { var X = L.filter(function (x) { return x.pics.indexOf(p) >= 0; }); return { bad: X.filter(function (x) { return x.st === 'bad'; }).length, warn: X.filter(function (x) { return x.st === 'warn'; }).length, ok: X.filter(function (x) { return x.st === 'good'; }).length, n: X.length }; };
     var cards = PIC_EPMK.map(function (p) {
       var h = hit(p), perlu = h.bad + h.warn, pct = h.n ? h.ok / h.n : 0;
       return '<button type="button" class="tg-pic' + (f.pic === p ? ' on' : '') + '" data-st="' + (h.bad ? 'bad' : h.warn ? 'warn' : 'good') + '" data-tgpic="' + p + '">' +
@@ -1372,7 +1375,7 @@
         '<span class="tg-cnt"><span class="bad" title="Terlambat / usang">' + h.bad + '</span><span class="warn" title="Segera">' + h.warn + '</span><span class="good" title="Beres">' + h.ok + '</span></span>' +
         '<span class="tg-bar"><i style="width:' + (pct * 100).toFixed(0) + '%"></i></span></button>';
     }).join('');
-    var tampil = L.filter(function (x) { return (!f.pic || x.pic === f.pic) && (f.st === 'semua' || (f.st === 'perlu' ? x.st === 'bad' || x.st === 'warn' : x.st === f.st)); });
+    var tampil = L.filter(function (x) { return (!f.pic || x.pics.indexOf(f.pic) >= 0) && (f.st === 'semua' || (f.st === 'perlu' ? x.st === 'bad' || x.st === 'warn' : x.st === f.st)); });
     var chip = function (k, t, n) { return '<button type="button" class="chip' + (f.st === k ? ' on' : '') + '" data-tgst="' + k + '">' + t + (n !== undefined ? ' <b>' + n + '</b>' : '') + '</button>'; };
     var nBad = L.filter(function (x) { return x.st === 'bad'; }).length, nWarn = L.filter(function (x) { return x.st === 'warn'; }).length;
     el.innerHTML = '<div class="panel tg-head"><div class="panel-h"><div><h2 class="ber-ikon"><span class="ikb">' + ikon('daftar') + '</span>Tugas Tim EPMK</h2>' +
@@ -1387,13 +1390,7 @@
           '<div class="tg-when"><span class="tg-pic-c">' + esc(x.pic) + '</span>' + (x.akhirTeks !== '—' ? '<span>' + esc(x.akhirTeks) + '</span>' : '') + (x.batas !== '—' ? '<small>' + esc(x.batas) + '</small>' : '') + '</div>' +
           '<div class="tg-st"><span class="pill ' + (x.st === 'idle' ? '' : x.st) + '">' + esc(x.status) + '</span>' + (x.act ? '<button type="button" class="btn sm" data-act="' + x.act + '">Lihat</button>' : '') + '</div></div>';
       }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini. 🎉</div>') + '</div>' +
-      '<details class="note tg-cara"><summary>Cara mengganti PIC atau batas waktu</summary>' +
-      '<ol><li>Buka spreadsheet → tab <b>Pengaturan</b>, pergi ke baris kosong paling bawah.</li>' +
-      '<li>Kolom A: <b>PIC_</b> + kode tugas (mis. <b>PIC_KSA</b>). Kolom B: <b>TL EPMK</b>, <b>OF EPMK</b>, atau <b>ADM EPMK</b>.</li>' +
-      '<li>Muat ulang dashboard. Hapus barisnya untuk kembali ke PIC bawaan.</li></ol>' +
-      '<table class="tg-kode"><tbody>' + ['TL EPMK', 'OF EPMK', 'ADM EPMK'].map(function (p) {
-        return '<tr><th>' + p + '</th><td>' + Object.keys(PIC_DEF).filter(function (k) { return PIC_DEF[k] === p; }).join(' · ') + '</td></tr>'; }).join('') + '</tbody></table>' +
-      '<p>Batas waktu: <b>BATAS_HARI_DATA</b> (umur data tarikan, hari) dan <b>BATAS_TANGGAL_BULANAN</b> (tanggal paling lambat isian bulanan) — ubah angkanya di kolom B.</p></details></div>';
+      '<p class="note tg-cara">PIC tiap tugas dan batas waktu bisa diubah di halaman <button type="button" class="lnk" data-vt="pengaturan">Pengaturan</button>.</p></div>';
   }
   function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
 
@@ -1407,7 +1404,8 @@
     var item = function (x) { return '<button type="button" class="sn-i" data-vt="' + x[0] + '" aria-selected="' + (S.vt === x[0]) + '"><span class="ikb">' + ikon(x[2]) + '</span><span class="sn-t"><b>' + esc(x[1]) + '</b><small>' + esc(x[3]) + '</small></span></button>'; };
     el.innerHTML = '<div class="sn-brand"><span class="sn-logo" aria-hidden="true">' + ikon('petir') + '</span><span><b>Dashboard Kinerja</b><small>' + esc(m.unit || 'UPDL Semarang') + '</small></span></div>' +
       '<div class="sn-cap">Menu</div><nav class="sn-nav">' + NAV.map(item).join('') + '</nav>' +
-      (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button></nav>' : '') +
+      (admin() ? '<div class="sn-cap">Pemantauan tim</div><nav class="sn-nav"><button type="button" class="sn-i" data-vt="tugas" aria-selected="' + (S.vt === 'tugas') + '"><span class="ikb">' + ikon('daftar') + '</span><span class="sn-t"><b>Tugas Tim EPMK</b><small>Update data &amp; tindak lanjut</small></span>' + (nT ? '<em class="sn-badge">' + nT + '</em>' : '') + '</button>' +
+        '<button type="button" class="sn-i" data-vt="pengaturan" aria-selected="' + (S.vt === 'pengaturan') + '"><span class="ikb">' + ikon('gir') + '</span><span class="sn-t"><b>Pengaturan</b><small>Target, PIC, pengingat, akun</small></span></button></nav>' : '') +
       '<nav class="sn-nav sn-bawah"><button type="button" class="sn-i" data-vt="semua" aria-selected="' + (S.vt === 'semua') + '"><span class="ikb">' + ikon('grid') + '</span><span class="sn-t"><b>Semua bagian</b><small>Tampilan lengkap</small></span></button></nav>' +
       '<div class="sn-foot"><button type="button" class="sn-st" data-act="segar"><i class="st ' + (m.source === 'live' ? 'live' : 'snap') + '"></i><span><b>' + (!S.data ? 'Memuat data…' : m.source === 'live' ? 'Data live' : 'Data contoh') + '</b><small>' + (t ? 'diambil ' + esc(t.toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</small></span></button>' +
       '<div class="sn-user"><span class="av">' + esc(String(m.user || 'U').charAt(0).toUpperCase()) + '</span><span><b>' + esc(m.user || '') + '</b><small>' + (admin() ? 'Admin' : 'Lihat') + '</small></span></div></div>';
@@ -1419,16 +1417,17 @@
   var VT_KEY = 'updl_tab';
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
   function pilihTab(t, gulir) {
-    if (t === 'tugas' && !admin()) t = 'ringkasan';
-    if (!t || (!VT[t] && t !== 'ringkasan' && t !== 'semua' && t !== 'tugas')) t = 'ringkasan';
+    if ((t === 'tugas' || t === 'pengaturan') && !admin()) t = 'ringkasan';
+    if (!t || (!VT[t] && t !== 'ringkasan' && t !== 'semua' && t !== 'tugas' && t !== 'pengaturan')) t = 'ringkasan';
     S.vt = t; try { localStorage.setItem(VT_KEY, t); } catch (e) { /* abaikan */ }
     document.body.setAttribute('data-vt', t);
     Array.prototype.forEach.call(document.querySelectorAll('[data-vt]'), function (b) { if (b.tagName === 'BUTTON') b.setAttribute('aria-selected', b.getAttribute('data-vt') === t); });
     Array.prototype.forEach.call(document.querySelectorAll('main [data-bagian]'), function (sec) {
       var bg = sec.getAttribute('data-bagian'); sec.hidden = !(t === 'semua' || (VT[t] && VT[t].indexOf(bg) >= 0));
     });
-    $('rgk').hidden = t !== 'ringkasan'; $('tugas').hidden = t !== 'tugas';
+    $('rgk').hidden = t !== 'ringkasan'; $('tugas').hidden = t !== 'tugas'; if ($('pengaturan')) $('pengaturan').hidden = t !== 'pengaturan';
     if (t === 'tugas') renderTugas();
+    if (t === 'pengaturan' && window.DashApp.renderPengaturan) window.DashApp.renderPengaturan();
     if (gulir && window.innerWidth >= 1100) window.scrollTo({ top: 0, behavior: 'smooth' });
     if (t === 'semua' || t === 'kinerja') { try { renderChart(); } catch (e) { /* abaikan */ } }
     if (gulir) { var nv = $('vtabs'); if (nv && nv.getBoundingClientRect().top < 0) nv.scrollIntoView({ block: 'start' }); }
@@ -1638,7 +1637,7 @@
     $('avatar').textContent = (user || 'U').charAt(0).toUpperCase();
   }
   function tampilLogin(pesan) {
-    S.vt = null;
+    S.vt = null; if (window.DashApp && window.DashApp.resetPengaturan) window.DashApp.resetPengaturan();
     if ($('sidenav')) { $('sidenav').hidden = true; document.body.classList.remove('ada-side'); }
     S.data = null; S.cache = null; S.tahun = null; S.bulan = null; S.riskOn = null;
     document.body.classList.remove('peran-admin');
@@ -1758,7 +1757,7 @@
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
-    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink,
+    kesegaran: kesegaran, perhatian: perhatian, sheetLink: sheetLink, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
     pilihTab: pilihTab, renderChart: renderChart, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }

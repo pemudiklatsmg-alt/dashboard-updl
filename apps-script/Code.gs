@@ -93,7 +93,8 @@ function onOpen() {
     .addToUi();
 }
 
-function cekKoneksi() {
+function cekKoneksi() { safeAlert_(cekKoneksi_().join('\n')); }
+function cekKoneksi_() {
   /* Tiap langkah dicatat waktunya di log eksekusi (Apps Script → Executions) agar
      sumber yang lambat/macet langsung kelihatan. */
   var t0 = Date.now(), pesan = [];
@@ -117,7 +118,7 @@ function cekKoneksi() {
   var konman = tabKonman_(SpreadsheetApp.getActiveSpreadsheet(), cfg);
   pesan.push('Tab Konman: ' + (Object.keys(konman).join(', ') || 'tidak ditemukan'));
   log('selesai semua');
-  safeAlert_(pesan.join('\n'));
+  return pesan;
 }
 
 /**
@@ -497,6 +498,10 @@ function doPost(e) {
     if (req.aksi === 'log') {
       if (sesi.peran !== 'admin') throw new Error('Ringkasan login hanya untuk akun Admin.');
       return json_({ ok: true, log: ringkasLog_(30) });
+    }
+    if (/^(pengaturan|simpanPengaturan|akun|pengingat|cekKoneksi|segarkan)$/.test(req.aksi)) {
+      if (sesi.peran !== 'admin') throw new Error('Pengaturan hanya untuk akun Admin.');
+      return json_(aksiPengaturan_(req, sesi));
     }
     if (req.aksi === 'simpan') {
       if (sesi.peran !== 'admin') throw new Error('Akun Lihat tidak bisa mengisi data. Masuk dengan akun Admin.');
@@ -1251,12 +1256,14 @@ function kirimPengingat_(paksa) {
   return 'Email terkirim ke ' + to.join(', ') + '.';
 }
 function cobaKirimPengingat() { safeAlert_(kirimPengingat_(true)); }
-function pasangPengingat() {
-  if (!penerima_().length) { safeAlert_('Isi dulu alamat email di tab Pengaturan, baris EMAIL_PENGINGAT (pisahkan dengan koma).'); return; }
+function pasangPengingat() { safeAlert_(pasangPengingat_()); }
+function pasangPengingat_() {
+  if (!penerima_().length) throw new Error('Isi dulu alamat email penerima pengingat.');
   hapusPengingat_(); var tgl = Math.min(28, Math.max(1, Number(getConfig_().TANGGAL_PENGINGAT) || 5));
   ScriptApp.newTrigger('kirimPengingat').timeBased().onMonthDay(tgl).atHour(7).create();
-  safeAlert_('Pengingat aktif: tiap tanggal ' + tgl + ' sekitar pukul 07.00 ke ' + penerima_().join(', ') + '.\nEmail hanya dikirim bila ada isian bulan lalu yang belum lengkap.');
+  return 'Pengingat aktif: tiap tanggal ' + tgl + ' sekitar pukul 07.00 ke ' + penerima_().join(', ') + '.\nEmail hanya dikirim bila ada isian bulan lalu yang belum lengkap.';
 }
+function pengingatAktif_() { return ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'kirimPengingat'; }); }
 function hapusPengingat_() { var n = 0; ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'kirimPengingat') { ScriptApp.deleteTrigger(t); n++; } }); return n; }
 function hapusPengingat() { var n = hapusPengingat_(); safeAlert_(n ? 'Pengingat email dimatikan.' : 'Pengingat email memang belum aktif.'); }
 
@@ -1273,7 +1280,7 @@ var CACHE_DETIK = 21600;
 function infoTugas_() {
   var cfg = getConfig_(), u = ambilUbah_(), ubah = {}, pic = {};
   Object.keys(u).forEach(function (k) { if (k.indexOf('ubah_') === 0) ubah[k.slice(5)] = Number(u[k]) || 0; });
-  Object.keys(cfg).forEach(function (k) { if (/^PIC_/.test(k) && String(cfg[k]).trim()) pic[k.slice(4)] = String(cfg[k]).trim(); });
+  pic = picMap_(cfg).pic;
   return { ubah: ubah, pic: pic, batasHari: angka_(cfg.BATAS_HARI_DATA) || 7, batasTanggal: angka_(cfg.BATAS_TANGGAL_BULANAN) || 7, sekarang: new Date().toISOString() };
 }
 function ambilUbah_() { try { return PropertiesService.getScriptProperties().getProperties(); } catch (e) { return {}; } }
@@ -1540,4 +1547,149 @@ function tambahKomentarEl2_() {
   });
   if (baru.length) { sh.getRange(barisBaru_(sh), 1, baru.length, H.length).setValues(baru); tandaiUbah_(TAB.TINDAKLANJUT); }
   return { n: baru.length, hit: hit, pesan: baru.length ? baru.length + ' komentar EL2 ditambahkan ke tab ' + TAB.TINDAKLANJUT + ' (' + Object.keys(hit).map(function (s) { return s + ' ' + hit[s]; }).join(', ') + ').' : 'Tidak ada komentar EL2 baru untuk ditambahkan.' };
+}
+
+
+/* ======================================================================== */
+/*  PENGATURAN LEWAT WEBSITE (khusus Admin)                                  */
+/* ======================================================================== */
+/* Semua isi tab Pengaturan, PIC Tugas Tim EPMK, pengingat email, dan akun bisa diatur dari
+   halaman Pengaturan di website. Tab Pengaturan tetap menjadi tempat penyimpanannya. */
+var PIC_EPMK_ = ['TL EPMK', 'OF EPMK', 'ADM EPMK'];
+var KODE_PIC_ = ['KONMAN', 'KEPATUHAN', 'KRI', 'INDIKATOR', 'PERBAIKAN_TL', 'PEGAWAI', 'EL1', 'INSTRUKTUR', 'KSA', 'CC', 'SERTIFIKAT', 'PERBAIKAN_ISI',
+  'RENDIKLAT', 'L3', 'L4', 'ROTI', 'IDP', 'INOVASI', 'PERBAIKAN'];
+// nama yang mungkin ditulis tangan di tab Pengaturan -> kode tugas
+var ALIAS_PIC_ = { EL2: ['KSA', 'CC'], EL3: ['L3'], EL4: ['L4'], JUMLAH_PEGAWAI: ['PEGAWAI'], PERBAIKAN_BERKELANJUTAN: ['PERBAIKAN_ISI', 'PERBAIKAN'],
+  KEPUASAN: ['EL1'], C_C: ['CC'], CNC: ['CC'], SERT: ['SERTIFIKAT'], KONTRAK_MANAJEMEN: ['KONMAN'] };
+function kodePic_(k) {
+  var n = String(k).toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').replace(/_?20\d\d$/, '');
+  if (KODE_PIC_.indexOf(n) >= 0) return [n];
+  return ALIAS_PIC_[n] || [];
+}
+function daftarPic_(v) {
+  var out = [];
+  String(v || '').split(/\s*[,;\/&+]\s*|\s+dan\s+/i).forEach(function (x) {
+    var m = String(x).trim().toUpperCase().replace(/\s+/g, ' '); if (!m) return;
+    if (!/EPMK$/.test(m)) m += ' EPMK';
+    if (PIC_EPMK_.indexOf(m) >= 0 && out.indexOf(m) < 0) out.push(m);
+  });
+  return out;
+}
+/* { pic: {KODE: ['TL EPMK', ...]}, salah: [kunci yang tidak dikenali] } dari baris PIC_ di Pengaturan */
+function picMap_(cfg) {
+  var pic = {}, salah = [];
+  Object.keys(cfg).forEach(function (k) {
+    if (!/^PIC_/i.test(k)) return;
+    var kode = kodePic_(k.slice(4)), p = daftarPic_(cfg[k]);
+    if (!kode.length || !p.length) { if (String(cfg[k]).trim()) salah.push(k); return; }
+    kode.forEach(function (c) { pic[c] = p; });
+  });
+  return { pic: pic, salah: salah };
+}
+function barisPengaturan_() {
+  var sh = tab_(TAB.PENGATURAN), n = sh.getLastRow();
+  return { sh: sh, v: n < 2 ? [] : sh.getRange(2, 1, n - 1, 3).getValues() };
+}
+function infoAkun_() {
+  var p = PropertiesService.getScriptProperties();
+  return {
+    admin: p.getProperty('WEB_USER') || '', lihat: p.getProperty('LIHAT_USER') || '', lihatAda: !!p.getProperty('LIHAT_PASS_HASH'),
+    tambahan: Object.keys(akunPribadi_()).map(function (k) { var a = akunPribadi_()[k]; return { user: a.user, nama: a.nama, aktif: a.aktif && !!rekPribadi_(k) }; })
+  };
+}
+function aksiPengaturan_(req, sesi) {
+  if (req.aksi === 'pengaturan') {
+    var B = barisPengaturan_(), cfg = getConfig_(), pm = picMap_(cfg);
+    var aktif = false; try { aktif = pengingatAktif_(); } catch (e) { /* abaikan */ }
+    return { ok: true, cfg: B.v.filter(function (r) { return teks_(r[0]) && !/^PIC_/i.test(teks_(r[0])); }).map(function (r) { return [teks_(r[0]), r[1] instanceof Date ? isoTgl_(r[1]) : teks_(r[1]), teks_(r[2])]; }),
+      pic: pm.pic, picSalah: pm.salah, akun: infoAkun_(), pengingat: aktif, saya: sesi.user };
+  }
+  if (req.aksi === 'segarkan') { PropertiesService.getScriptProperties().setProperties({ CACHE_EPOCH: String(Date.now()) }); return { ok: true, pesan: 'Data dashboard akan dihitung ulang saat dimuat.' }; }
+  if (req.aksi === 'cekKoneksi') return { ok: true, hasil: cekKoneksi_() };
+  if (req.aksi === 'pengingat') {
+    if (req.op === 'mati') { hapusPengingat_(); return { ok: true, pesan: 'Pengingat email dimatikan.', pengingat: false }; }
+    if (req.op === 'coba') return { ok: true, pesan: kirimPengingat_(true), pengingat: pengingatAktif_() };
+    return { ok: true, pesan: pasangPengingat_(), pengingat: true };
+  }
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    if (req.aksi === 'simpanPengaturan') return simpanPengaturan_(req, sesi.user);
+    if (req.aksi === 'akun') return ubahAkun_(req, sesi);
+  } finally { lock.releaseLock(); }
+  throw new Error('Aksi tidak dikenal.');
+}
+function simpanPengaturan_(req, user) {
+  var B = barisPengaturan_(), sh = B.sh, nilai = req.nilai || {}, n = 0, baru = [];
+  var idx = {}; B.v.forEach(function (r, i) { var k = teks_(r[0]); if (k && !(k in idx)) idx[k] = i + 2; });
+  var bolehBaru = /^[A-Z][A-Z0-9_]{2,40}$/;   // kunci baru (mis. RENDIKLAT_2027) ditambahkan di baris bawah
+  Object.keys(nilai).forEach(function (k) {
+    if (!/^[A-Z][A-Z0-9_]*$/.test(k) || /^PIC_/.test(k)) throw new Error('Kunci pengaturan tidak valid: ' + k);
+    var v = nilai[k] === null || nilai[k] === undefined ? '' : String(nilai[k]).trim().slice(0, 500);
+    if (k in idx) { if (teks_(sh.getRange(idx[k], 2).getValue()) !== v) { sh.getRange(idx[k], 2).setValue(v); n++; } }
+    else if (bolehBaru.test(k) && v) baru.push([k, v, 'Ditambahkan lewat website']);
+    else if (v) throw new Error('Kunci pengaturan tidak dikenal: ' + k);
+  });
+  if (req.pic) {
+    // tulis ulang semua baris PIC_: hanya yang berbeda dari bawaan, dengan kode baku
+    var def = req.picDef || {};
+    for (var i = B.v.length - 1; i >= 0; i--) if (/^PIC_/i.test(teks_(B.v[i][0]))) sh.deleteRow(i + 2);
+    KODE_PIC_.forEach(function (c) {
+      var p = daftarPic_((req.pic[c] || []).join(','));
+      if (p.length && p.join(',') !== String(def[c] || '')) baru.push(['PIC_' + c, p.join(', '), 'PIC Tugas Tim EPMK (diatur lewat website)']);
+    });
+    n++;
+  }
+  if (baru.length) { sh.getRange(sh.getLastRow() + 1, 1, baru.length, 3).setValues(baru); n += baru.length; }
+  SpreadsheetApp.flush();
+  PropertiesService.getScriptProperties().setProperties({ CACHE_EPOCH: String(Date.now()) });
+  tandaiUbah_(TAB.PENGATURAN);
+  var catatan = '';
+  if (('EMAIL_PENGINGAT' in nilai || 'TANGGAL_PENGINGAT' in nilai)) { try { if (pengingatAktif_()) { pasangPengingat_(); catatan = ' Jadwal pengingat email ikut diperbarui.'; } } catch (e) { catatan = ' Pengingat email: ' + e.message; } }
+  return { ok: true, pesan: n ? 'Pengaturan tersimpan.' + catatan : 'Tidak ada perubahan.', berubah: n };
+}
+function cekPw_(pw) { if (String(pw || '').length < 8) throw new Error('Password minimal 8 karakter.'); return String(pw); }
+function cekUser_(u) { u = String(u || '').trim(); if (!/^[A-Za-z0-9._@-]{3,40}$/.test(u)) throw new Error('Username 3–40 karakter: huruf, angka, titik, minus, garis bawah, tanpa spasi.'); return u; }
+function userTerpakai_(u, kecuali) {
+  var p = PropertiesService.getScriptProperties(), l = u.toLowerCase();
+  if (kecuali !== 'admin' && (p.getProperty('WEB_USER') || '').toLowerCase() === l) return true;
+  if (kecuali !== 'lihat' && (p.getProperty('LIHAT_USER') || '').toLowerCase() === l) return true;
+  return kecuali !== 'pribadi' && !!akunPribadi_()[l];
+}
+function ubahAkun_(req, sesi) {
+  var p = PropertiesService.getScriptProperties(), op = req.op, o = {};
+  if (op === 'admin' || op === 'lihat') {
+    var a = AKUN[op];
+    // demi keamanan, perubahan akun bersama selalu dikonfirmasi dengan password Admin saat ini
+    if (hash_(p.getProperty('WEB_SALT'), String(req.pwSekarang || '')) !== p.getProperty('WEB_PASS_HASH')) throw new Error('Password Admin saat ini salah.');
+    var u = req.user ? cekUser_(req.user) : p.getProperty(a.kunci + '_USER');
+    if (!u) throw new Error('Isi username.');
+    if (userTerpakai_(u, op)) throw new Error('Username ini sudah dipakai akun lain.');
+    o[a.kunci + '_USER'] = u;
+    if (req.pw) { var salt = Utilities.getUuid(); o[a.kunci + '_SALT'] = salt; o[a.kunci + '_PASS_HASH'] = hash_(salt, cekPw_(req.pw)); }
+    else if (!p.getProperty(a.kunci + '_PASS_HASH')) throw new Error('Isi password untuk akun baru.');
+    o[a.kunci + '_VER'] = String(Number(p.getProperty(a.kunci + '_VER') || 0) + 1);
+    p.setProperties(o);
+    catatLogin_(sesi.user, 'admin', 'Akun ' + a.nama + ' diubah lewat website', '');
+    return { ok: true, pesan: 'Akun ' + a.nama + ' tersimpan. Semua yang sedang login dengan akun ' + a.nama + ' harus masuk lagi.', keluar: op === 'admin', akun: infoAkun_() };
+  }
+  if (op === 'tambah' || op === 'sandi') {
+    var u2 = cekUser_(req.user), ada = akunPribadi_()[u2.toLowerCase()];
+    if (op === 'tambah' && ada) throw new Error('Username ini sudah ada. Pakai "Ganti password" untuk mengubahnya.');
+    if (op === 'sandi' && !ada) throw new Error('Akun tidak ditemukan.');
+    if (userTerpakai_(u2, 'pribadi')) throw new Error('Username ini dipakai akun Admin atau akun Lihat bersama.');
+    var lama = rekPribadi_(u2), s2 = Utilities.getUuid();
+    o['PRIBADI_' + u2.toLowerCase()] = JSON.stringify({ s: s2, h: hash_(s2, cekPw_(req.pw)), v: (lama ? Number(lama.v) || 0 : 0) + 1 });
+    p.setProperties(o);
+    var sh = tabAkun_(), isi = [[ada ? ada.user : u2, String(req.nama || (ada ? ada.nama : '')).trim().slice(0, 60), 'Ya', new Date()]];
+    if (ada) sh.getRange(ada.baris, 1, 1, 4).setValues(isi); else sh.getRange(sh.getLastRow() + 1, 1, 1, 4).setValues(isi);
+    return { ok: true, pesan: op === 'tambah' ? 'Akun Lihat ' + u2 + ' ditambahkan.' : 'Password ' + u2 + ' diganti; password lama tidak berlaku lagi.', akun: infoAkun_() };
+  }
+  if (op === 'nonaktif') {
+    var u3 = String(req.user || '').trim().toLowerCase(), a3 = akunPribadi_()[u3];
+    if (!a3) throw new Error('Akun tidak ditemukan.');
+    o['PRIBADI_' + u3] = ''; p.setProperties(o);
+    tabAkun_().getRange(a3.baris, 3, 1, 2).setValues([['Tidak', new Date()]]);
+    return { ok: true, pesan: 'Akun ' + a3.user + ' dinonaktifkan dan langsung keluar dari dashboard. Aktifkan lagi dengan memberi password baru.', akun: infoAkun_() };
+  }
+  throw new Error('Perintah akun tidak dikenal.');
 }
