@@ -1516,18 +1516,30 @@ body.top-nempel .top, html.glass body.top-nempel .top {
 .at-l label b, .at-help b { display: inline; }
 .at-l small { margin-top: 3px; }
 
-/* Cetak v3: satu skala, isi mengalir, margin kiri-kanan sama */
-#cetakWrap .cp-doc { background: #fff; color: #18233f; }
-#cetakWrap .cp-sec { break-before: page; page-break-before: always; }
-#cetakWrap .cp-sec.pertama { break-before: auto; page-break-before: auto; }
-#cetakWrap .cp-judul { font-family: var(--f-display); font-size: 20px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
-#cetakWrap .cp-sec .cp-isi { width: auto !important; transform: none !important; display: grid; gap: 14px; }
-#cetakWrap .cp-kop { margin-bottom: 14px; }
-#cetakWrap .panel, #cetakWrap .card, #cetakWrap .gx-p, #cetakWrap .cp-box, #cetakWrap .rgk-tile, #cetakWrap .tg-row, #cetakWrap tr, #cetakWrap .ind-row { break-inside: avoid; page-break-inside: avoid; }
-#cetakWrap .cp-foot { margin-top: 14px; }
-#cetakWrap .idp-warn, #cetakWrap .warnbox, #cetakWrap .note.idp, #cetakWrap [data-bagian="pengembangan"] .note { display: none !important; }
+/* Cetak v4: satu skala, topik menyambung (tanpa ruang kosong), kop & sumber diulang tiap halaman */
+#cetakWrap .cp-doc { width: 190mm; border-collapse: collapse; background: #fff; color: #18233f; }
+#cetakWrap .cp-doc > * > tr > td { padding: 0; vertical-align: top; }
+#cetakWrap .cp-atas { padding: 26px 0 10px; } #cetakWrap .cp-atas .cp-kop { margin: 0; }
+#cetakWrap .cp-bawah { padding: 10px 0 22px; font-size: 11px; color: #6b7287; border-top: 1px solid #d8dbe4; margin-top: 10px; }
+#cetakWrap .cp-sec + .cp-sec { margin-top: 18px; }
+#cetakWrap .cp-judul { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 18px; margin: 0 0 10px; padding: 8px 12px; border-radius: 8px; background: #f6e9ee; color: #7b1e3a; break-after: avoid; page-break-after: avoid; }
+#cetakWrap .cp-judul span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #7b1e3a; color: #fff; font-size: 13px; }
+#cetakWrap .cp-sec .cp-isi { width: auto !important; transform: none !important; display: block; }
+#cetakWrap .cp-sec .cp-isi > * + * { margin-top: 14px; }
+#cetakWrap .cp-isi [data-bagian], #cetakWrap .cp-isi .pair { display: block !important; } #cetakWrap .cp-isi .pair > * + *, #cetakWrap .cp-isi [data-bagian] > .panel + .panel { margin-top: 14px; }
+#cetakWrap .card, #cetakWrap .gx-p, #cetakWrap .cp-box, #cetakWrap .rgk-tile, #cetakWrap .tg-row, #cetakWrap .cp-isi tr, #cetakWrap .ind-row, #cetakWrap .mini, #cetakWrap .kpi { break-inside: avoid; page-break-inside: avoid; }
+#cetakWrap .warnbox, #cetakWrap [data-bagian="pengembangan"] .note { display: none !important; }
 #cetakWrap .rgk-t { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 #cetakWrap .minis { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-#cetakWrap [data-bagian="risiko"] .row2, #cetakWrap [data-bagian="risiko"] .pair { grid-template-columns: minmax(0, 1fr) !important; }
 #cetakWrap .fr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; } #cetakWrap .fr-r { grid-column: 1 / -1; }
-@media print { body.cetak-mode #cetakWrap .cp-doc { width: 900px; } }
+#cetakWrap .row2 > *, #cetakWrap .pair > *, #cetakWrap .gx-row > * { min-width: 0; }
+#cetakWrap .panel { height: auto !important; }
+#cetakWrap .bars, #cetakWrap .tl-body, #cetakWrap .cs-l, #cetakWrap .ph-list, #cetakWrap .ino-l, #cetakWrap .rk-list, #cetakWrap .tbl-wrap { flex: none !important; overflow: visible !important; max-height: none !important; min-height: 0 !important; }
+#cetakWrap .cs-i span, #cetakWrap .bars .r > span:first-child { white-space: normal !important; overflow: visible !important; }
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  body.cetak-mode #cetakWrap { padding: 0 10mm !important; }
+}
+
+#cetakWrap .cp-doc { font-size: 12px; } #cetakWrap .rgk-t, #cetakWrap .minis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+#cetakWrap .row2 { grid-template-columns: minmax(0, 1fr) !important; } #cetakWrap .gx-row, #cetakWrap .gx-row.gx-sama { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }

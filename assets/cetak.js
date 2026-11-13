@@ -112,16 +112,21 @@
       else if (t === 'tugas') bag.push(halaman('Tugas Tim EPMK', salin($('tugas'))));
       else BAG.forEach(function (b) { var ks = t === 'semua' ? b.k : b.k.filter(function (k) { return (TAB[t] || []).indexOf(k) >= 0; }); if (ks.length) { var p = halBagian({ k: ks, n: b.n }); if (p) bag.push(p); } });
     }
-    var doc = document.createElement('div'); doc.className = 'cp-doc'; doc.style.width = LEBAR_TETAP + 'px';
-    doc.style.zoom = (KERTAS.w / LEBAR_TETAP).toFixed(4);
+    // tabel: thead (kop) & tfoot (sumber) diulang browser di setiap halaman; topik berikutnya langsung menyambung di bawahnya
+    var kopEl = bag[0].querySelector('.cp-kop').cloneNode(true), judulKop = kopEl.querySelector('div > span');
+    if (judulKop) judulKop.textContent = jenis === 'ringkas' ? 'Laporan ringkas' : jenis === 'lengkap' ? 'Laporan lengkap' : 'Laporan bagian terpilih';
+    var tb = document.createElement('table'); tb.className = 'cp-doc';
+    tb.innerHTML = '<thead><tr><td><div class="cp-atas"></div></td></tr></thead><tbody><tr><td class="cp-td"></td></tr></tbody>' +
+      '<tfoot><tr><td><div class="cp-bawah">Sumber: spreadsheet Data Dashboard UPDL Semarang, Konman, Rendiklat, MLI Probis, Profil Risiko</div></td></tr></tfoot>';
+    tb.querySelector('.cp-atas').appendChild(kopEl);
+    var td = tb.querySelector('.cp-td');
     bag.forEach(function (p, i) {
-      var sec = document.createElement('section'); sec.className = 'cp-sec' + (i ? '' : ' pertama');
+      var sec = document.createElement('section'); sec.className = 'cp-sec';
       var judul = p.querySelector('.cp-kop > div > span');
-      sec.innerHTML = i ? '<h2 class="cp-judul">' + (judul ? judul.innerHTML : '') + '</h2>' : p.querySelector('.cp-kop').outerHTML;
-      var isi = p.querySelector('.cp-isi'); isi.removeAttribute('style'); sec.appendChild(isi); doc.appendChild(sec);
+      if (bag.length > 1) sec.innerHTML = '<h2 class="cp-judul"><span>' + (i + 1) + '</span>' + (judul ? judul.innerHTML : '') + '</h2>';
+      var isi = p.querySelector('.cp-isi'); isi.removeAttribute('style'); sec.appendChild(isi); td.appendChild(sec);
     });
-    doc.insertAdjacentHTML('beforeend', '<div class="cp-foot"><span>Sumber: spreadsheet Data Dashboard UPDL Semarang, Konman, Rendiklat, MLI Probis, Profil Risiko</span></div>');
-    w.appendChild(doc); w.hidden = false;
+    w.appendChild(tb); w.hidden = false;
     return bag.length;
   }
   function cetak(jenis) {
