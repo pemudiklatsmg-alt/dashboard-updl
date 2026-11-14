@@ -1800,3 +1800,31 @@ body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
 #cetakWrap .cp-judul span { background: #0077b6; }
 #cetakWrap, .cetak-mode #cetakWrap { --accent: #0077b6; --accent-soft: #e2f3fb; }
 @media print { :root:root, :root:root[data-theme] { --accent: #0077b6; --accent-soft: #e2f3fb; } .print-h { border-bottom-color: #0077b6; } }
+
+/* Pink dipertahankan khusus untuk lingkaran panah pembuka rincian (kartu & baris yang bisa diklik) */
+:root { --pink: #d64f84; --on-pink: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pink: #e28aa6; --on-pink: #2a0f1b; } }
+:root[data-theme="dark"] { --pink: #e28aa6; --on-pink: #2a0f1b; }
+.rgk-tile:hover::after, .card.click:hover::after, .ke-rinci:hover, tr.klik:hover td:last-child::after, .gx-klik:hover .gx-hv::after,
+.rk-row:hover::after, .ph-i:hover::after, .ph-i:hover em, .ph-i:focus-visible em, .sg-q li.klik:hover .kq-go {
+  background: var(--pink) !important; border-color: var(--pink) !important; color: var(--on-pink) !important; }
+
+/* Bilah bawah: warna digambar oleh lapisan dalam, bukan oleh elemen melayangnya, supaya Safari iPhone
+   tidak mengambil warnanya untuk mewarnai area kolom alamat (garis bayangan & halaman terpotong di tema gelap) */
+@media (max-width: 640px) {
+  .navbawah, html.glass .navbawah { background: transparent !important; border-color: transparent !important; box-shadow: none !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important; overflow: visible; }
+  .navbawah::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
+    background: var(--sheet); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+  html.glass .navbawah::before { background: color-mix(in srgb, var(--sheet) 82%, transparent); border-color: var(--g-border);
+    -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); }
+  .navbawah { isolation: isolate; }
+  .nb-isi, .nb-kecil { border-radius: 999px; overflow: hidden; }
+  .nb-isi { overflow-x: auto; }
+  /* kartu dengan tombol pilihan (Kelas/Peserta/Orang-hari dst.): keterangan memakai lebar penuh, tombol di baris sendiri */
+  .panel-h:has(.seg) > div:first-child { flex: 1 1 100%; }
+}
+/* Nuansa feminin: semburat latar biru PLN berpadu pink lembut */
+:root { --g-b2: rgba(236,120,170,.24); --g-b4: rgba(236,120,170,.16); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g-b2: rgba(226,138,166,.16); --g-b4: rgba(226,138,166,.10); } }
+:root[data-theme="dark"] { --g-b2: rgba(226,138,166,.16); --g-b4: rgba(226,138,166,.10); }
