@@ -204,7 +204,7 @@
   /* ====================================================================== */
   /*  GAMBAR (kanvas, tema terang, 2x untuk cetak tajam)                      */
   /* ====================================================================== */
-  var W = { ink: '#18233f', ink2: '#4a5470', ink3: '#7c8399', line: '#d8dbe4', track: '#e7e9ef', good: '#1f8a4c', warn: '#b7791f', bad: '#c53030', idle: '#8a90a3', bar: '#3a4f8c', accent: '#7b1e3a', sheet: '#ffffff' };
+  var W = { ink: '#18233f', ink2: '#4a5470', ink3: '#7c8399', line: '#d8dbe4', track: '#e7e9ef', good: '#1f8a4c', warn: '#b7791f', bad: '#c53030', idle: '#8a90a3', bar: '#3a4f8c', accent: '#0077b6', sheet: '#ffffff' };
   var FN = '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif';
   function kanvas(w, h) { var c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; var g = c.getContext('2d'); g.scale(2, 2); g.fillStyle = W.sheet; g.fillRect(0, 0, w, h); g.textBaseline = 'alphabetic'; return { c: c, g: g, w: w, h: h }; }
   function warnaStatus(p) { return p === null || p === undefined || !isFinite(p) ? W.idle : p >= 0.9999 ? W.good : p >= 0.95 ? W.warn : W.bad; }

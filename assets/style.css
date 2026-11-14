@@ -1771,3 +1771,32 @@ body.top-nempel .tutup-atas { visibility: visible; }
 @media print { .tutup-atas { display: none; } }
 /* HP: pilihan tab hanya di bilah bawah */
 @media (max-width: 640px) { #vtabs { display: none !important; } }
+
+/* ===== Tema warna PLN (dari logo: kuning #FFF200, biru #00AEEF, merah #ED1C24) =====
+   Biru PLN = warna aksen (tombol, tab aktif, panah klik). Kuning & merah = garis aksen merek di kepala halaman.
+   Warna status (hijau/kuning tua/merah) tetap seperti semula supaya arti "baik / waspada / buruk" tidak berubah. */
+:root { --pln-biru: #00aeef; --pln-kuning: #fff200; --pln-merah: #ed1c24;
+  --accent: #0077b6; --accent-soft: #e2f3fb; --on-accent: #fff; --c-kin: #0077b6;
+  --g-b1: rgba(0,174,239,.26); --g-b2: rgba(0,119,182,.22); --g-b3: rgba(255,242,0,.16); --g-b4: rgba(237,28,36,.08); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent: #3cc4f5; --accent-soft: #0e3346; --on-accent: #04202f; --c-kin: #3cc4f5;
+  --g-b1: rgba(0,174,239,.20); --g-b2: rgba(60,196,245,.12); --g-b3: rgba(255,242,0,.07); --g-b4: rgba(237,28,36,.06); } }
+:root[data-theme="dark"] { --accent: #3cc4f5; --accent-soft: #0e3346; --on-accent: #04202f; --c-kin: #3cc4f5;
+  --g-b1: rgba(0,174,239,.20); --g-b2: rgba(60,196,245,.12); --g-b3: rgba(255,242,0,.07); --g-b4: rgba(237,28,36,.06); }
+/* teks di atas latar aksen */
+.btn.primary, .seg button[aria-pressed="true"], html.glass .themebtn button[aria-pressed="true"], html.glass .seg button[aria-pressed="true"],
+html.glass .tabs button[aria-selected="true"], .av, .vtabs button[aria-selected="true"], .btn-p, html.glass .btn.btn-p, .btn.btn-p,
+.tg-fil .chip.on, html.glass .tg-fil .chip.on, .at-cara-l b, .nb-isi button[aria-selected="true"],
+.rgk-tile:hover::after, .card.click:hover::after, .ke-rinci:hover, tr.klik:hover td:last-child::after, .gx-klik:hover .gx-hv::after,
+.rk-row:hover::after, .ph-i:hover::after, .ph-i:hover em, .ph-i:focus-visible em, .sg-q li.klik:hover .kq-go { color: var(--on-accent) !important; }
+/* panah pilihan tahun/bulan ikut biru */
+.sel { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2300aeef' stroke-width='1.8'/%3E%3C/svg%3E"); }
+/* garis aksen merek di bawah kepala halaman: biru – kuning – merah seperti logo */
+.top { position: sticky; }
+.top::after { content: ""; position: absolute; left: 24px; right: 24px; bottom: 0; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--pln-biru) 0 72%, var(--pln-kuning) 72% 90%, var(--pln-merah) 90% 100%); opacity: .9; pointer-events: none; }
+body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
+/* PDF: judul topik biru */
+#cetakWrap .cp-judul { background: #e2f3fb; color: #005d8f; }
+#cetakWrap .cp-judul span { background: #0077b6; }
+#cetakWrap, .cetak-mode #cetakWrap { --accent: #0077b6; --accent-soft: #e2f3fb; }
+@media print { :root:root, :root:root[data-theme] { --accent: #0077b6; --accent-soft: #e2f3fb; } .print-h { border-bottom-color: #0077b6; } }
