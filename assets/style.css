@@ -1828,3 +1828,15 @@ body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
 :root { --g-b2: rgba(236,120,170,.24); --g-b4: rgba(236,120,170,.16); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g-b2: rgba(226,138,166,.16); --g-b4: rgba(226,138,166,.10); } }
 :root[data-theme="dark"] { --g-b2: rgba(226,138,166,.16); --g-b4: rgba(226,138,166,.10); }
+
+/* v5.1 — Safari iPhone (iOS 26) mengisi area di bawah elemen melayang yang "dekat tepi bawah" dengan warna padat
+   (sumber garis bayangan & halaman yang terpotong). Bilah dinaikkan menjauhi tepi, dan hanya tombolnya yang
+   bisa disentuh, sehingga Safari tidak menganggapnya bilah yang menempel di tepi layar. */
+@media (max-width: 640px) {
+  .navbawah { bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+  .navbawah, body.nb-aktif .navbawah, .navbawah::before, .nb-isi { pointer-events: none !important; }
+  body.nb-aktif .nb-isi button, body.nb-aktif.nb-kcl .nb-kecil { pointer-events: auto !important; }
+  body.nb-kcl .nb-isi button, body:not(.nb-aktif) .nb-isi button { pointer-events: none !important; }
+  .navbawah::before { box-shadow: 0 6px 18px rgba(0,0,0,.22); }
+  body:has(.navbawah) .sheet { padding-bottom: 96px; }
+}
