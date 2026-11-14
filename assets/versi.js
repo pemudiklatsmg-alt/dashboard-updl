@@ -1,10 +1,9 @@
 /* Nomor versi website & catatan rilis.
    Aturan: X.Y — X naik bila tampilan/cara pakai berubah besar, Y naik setiap pemasangan berikutnya.
-   Tambah entri baru PALING ATAS di RILIS setiap kali memasang perubahan. */
+   Tambah entri baru PALING ATAS di RILIS hanya untuk fitur/perubahan tampilan. Perbaikan bug tidak menaikkan versi. */
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
-    { v: '5.1', t: '14 Nov 2026', b: [], l: [], p: ['Safari iPhone: bilah tab bawah dinaikkan sedikit agar Safari tidak menutup bagian bawah halaman dengan warna padat'] },
     { v: '5.0', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
       l: ['Pink kini khusus untuk lingkaran panah pembuka rincian', 'Di HP, keterangan grafik memakai lebar penuh; tombol pilihan pindah ke baris sendiri'],
       p: ['Safari iPhone: tidak ada lagi garis bayangan di bawah bilah tab, dan halaman tampil sampai bawah di tema gelap'] },
