@@ -1068,9 +1068,9 @@ body.pres .cs-pres { display: grid; gap: 8px; }
 .panel h2.ber-ikon { display: flex; align-items: center; gap: 9px; }
 .rgk-tile .rgk-lbl { display: flex; align-items: center; gap: 8px; }
 .rgk-tile .ikb { width: 24px; height: 24px; padding: 4px; }
-.rgk-tile.good .ikb { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
-.rgk-tile.warn .ikb { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
-.rgk-tile.bad .ikb { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+html .rgk-tile.good .ikb.ikb { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+html .rgk-tile.warn .ikb.ikb { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+html .rgk-tile.bad .ikb.ikb { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
 .rgk-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; min-width: 0; }
 .spark { width: 46%; max-width: 140px; height: 32px; flex: none; overflow: visible; color: var(--bar); }
 .spark.good { color: var(--good); } .spark.warn { color: var(--warn); } .spark.bad { color: var(--bad); }
@@ -1839,4 +1839,52 @@ body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
   body.nb-kcl .nb-isi button, body:not(.nb-aktif) .nb-isi button { pointer-events: none !important; }
   .navbawah::before { box-shadow: 0 6px 18px rgba(0,0,0,.22); }
   body:has(.navbawah) .sheet { padding-bottom: 96px; }
+}
+
+/* ======================= Tampilan v6 (tenang & fokus) =======================
+   1) satu kartu fokus biru tua (Capaian Kinerja)  2) mode terang: latar polos, kartu putih solid, bayangan lembut
+   3) ikon kartu dalam kotak pastel sesuai status  4) huruf judul & angka Plus Jakarta Sans, label tanpa huruf kapital
+   5) jarak lebih lega  6) bilah bawah HP dengan ikon */
+:root { --f-display: "Plus Jakarta Sans", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --g-card: #ffffff; --g-bar: rgba(255,255,255,.86); --g-btn: #ffffff; --g-modal: #ffffff; --g-border: rgba(16,24,40,.06); --g-hi: transparent;
+  --g-shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 28px rgba(16,24,40,.06); --g-bg: #f2f5fa;
+  --g-b1: rgba(0,174,239,.07); --g-b2: rgba(236,120,170,.07); --g-b3: rgba(255,242,0,.05); --g-b4: transparent;
+  --r: 22px; --rk: 22px; }
+/* mode terang: kartu solid tanpa efek kaca */
+@media (prefers-color-scheme: light) { html.glass:not([data-theme="dark"]) :is(.card, .panel, .lbox, .rgk-ph, .rgk-tile, .sidenav) { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+html.glass[data-theme="light"] :is(.card, .panel, .lbox, .rgk-ph, .rgk-tile, .sidenav) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (prefers-color-scheme: light) { html.glass:not([data-theme="dark"]) .sheet { border-color: transparent; box-shadow: none; } }
+html.glass[data-theme="light"] .sheet { border-color: transparent; box-shadow: none; }
+
+/* 1) kartu fokus */
+html .rgk-hero.rgk-hero { --ink: #fff; --ink-2: rgba(255,255,255,.84); --ink-3: rgba(255,255,255,.64); --line: rgba(255,255,255,.16); --frame: rgba(255,255,255,.16);
+  --good: #7fe3ab; --warn: #ffd46b; --bad: #ff9c9c; --good-soft: rgba(127,227,171,.18); --warn-soft: rgba(255,212,107,.18); --bad-soft: rgba(255,156,156,.18);
+  color: #fff; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: radial-gradient(420px 260px at 88% 18%, rgba(255,242,0,.20), transparent 70%), radial-gradient(360px 260px at 8% 110%, rgba(236,120,170,.22), transparent 70%), linear-gradient(135deg, #0b2550 0%, #0a3d7a 55%, #0077b6 100%);
+  box-shadow: 0 18px 40px rgba(10,61,122,.28); }
+html .rgk-hero.rgk-hero .rgk-big { text-shadow: none; }
+html .rgk-hero.rgk-hero .pill { background: rgba(255,255,255,.14); color: #fff; }
+html .rgk-hero.rgk-hero .chart .b.dim, html .rgk-hero.rgk-hero .chart .b:not(.on) { opacity: .75; }
+
+/* 3) ikon dalam kotak pastel + 4) label tanpa huruf kapital + 5) lega */
+.rgk-lbl { text-transform: none; letter-spacing: 0; font: 600 13px/1.3 var(--f-body); color: var(--ink-2); }
+.rgk-tile { padding: 18px 20px; gap: 8px; }
+.rgk-tile .rgk-lbl { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.rgk-tile .ikb, html.glass .rgk-tile .ikb { display: inline-grid !important; width: 40px; height: 40px; padding: 9px; border-radius: 13px; border: 0; box-shadow: none;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+html .rgk-tile.good .ikb.ikb { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); }
+html .rgk-tile.warn .ikb.ikb { background: color-mix(in srgb, var(--warn) 17%, transparent); color: var(--warn); }
+html .rgk-tile.bad .ikb.ikb { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+.rgk-tile b, .rgk-big, .panel h2, .card h3, .ttl { font-family: var(--f-display); letter-spacing: -.01em; }
+.rgk-tile b { font-weight: 800; }
+@media (max-width: 700px) { .rgk-tile { padding: 15px 15px; } .rgk-tile .rgk-lbl { font-size: 12.5px; gap: 10px; } .rgk-tile .ikb, html.glass .rgk-tile .ikb { width: 34px; height: 34px; padding: 7px; border-radius: 11px; } }
+
+/* 6) bilah bawah HP dengan ikon */
+@media (max-width: 640px) {
+  .navbawah { height: 64px; }
+  .nb-isi { gap: 2px; padding: 6px 8px; }
+  .nb-isi button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 7px 12px; min-width: 66px; font: 600 11px/1 var(--f-body); color: var(--ink-3); border-radius: 16px; }
+  .nb-isi button .nb-ik { width: 22px; height: 22px; display: grid; place-items: center; }
+  .nb-isi button .nb-ik svg { width: 20px; height: 20px; }
+  .nb-isi button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 14%, transparent) !important; color: var(--accent) !important; }
 }

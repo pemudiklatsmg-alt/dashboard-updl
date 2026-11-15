@@ -11,10 +11,16 @@
   var isi = nb.querySelector('.nb-isi'), kecil = nb.querySelector('.nb-kecil'), lbl = kecil.firstChild;
   function salin() {
     isi.innerHTML = asli.innerHTML; isi.querySelectorAll('[id]').forEach(function (x) { x.id = x.id + '_nb'; });
+    // ikon tiap tab diambil dari menu samping (ikon yang sama dengan tampilan desktop)
+    isi.querySelectorAll('[data-vt]').forEach(function (b) {
+      var src = document.querySelector('.sn-i[data-vt="' + b.getAttribute('data-vt') + '"] .ikb');
+      if (src && !b.querySelector('.nb-ik')) b.insertAdjacentHTML('afterbegin', '<span class="nb-ik" aria-hidden="true">' + src.innerHTML + '</span>');
+    });
     var a = asli.querySelector('[aria-selected="true"]'); lbl.textContent = a ? a.textContent : 'Bagian';
     nb.style.setProperty('--nb-kw', (lbl.offsetWidth + 34) + 'px');
   }
   salin();
+  var sn = document.getElementById('sidenav'); if (sn) new MutationObserver(salin).observe(sn, { childList: true });
   // ikuti perubahan tombol tab (pilihan aktif, tombol khusus Admin, badge)
   new MutationObserver(function () { salin(); tengah(false); })
     .observe(asli, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'aria-selected'] });
