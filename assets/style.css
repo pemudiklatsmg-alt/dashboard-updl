@@ -1888,3 +1888,18 @@ html .rgk-tile.bad .ikb.ikb { background: color-mix(in srgb, var(--bad) 14%, tra
   .nb-isi button .nb-ik svg { width: 20px; height: 20px; }
   .nb-isi button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 14%, transparent) !important; color: var(--accent) !important; }
 }
+
+/* Satu kartu sorotan per tab (biru tua, sama dengan kartu Capaian Kinerja di Ringkasan).
+   Kinerja: grafik capaian bulanan · Pembelajaran: kartu pertama (kelas) · Evaluasi: kepuasan peserta ·
+   SDM: IDP pegawai · Risiko: KRI. Hanya di tampilan per tab (bukan "Semua bagian"), satu per layar. */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel) {
+  --g-btn: rgba(255,255,255,.08); --g-modal: rgba(255,255,255,.08);
+  --ink: #fff; --ink-2: rgba(255,255,255,.84); --ink-3: rgba(255,255,255,.64); --line: rgba(255,255,255,.16); --frame: rgba(255,255,255,.16);
+  --sheet: rgba(255,255,255,.07); --sheet-2: rgba(255,255,255,.05); --bg: rgba(255,255,255,.06); --g-card: rgba(255,255,255,.07); --g-border: rgba(255,255,255,.14);
+  --good: #7fe3ab; --warn: #ffd46b; --bad: #ff9c9c; --good-soft: rgba(127,227,171,.18); --warn-soft: rgba(255,212,107,.18); --bad-soft: rgba(255,156,156,.18);
+  --accent: #7fd6fa; --accent-soft: rgba(127,214,250,.16);
+  color: #fff !important; border-color: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  background: radial-gradient(420px 260px at 88% 12%, rgba(255,242,0,.16), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.18), transparent 70%), linear-gradient(135deg, #0b2550 0%, #0a3d7a 55%, #0077b6 100%) !important;
+  box-shadow: 0 18px 40px rgba(10,61,122,.26) !important; }
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel)
+  :is(.mini-sum div, .tbl-wrap, .btn, .lbox, .chip, .seg, input, select) { background: rgba(255,255,255,.08) !important; color: #fff; border-color: rgba(255,255,255,.16) !important; }
