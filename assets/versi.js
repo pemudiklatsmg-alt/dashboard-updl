@@ -5,6 +5,8 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '6.0', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
+      l: ['Mode terang lebih bersih: latar polos, kartu putih solid, bayangan lembut', 'Ikon kartu dalam kotak warna pastel sesuai status; label tanpa huruf kapital', 'Huruf judul & angka Plus Jakarta Sans'], p: [] },
     { v: '5.0', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
       l: ['Pink kini khusus untuk lingkaran panah pembuka rincian', 'Pengaturan dipindah ke menu ☰ (Admin)', 'Di HP, keterangan grafik memakai lebar penuh; tombol pilihan pindah ke baris sendiri'],
       p: ['Safari iPhone: tidak ada lagi garis bayangan di bawah bilah tab, dan halaman tampil sampai bawah di tema gelap'] },
