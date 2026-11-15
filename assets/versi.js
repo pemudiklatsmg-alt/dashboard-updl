@@ -4,6 +4,7 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '5.1', t: '15 Nov 2026', b: [], l: ['Pengaturan dipindah ke menu ☰ (Admin), menu samping & bilah tab lebih ringkas'], p: [] },
     { v: '5.0', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
       l: ['Pink kini khusus untuk lingkaran panah pembuka rincian', 'Di HP, keterangan grafik memakai lebar penuh; tombol pilihan pindah ke baris sendiri'],
       p: ['Safari iPhone: tidak ada lagi garis bayangan di bawah bilah tab, dan halaman tampil sampai bawah di tema gelap'] },
