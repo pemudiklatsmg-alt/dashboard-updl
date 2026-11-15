@@ -1822,7 +1822,7 @@ body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
   .nb-isi, .nb-kecil { border-radius: 999px; overflow: hidden; }
   .nb-isi { overflow-x: auto; }
   /* kartu dengan tombol pilihan (Kelas/Peserta/Orang-hari dst.): keterangan memakai lebar penuh, tombol di baris sendiri */
-  .panel-h:has(.seg) > div:first-child { flex: 1 1 100%; }
+  .panel-h:has(.seg) > div:first-child:not(.seg) { flex: 1 1 100%; }
 }
 /* Nuansa feminin: semburat latar biru PLN berpadu pink lembut */
 :root { --g-b2: rgba(236,120,170,.24); --g-b4: rgba(236,120,170,.16); }
