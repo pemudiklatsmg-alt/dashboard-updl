@@ -2023,3 +2023,20 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 /* baris tabel yang disorot kursor di dalam kartu sorotan: latar terang transparan (bukan abu muda) agar teks putih tetap terbaca */
 body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel) {
   --idle-bg: rgba(255,255,255,.10); --hover: rgba(255,255,255,.10); }
+
+/* Kartu sorotan selalu tampil paling atas di tabnya (urutan halaman di "Semua bagian" tidak berubah) */
+body:not([data-vt="semua"]) .sheet > :not([data-bagian]) { order: -2; }          /* header, menu, peringatan, halaman khusus tetap di atas */
+body:not([data-vt="semua"]) .sheet > :is(#footNote, .credit) { order: 3; }         /* catatan kaki & kredit tetap di bawah */
+body:not([data-vt="semua"]) .sheet > [data-bagian] { order: 1; }
+body:not([data-vt="semua"]) .sheet > :is(#kpis, #gxEval, #kriPanel, [data-bagian="bulanan"], [data-bagian="pengembangan"]) { order: 0; }
+body[data-vt="risiko"] .sheet > #kriPanel { order: -1; }
+body[data-vt="evaluasi"] .sheet > #gxEval { order: -1; }
+body:not([data-vt="semua"]) #kpis > .card:nth-child(3) { order: -1; }
+
+/* HP: tetap sederhana — grafik mini 12 bulan hanya di layar lebar */
+@media (max-width: 700px) {
+  .m12 { display: none; }
+  .kepm { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .kepm-r { grid-template-columns: 112px repeat(12, 26px) 30px; }
+  .kepm-n { position: sticky; left: 0; z-index: 1; background: var(--g-card, var(--sheet)); }
+}
