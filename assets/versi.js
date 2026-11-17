@@ -2,7 +2,7 @@
    Aturan: X.Y — X naik hanya bila tampilan/cara pakai berubah total (2.0 = tampilan baru 13 Nov 2026),
    Y naik untuk fitur baru atau perubahan tampilan yang cukup besar.
    Tambah entri baru PALING ATAS di RILIS hanya untuk fitur baru atau perubahan tampilan yang besar.
-   Perbaikan bug & penyesuaian kecil tidak menaikkan versi (boleh ditambahkan ke catatan versi terakhir). */
+   Perbaikan fitur yang sudah ada    Perbaikan bug & penyesuaian kecil tidak menaikkan versi (boleh ditambahkan ke catatan versi terakhir). */ perbaikan bug TIDAK menaikkan versi (boleh ditambahkan ke catatan versi terakhir). */
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
@@ -50,7 +50,7 @@
           kat.map(function (k) { return '<div class="rl-k"><span>' + k[1] + '</span><ul>' + r[k[0]].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>'; }).join('') + '</section>';
       }).join('') + '</div>' +
       (baru ? '<div class="ig-aksi"><button type="button" class="btn" data-rilis>Lihat semua catatan rilis</button><button type="button" class="btn primary" data-close>Mengerti</button></div>' :
-        '<p class="note">Penomoran X.Y — X naik bila tampilan berubah total, Y naik untuk fitur baru. Perbaikan kecil tidak menaikkan versi.</p>'), 'rilis');
+        '<p class="note">Penomoran X.Y — X naik bila tampilan berubah total, Y naik untuk fitur baru. Perbaikan fitur &amp; bug tidak menaikkan versi.</p>'), 'rilis');
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-rilis]'); if (!b) return;
