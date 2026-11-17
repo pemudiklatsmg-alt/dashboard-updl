@@ -1853,8 +1853,9 @@ body.top-nempel .top::after { left: 22px; right: 22px; bottom: 0; }
 /* mode terang: kartu solid tanpa efek kaca */
 @media (prefers-color-scheme: light) { html.glass:not([data-theme="dark"]) :is(.card, .panel, .lbox, .rgk-ph, .rgk-tile, .sidenav) { -webkit-backdrop-filter: none; backdrop-filter: none; } }
 html.glass[data-theme="light"] :is(.card, .panel, .lbox, .rgk-ph, .rgk-tile, .sidenav) { -webkit-backdrop-filter: none; backdrop-filter: none; }
-@media (prefers-color-scheme: light) { html.glass:not([data-theme="dark"]) .sheet { border-color: transparent; box-shadow: none; } }
-html.glass[data-theme="light"] .sheet { border-color: transparent; box-shadow: none; }
+/* bingkai luar halaman tetap tampil di mode terang (sama seperti mode gelap) */
+@media (prefers-color-scheme: light) { html.glass:not([data-theme="dark"]) .sheet { border-color: rgba(16,24,40,.10); box-shadow: 0 1px 2px rgba(16,24,40,.03); } }
+html.glass[data-theme="light"] .sheet { border-color: rgba(16,24,40,.10); box-shadow: 0 1px 2px rgba(16,24,40,.03); }
 
 /* 1) kartu fokus */
 html .rgk-hero.rgk-hero { --ink: #fff; --ink-2: rgba(255,255,255,.84); --ink-3: rgba(255,255,255,.64); --line: rgba(255,255,255,.16); --frame: rgba(255,255,255,.16);
