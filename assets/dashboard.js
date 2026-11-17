@@ -368,7 +368,15 @@
       return '<li data-st="' + q.c + '"' + (q.rows.length ? ' class="klik" tabindex="0" role="button" data-kq="' + i + '"' : '') + '><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + (q.pic.length ? ' · PIC ' + esc(q.pic.join(', ')) : '') + '</small></div>' + (q.rows.length ? '<em class="kq-go" aria-hidden="true">→</em>' : '') + '</li>';
     }).join('') + '</ul>';
   }
+  /* akun Lihat: cukup kapan data diperbarui & periode tiap sumber; tanpa status kosong/temuan isian (urusan internal Admin) */
+  function openSegarLihat() {
+    var L = kesegaran().filter(function (x) { return x.c === 'good' || x.c === 'warn'; }), m = S.data.meta || {}, pt = perubahanTerakhir(), t = m.generatedAt ? new Date(m.generatedAt) : null;
+    openModal('<div class="modal-h"><div><h3>Pembaruan Data</h3><div class="desc">Data ditampilkan untuk ' + namaBulan(S.bulan) + ' ' + S.tahun + ' · diperbarui ' + esc(jamTgl(pt ? pt.d : t || new Date())) + '</div></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Data</th><th>Periode terakhir</th></tr></thead><tbody>' +
+      L.map(function (x) { return '<tr><td><b>' + esc(x.nama) + '</b></td><td class="num">' + esc(x.label) + '</td></tr>'; }).join('') + '</tbody></table></div>');
+  }
   function openSegar() {
+    if (!admin()) return openSegarLihat();
     var L = kesegaran(), m = S.data.meta || {}, t = m.generatedAt ? new Date(m.generatedAt) : null, Q = cekKualitas();
     var grup = [['Kosong / belum ada data', function (x) { return x.c === 'idle' || x.c === 'bad'; }, 'bad'], ['Belum lengkap / perlu diperbarui', function (x) { return x.c === 'warn'; }, 'warn'], ['Lengkap & terbaru', function (x) { return x.c === 'good'; }, 'good']];
     var n = function (f) { return L.filter(f).length; };

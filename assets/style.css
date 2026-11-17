@@ -2263,3 +2263,11 @@ body:not(.peran-admin) .modal-c.guide :is(#g1,#g2,#g3,#g4,#g5,#g6), body:not(.pe
 .panel > .tl-body { flex: 1 1 auto; justify-content: space-between; }
 .card .cv { min-width: 0; } .card .cv .val { min-width: 0; font-size: clamp(22px, 2.1vw, 28px); white-space: nowrap; }
 .kpis .card .cv .val { font-size: clamp(20px, 1.85vw, 28px) !important; letter-spacing: -.02em; } .kpis .card .cv .ring { flex: none; }
+
+/* Panduan bagian "Memakai dashboard": kartu-kartu rapi (bukan garis waktu yang bertumpuk saat lebih dari 4 butir) */
+#g7 .time { border-top: 0; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--phi-2, 13px); margin-top: var(--phi-2, 13px); }
+#g7 .time div { border: 1px solid var(--line); border-radius: 13px; padding: var(--phi-2, 13px); }
+#g7 .time div::before { display: none; }
+.g-lihat { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; max-width: 70ch; }
+body.peran-admin .g-lihat { display: none; }
+body:not(.peran-admin) .modal-c.guide .modal-h .desc, body:not(.peran-admin) #g7 .no { display: none !important; }
