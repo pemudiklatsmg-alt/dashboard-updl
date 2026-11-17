@@ -2312,3 +2312,10 @@ body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: spa
 #capSide.click::after { content: ""; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23848ca3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 14px; }
 .ke-rinci { display: grid !important; place-items: center; }
 .m-back span { font-size: 0 !important; width: 16px; height: 16px; display: inline-block; background: currentColor; -webkit-mask: var(--ik-kiri) center / contain no-repeat; mask: var(--ik-kiri) center / contain no-repeat; }
+/* "Lihat" di daftar kualitas data: pil kontras seperti tombol Buka */
+.sg-q .kq-go { width: auto; height: auto; border: 0; font: 600 13px/1 var(--f-body); color: var(--accent); background: var(--accent-soft); padding: 7px 12px; border-radius: 999px; align-self: center; }
+.sg-q li.klik:hover .kq-go { background: var(--accent); color: var(--on-accent, #fff); }
+/* Maturity: pilihan Verifikasi/Self Assessment rata kiri dengan keterangannya */
+.panel-h:has(> #mlInfo) { display: flex !important; flex-direction: row !important; justify-content: flex-start !important; align-items: center; gap: 12px; flex-wrap: wrap; }
+.panel-h:has(> #mlInfo) > * { grid-column: auto !important; grid-row: auto !important; order: 0 !important; justify-self: auto !important; margin: 0 !important; }
+.card h3 .info-i { margin-left: 6px; }

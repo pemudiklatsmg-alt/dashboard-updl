@@ -365,7 +365,7 @@
   }
   function daftarKualitasHtml(Q) {
     return '<ul class="sg-q">' + Q.map(function (q, i) {
-      return '<li data-st="' + q.c + '"' + (q.rows.length ? ' class="klik" tabindex="0" role="button" data-kq="' + i + '"' : '') + '><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + (q.pic.length ? ' · PIC ' + esc(q.pic.join(', ')) : '') + '</small></div>' + (q.rows.length ? '<em class="kq-go" aria-hidden="true">→</em>' : '') + '</li>';
+      return '<li data-st="' + q.c + '"' + (q.rows.length ? ' class="klik" tabindex="0" role="button" data-kq="' + i + '"' : '') + '><i></i><div><b>' + esc(q.judul) + ' <span class="num">(' + D.fmt(q.n, 0) + ')</span></b><small>' + esc(q.ket) + ' · ' + esc(q.tab) + (q.pic.length ? ' · PIC ' + esc(q.pic.join(', ')) : '') + '</small></div>' + (q.rows.length ? '<em class="kq-go" aria-hidden="true">Lihat</em>' : '') + '</li>';
     }).join('') + '</ul>';
   }
   /* akun Lihat: cukup kapan data diperbarui & periode tiap sumber; tanpa status kosong/temuan isian (urusan internal Admin) */
@@ -479,7 +479,7 @@
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent ? Math.max(230, Math.min(420, tinggiChartPres(lebar))) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent ? (function () { var cs = $('capSide'); cs.style.alignSelf = 'start'; var h = Math.max(180, Math.min(380, tinggiChartPres(lebar) - 16)); cs.style.alignSelf = ''; return h; })() : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -1501,6 +1501,15 @@
   var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'],
     [/^Pengembangan Pegawai/, 'orang'], [/^Pengembangan Inovasi/, 'lampu'], [/^Isu/, 'bumi'], [/^Pihak/, 'grup'], [/^Peta Risiko/, 'peta'], [/^Key Risk/, 'meter'], [/^Risiko Fraud/, 'waspada']];
   function lipatKet() {
+    Array.prototype.forEach.call(document.querySelectorAll('main .card .hint'), function (hn) {
+      if (hn.dataset.lipat) return; var h = hn.parentElement.querySelector('h3'); if (!h) return;
+      var teks = Array.prototype.filter.call(hn.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+      if (!teks.length) return; hn.dataset.lipat = 1;
+      var t = teks.map(function (n) { return n.textContent.trim(); }).join(' ').replace(/[·\s]+$/, '');
+      teks.forEach(function (n) { n.remove(); });
+      Array.prototype.forEach.call(hn.querySelectorAll('br'), function (x) { x.remove(); });
+      if (!h.querySelector('.info-i')) h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(t) + '"></button>');
+    });
     // keterangan di bawah judul dipindah ke tombol ⓘ (tampil saat diketuk/disorot), ala apple.com
     Array.prototype.forEach.call(document.querySelectorAll('main .panel-h .desc, main .gx-p .panel-h .desc'), function (d) {
       var h = d.parentElement && d.parentElement.querySelector('h2, h3'); if (!h || h.querySelector('.info-i')) return;
