@@ -1889,6 +1889,11 @@
     $('loginErr').hidden = !pesan; $('loginErr').textContent = pesan || '';
     $('uPass').value = ''; setTimeout(function () { ($('uName').value ? $('uPass') : $('uName')).focus(); }, 30);
   }
+  document.addEventListener('click', function (e) {
+    var m = e.target.closest && e.target.closest('#lgMata'); if (!m) return;
+    var i = $('uPass'), lihat = i.type === 'password'; i.type = lihat ? 'text' : 'password';
+    m.classList.toggle('on', lihat); m.setAttribute('aria-label', lihat ? 'Sembunyikan password' : 'Tampilkan password'); i.focus();
+  });
   function tampilApp() { $('loginGate').hidden = true; $('app').hidden = false; window.scrollTo(0, 0); }
   /* label perangkat untuk tab Log Login (tanpa data pribadi): jenis perangkat + browser */
   function perangkat() {
@@ -1916,8 +1921,23 @@
   $('logoutBtn').addEventListener('click', function () { keluar(); });
 
   /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
+  /* layar memuat: sapaan + langkah proses */
+  var SAPA_PANGGIL = { admin: '', lihat: '' };
+  function sapaan() {
+    var j = new Date().getHours(), w = j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
+    var se = D.sesi(), p = se && se.peran === 'admin' ? SAPA_PANGGIL.admin : SAPA_PANGGIL.lihat;
+    return w + (p ? ', ' + p : '') + '! 👋';
+  }
+  var langkahT = null;
+  function mulaiLangkah() {
+    var el = $('skLangkah'), pr = $('skProg'), sp = $('skSapa'); if (!el) return;
+    if (sp) sp.textContent = sapaan();
+    el.textContent = 'Admin sedang menyusun data & grafik untukmu…';
+    clearInterval(langkahT); var n = 12; if (pr) pr.style.width = n + '%';
+    langkahT = setInterval(function () { n = Math.min(n + (92 - n) * 0.25, 92); if (pr) pr.style.width = n + '%'; if (n > 91) clearInterval(langkahT); }, 700);
+  }
   function tampilMemuat() {
-    document.body.classList.add('memuat');
+    document.body.classList.add('memuat'); mulaiLangkah();
     if (!S.vt) { S.vt = 'ringkasan'; document.body.setAttribute('data-vt', S.vt); }
     try { renderSidenav(); } catch (e) { /* abaikan */ }
   }
