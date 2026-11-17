@@ -130,7 +130,16 @@
     var body = o.html || (o.ring ? '<div class="cv"><div class="val num">' + o.val + '</div>' + o.ring + '</div>' : '<div class="val num">' + o.val + '</div>');
     return '<div class="card' + (o.click ? ' click' : '') + '"' + (o.click ? ' tabindex="0" role="button" data-act="' + o.click + '"' : '') + '>' +
       '<h3>' + o.title + (o.tag || '') + '</h3>' + (o.hint || o.delta ? '<div class="hint">' + (o.hint || '') + (o.delta || '') + '</div>' : '') +
-      body + '<div class="foot ' + (o.cls || 'idle') + '">' + (o.foot || '') + '</div></div>';
+      body + (o.m12 || '') + '<div class="foot ' + (o.cls || 'idle') + '">' + (o.foot || '') + '</div></div>';
+  }
+  /* grafik batang mini 12 bulan untuk kartu angka: v = [12 nilai | null], fmt = fungsi label, c = fungsi kelas warna per nilai */
+  function mini12(v, fmt, c, judul) {
+    var mx = Math.max.apply(null, v.filter(function (x) { return x !== null && isFinite(x); }).concat([0])) || 1;
+    return '<div class="m12" role="img" aria-label="' + esc(judul) + '">' + v.map(function (x, i) {
+      var h = x === null ? 0 : Math.max(4, Math.round(x / mx * 100)), on = i + 1 === S.bulan;
+      return '<span class="' + (on ? 'on ' : '') + (x === null ? 'nil' : (c ? c(x) : '')) + '" title="' + D.cap(D.BULAN[i]) + ': ' + (x === null ? 'belum ada' : fmt(x)) + '">' +
+        '<i style="height:' + h + '%"></i><em>' + D.BLN3[i].charAt(0) + '</em></span>';
+    }).join('') + '</div>';
   }
   /* ▲▼ dibanding bulan sebelumnya. arah: 1 = naik itu baik, 0 = netral (angka kumulatif) */
   function delta(cur, prev, des, sat, arah) {
@@ -146,7 +155,11 @@
     var bl = namaBulan(S.bulan), Bn = B(), h = '';
     var tot = konmanAda(Bn) ? totalSkor(Bn) : null, tv = tot === null ? null : tot / 100, st = status(tv);
     var Bp = S.bulan > 1 ? D.BULAN[S.bulan - 2] : null, totP = Bp && konmanAda(Bp) ? totalSkor(Bp) : null;
-    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 1, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c });
+    var bulan12 = function (f) { return D.BULAN.map(function (Bx, i) { return i + 1 > S.bulan ? null : f(Bx, i + 1); }); };
+    var cap12 = bulan12(function (Bx) { return konmanAda(Bx) ? totalSkor(Bx) : null; });
+    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 1, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c,
+      m12: mini12(cap12, function (x) { return D.fmt(x, 1) + '%'; }, function (x) { return status(x / 100).c; }, 'Capaian kinerja per bulan') });
+    var rk12 = bulan12(function (Bx, m) { return D.hitungRendiklat(kelas(), S.tahun, m, set()); });
 
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set());
     var pctP = r.rencanaPeserta ? r.peserta / r.rencanaPeserta : null;
@@ -155,12 +168,14 @@
       ring: ring(pctP, r.pakaiRencana || r.tanpaPeserta ? 'warn' : status(pctP).c, pctTxt(pctP), 'Peserta ' + pctTxt(pctP) + ' dari rencana peserta'),
       tag: r.pakaiRencana ? tag('perkiraan', 'warn') : (r.dikoreksi ? tag('dikoreksi') : ''),
       foot: !r.kelas ? 'Belum ada kelas selesai' : (r.pakaiRencana ? r.pakaiRencana + ' kelas memakai rencana peserta' : (r.tanpaPeserta ? r.tanpaPeserta + ' kelas tanpa realisasi' : D.pct(pctP) + ' dari rencana peserta')),
-      cls: r.pakaiRencana || r.tanpaPeserta ? 'warn' : status(pctP).c, click: 'kelas' });
+      cls: r.pakaiRencana || r.tanpaPeserta ? 'warn' : status(pctP).c, click: 'kelas',
+      m12: mini12(rk12.map(function (x, i) { return x ? x.peserta - (i && rk12[i - 1] ? rk12[i - 1].peserta : 0) : null; }), function (x) { return D.fmt(x, 0) + ' peserta'; }, null, 'Peserta per bulan') });
 
     var pctK = r.terjadwal ? r.kelas / r.terjadwal : null;
     h += card({ title: 'Total Kelas', hint: 'Rendiklat, status Selesai s.d. ' + bl, delta: rP && r.kelas ? delta(r.kelas, rP.kelas, 0, '', 0) : '', val: r.kelas ? D.fmt(r.kelas, 0) : '–',
       ring: ring(pctK, status(pctK).c, pctTxt(pctK), 'Kelas selesai ' + pctTxt(pctK) + ' dari terjadwal'),
-      foot: r.terjadwal ? D.pct(pctK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' kelas terjadwal · +' + r.kelasBulan + ' di ' + bl : 'Belum ada data Rendiklat', cls: status(pctK).c, click: 'kelas' });
+      foot: r.terjadwal ? D.pct(pctK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' kelas terjadwal · +' + r.kelasBulan + ' di ' + bl : 'Belum ada data Rendiklat', cls: status(pctK).c, click: 'kelas',
+      m12: mini12(rk12.map(function (x) { return x ? x.kelasBulan : null; }), function (x) { return D.fmt(x, 0) + ' kelas selesai'; }, null, 'Kelas selesai per bulan') });
 
     var H = hop(S.tahun, S.bulan), itH = find(/Tingkat Pelaksanaan Pembelajaran/i), tgt = itH && konmanAda(Bn) ? D.num(itH.target[Bn].v) : null;
     var hc = H.nilai !== null && tgt ? H.nilai / tgt : null, HP = S.bulan > 1 ? hop(S.tahun, S.bulan - 1) : null;
@@ -169,7 +184,8 @@
       val: H.nilai !== null ? D.fmt(H.nilai, 3) : '–',
       ring: ring(hc, status(hc).c, pctTxt(hc), 'HOP ' + pctTxt(hc) + ' dari target'),
       foot: H.pegawai === null && H.adj.timpa === null ? 'Jumlah pegawai ' + bl + ' belum diisi' : (tgt ? D.pct(hc) + ' dari target ' + D.fmt(tgt, 3) : 'Target Konman belum ada'),
-      cls: H.pegawai === null && H.adj.timpa === null ? 'warn' : status(hc).c, click: 'hop' });
+      cls: H.pegawai === null && H.adj.timpa === null ? 'warn' : status(hc).c, click: 'hop',
+      m12: mini12(bulan12(function (Bx, m) { var x = hop(S.tahun, m).nilai; return x === null ? null : x; }), function (x) { return 'HOP ' + D.fmt(x, 3); }, null, 'HOP kumulatif per bulan') });
 
     var Kp = ev('kepuasan'), In = ev('instruktur'), p = set();
     var KpP = S.bulan > 1 ? ev('kepuasan', S.tahun, S.bulan - 1) : null, InP = S.bulan > 1 ? ev('instruktur', S.tahun, S.bulan - 1) : null;
@@ -511,19 +527,19 @@
   function renderKep() {
     var Bn = B(), aspek = kepRows().map(function (x) { return { nama: String(x['Aspek Kepatuhan']).trim(), maks: D.num(x['Maks Pengurang']), row: x }; });
     var tot = 0, isi = 0;
-    var h = aspek.map(function (a) {
-      var n = kepVal(a.row, Bn), st = n === null ? { c: 'idle', t: 'Belum diisi' } : n === 0 ? { c: 'good', t: 'Patuh' } : { c: 'bad', t: 'Ada pengurang' };
-      if (n !== null) { tot += Math.abs(n); isi++; }
-      var fr = n === null ? null : a.maks ? Math.max(0, (a.maks - Math.abs(n)) / a.maks) : (n === 0 ? 1 : 0);
-      return '<div class="kep-box" title="' + esc(a.row['Keterangan'] || '') + '"><h4>' + esc(a.nama) + '</h4>' +
-        '<div class="kep-b">' + ring(fr, st.c, n === null ? '–' : (n === 0 ? '0' : '−' + D.fmt(Math.abs(n), 2)), a.nama + ': ' + st.t) +
-        '<div><span class="pill ' + st.c + '">' + st.t + '</span><div class="mx-l">maks ' + (a.maks || '–') + '</div></div></div>' +
-        // riwayat 12 bulan: hijau = patuh, merah = ada pengurang, abu = belum diisi
-        '<div class="kep-12" aria-label="Riwayat ' + esc(a.nama) + ' tahun ' + S.tahun + '">' + D.BULAN.map(function (Bx, i) {
-          var v = kepVal(a.row, Bx), c = v === null ? (i + 1 > S.bulan ? 'fut' : 'idle') : v === 0 ? 'good' : 'bad';
-          return '<i class="' + c + (i + 1 === S.bulan ? ' on' : '') + '" title="' + D.cap(Bx) + ': ' + (v === null ? 'belum diisi' : v === 0 ? 'patuh' : 'pengurang −' + D.fmt(Math.abs(v), 2)) + '"></i>';
-        }).join('') + '</div><div class="kep-12l"><span>Jan</span><span>Des</span></div></div>';
-    }).join('');
+    // matriks kepatuhan: baris = aspek, kolom = Jan–Des; sel hijau = patuh, merah = ada pengurang (nilainya tertulis), abu = belum diisi
+    aspek.forEach(function (a) { var n = kepVal(a.row, Bn); if (n !== null) { tot += Math.abs(n); isi++; } });
+    var h = !aspek.length ? '' : '<div class="kepm" role="table" aria-label="Kepatuhan per aspek per bulan ' + S.tahun + '">' +
+      '<div class="kepm-r kepm-h" role="row"><span role="columnheader">Aspek</span>' + D.BLN3.map(function (x, i) { return '<b role="columnheader"' + (i + 1 === S.bulan ? ' class="on"' : '') + '>' + x.charAt(0) + '</b>'; }).join('') + '<span role="columnheader" class="mx">Maks</span></div>' +
+      aspek.map(function (a) {
+        var n = kepVal(a.row, Bn), stA = n === null ? 'idle' : n === 0 ? 'good' : 'bad';
+        return '<div class="kepm-r" role="row" title="' + esc(a.row['Keterangan'] || '') + '"><span role="rowheader" class="kepm-n"><i class="' + stA + '"></i>' + esc(a.nama) + '</span>' +
+          D.BULAN.map(function (Bx, i) {
+            var v = kepVal(a.row, Bx), c = v === null ? (i + 1 > S.bulan ? 'fut' : 'idle') : v === 0 ? 'good' : 'bad';
+            return '<b role="cell" class="' + c + (i + 1 === S.bulan ? ' on' : '') + '" title="' + D.cap(Bx) + ': ' + (v === null ? 'belum diisi' : v === 0 ? 'patuh' : 'pengurang −' + D.fmt(Math.abs(v), 2)) + '">' + (v ? '−' + String(+Math.abs(v).toFixed(2)).replace('.', ',') : (v === 0 ? '✓' : '')) + '</b>';
+          }).join('') + '<span role="cell" class="mx">' + (a.maks || '–') + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="kepm-leg"><span><i class="good"></i>Patuh</span><span><i class="bad"></i>Ada pengurang (nilai)</span><span><i class="idle"></i>Belum diisi</span></div>';
     $('kepList').innerHTML = h || '<div class="empty">Belum ada aspek kepatuhan untuk tahun ' + S.tahun + '.</div>';
     $('kepNote').innerHTML = isi ? 'Total pengurang ' + namaBulan(S.bulan) + ': <b>' + D.fmt(tot, 2) + '</b> (sudah dikurangkan dari Capaian Kinerja).' : 'Nilai kepatuhan ' + namaBulan(S.bulan) + ' belum diisi. Isi di ' + sheetLink('Google Sheets', 'Kepatuhan') + ' (0 = patuh).';
   }
