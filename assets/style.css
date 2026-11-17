@@ -2020,3 +2020,6 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .kepm-leg { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 13px; color: var(--ink-2); }
 .kepm-leg span { display: inline-flex; gap: 6px; align-items: center; } .kepm-leg i { width: 12px; height: 12px; border-radius: 4px; background: var(--idle); opacity: .5; }
 .kepm-leg i.good { background: var(--good); opacity: .5; } .kepm-leg i.bad { background: var(--bad); opacity: 1; }
+/* baris tabel yang disorot kursor di dalam kartu sorotan: latar terang transparan (bukan abu muda) agar teks putih tetap terbaca */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel) {
+  --idle-bg: rgba(255,255,255,.10); --hover: rgba(255,255,255,.10); }
