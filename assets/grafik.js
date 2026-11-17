@@ -2,6 +2,7 @@
    Semua dihitung di browser dari data yang sudah dimuat (Rendiklat & data evaluasi mentah). */
 (function () {
   var A = window.DashApp, D = window.Dash; if (!A || !D) return;
+  setTimeout(function () { window.DashGrafik = { batang: batang, garis: garis }; }, 0);
   var $ = function (id) { return document.getElementById(id); }, esc = D.esc;
   var BL = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
   var BLN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -69,6 +70,7 @@
         '<b class="gx-hv">' + esc(o.fmt ? o.fmt(x.v) : D.fmt(x.v, 0)) + '</b></div>';
     }).join('') + '</div>';
   }
+  function keRinci(act, label) { return '<button type="button" class="ke-rinci" data-act="' + act + '" aria-label="' + label + '" title="' + label + '">→</button>'; }
   function panel(judul, desc, isi, ekstra, cls) {
     return '<div class="panel gx-p' + (cls ? ' ' + cls : '') + '"><div class="panel-h"><div><h2>' + esc(judul) + '</h2>' + (desc ? '<div class="desc">' + desc + '</div>' : '') + '</div>' + (ekstra || '') + '</div>' + isi + '</div>';
   }
@@ -127,15 +129,15 @@
     var S = A.S, m = S.bulan, E = S.data.eval || {}, set = A.set();
     var kep = perBulanNilai(E.kepuasan, 0, 3, 4), ins = perBulanNilai(E.instruktur, 1, 5, 6);
     var g1 = panel('Tren Nilai Evaluasi Level 1', 'Rata-rata per bulan (bukan kumulatif), skala 1–5. Arahkan kursor ke titik untuk melihat nilainya.',
-      garis([{ n: 'Kepuasan peserta', v: potong(kep, m), c: 'a' }, { n: 'Penilaian instruktur', v: potong(ins, m), c: 'b' }], { sel: m, target: set.targetL1 || null, label: 'Tren kepuasan dan instruktur' }), '', 'gx-lebar');
+      garis([{ n: 'Kepuasan peserta', v: potong(kep, m), c: 'a' }, { n: 'Penilaian instruktur', v: potong(ins, m), c: 'b' }], { sel: m, target: set.targetL1 || null, label: 'Tren kepuasan dan instruktur' }), keRinci('kepuasan', 'Rincian kepuasan peserta'), 'gx-lebar');
     var k = A.ev('kepuasan', S.tahun, m);
-    var g2 = panel('Kepuasan per Aspek', 'Rata-rata s.d. ' + A.namaBulan(m) + ', skala 1–5.', mendatar(k ? k.aspek.filter(function (a) { return a.nilai !== null; }).map(function (a) { return { l: a.nama, v: a.nilai, st: a.nilai >= 4.2 ? 'good' : a.nilai >= 3.8 ? 'warn' : 'bad' }; }) : [], { max: 5, target: set.targetL1 || null, fmt: function (v) { return D.fmt(v, 2); }, kosong: 'Belum ada data kepuasan.' }));
+    var g2 = panel('Kepuasan per Aspek', 'Rata-rata s.d. ' + A.namaBulan(m) + ', skala 1–5.', mendatar(k ? k.aspek.filter(function (a) { return a.nilai !== null; }).map(function (a) { return { l: a.nama, v: a.nilai, st: a.nilai >= 4.2 ? 'good' : a.nilai >= 3.8 ? 'warn' : 'bad' }; }) : [], { max: 5, target: set.targetL1 || null, fmt: function (v) { return D.fmt(v, 2); }, kosong: 'Belum ada data kepuasan.' }), keRinci('kepuasan', 'Rincian kepuasan peserta'));
     var low = k ? k.butir.filter(function (b) { return b.nilai !== null && b.n >= 5; }).sort(function (a, b) { return a.nilai - b.nilai; }).slice(0, 6) : [];
-    var g3 = panel('Butir Kepuasan Terendah', 'Enam pertanyaan dengan nilai terendah s.d. ' + A.namaBulan(m) + '. Bahan prioritas perbaikan.', mendatar(low.map(function (b) { return { l: b.label, sub: b.aspek, v: b.nilai, st: b.nilai >= 4.2 ? 'good' : b.nilai >= 3.8 ? 'warn' : 'bad' }; }), { max: 5, fmt: function (v) { return D.fmt(v, 2); }, kosong: 'Belum ada data kepuasan.' }));
+    var g3 = panel('Butir Kepuasan Terendah', 'Enam pertanyaan dengan nilai terendah s.d. ' + A.namaBulan(m) + '. Bahan prioritas perbaikan.', mendatar(low.map(function (b) { return { l: b.label, sub: b.aspek, v: b.nilai, st: b.nilai >= 4.2 ? 'good' : b.nilai >= 3.8 ? 'warn' : 'bad' }; }), { max: 5, fmt: function (v) { return D.fmt(v, 2); }, kosong: 'Belum ada data kepuasan.' }), keRinci('kepuasan', 'Rincian kepuasan peserta'));
     var se = A.ev('sertifikat', S.tahun, m), stN = (E.sertifikat && E.sertifikat.status) || [];
     var wst = ['good', 'info', 'good', 'info', 'idle', 'bad', 'warn'];
     var g4 = panel('Status Sertifikat', 'Sertifikat pelatihan s.d. ' + A.namaBulan(m) + (se && se.total ? ': <b>' + D.fmt(se.terbit, 0) + '</b> dari ' + D.fmt(se.total, 0) + ' sudah terbit (Finish TTE GM).' : '.'),
-      mendatar(se ? stN.map(function (n, i) { return { l: n, v: se.cnt[i], st: wst[i] }; }).filter(function (x) { return x.v; }) : [], { fmt: function (v) { return D.fmt(v, 0); }, kosong: 'Belum ada data sertifikat.' }));
+      mendatar(se ? stN.map(function (n, i) { return { l: n, v: se.cnt[i], st: wst[i] }; }).filter(function (x) { return x.v; }) : [], { fmt: function (v) { return D.fmt(v, 0); }, kosong: 'Belum ada data sertifikat.' }), keRinci('sert', 'Rincian sertifikat'));
     el.innerHTML = '<div class="gx-row">' + g1 + g2 + '</div><div class="gx-row gx-sama">' + g3 + g4 + '</div>';
   }
 

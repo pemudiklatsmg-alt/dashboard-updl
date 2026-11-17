@@ -157,7 +157,7 @@
     var Bp = S.bulan > 1 ? D.BULAN[S.bulan - 2] : null, totP = Bp && konmanAda(Bp) ? totalSkor(Bp) : null;
     var bulan12 = function (f) { return D.BULAN.map(function (Bx, i) { return i + 1 > S.bulan ? null : f(Bx, i + 1); }); };
     var cap12 = bulan12(function (Bx) { return konmanAda(Bx) ? totalSkor(Bx) : null; });
-    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 1, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c,
+    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 1, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c, click: konmanAda(Bn) ? 'capaian' : null,
       m12: mini12(cap12, function (x) { return D.fmt(x, 1) + '%'; }, function (x) { return status(x / 100).c; }, 'Capaian kinerja per bulan') });
     var rk12 = bulan12(function (Bx, m) { return D.hitungRendiklat(kelas(), S.tahun, m, set()); });
 
@@ -495,6 +495,36 @@
   function labelNo(it) {
     if (it.level === 0) return String(it.no || '');
     var m = String(it.namaAsli).match(/^([a-z])\./); return (it.parent && it.parent.no || '') + (m ? m[1] : '');
+  }
+  /* rincian Capaian Kinerja: dari mana angka total bulan ini terbentuk */
+  function openCapaian() {
+    var Bn = B(), bl = namaBulan(S.bulan);
+    if (!konmanAda(Bn)) return openModal('<div class="modal-h"><div><div class="desc">Capaian kinerja</div><h3>' + bl + ' ' + S.tahun + '</h3></div><button class="btn" data-close>Tutup</button></div><div class="empty">Tidak ada data Konman untuk bulan ini.</div>');
+    var tot = totalSkor(Bn), st = status(tot / 100), Bp = S.bulan > 1 ? D.BULAN[S.bulan - 2] : null;
+    var it = K().items.filter(function (x) { return !x.isGroup && !x.pengurang; });
+    var bobot = function (x) { return D.bobotFor ? D.bobotFor(x, Bn) : null; };
+    var rows = it.map(function (x) {
+      var v = D.hasData(x, Bn) ? D.capaianItem(x, Bn) : null, sk = x.skor[Bn], bw = bobot(x), vp = Bp && D.hasData(x, Bp) ? D.capaianItem(x, Bp) : null, s2 = status(v);
+      var turun = v !== null && vp !== null && v < vp - 0.0005;
+      return { x: x, v: v, sk: sk, bw: bw, st: s2, turun: turun, kurang: bw && sk !== null && sk !== undefined ? bw - sk : 0 };
+    });
+    var perlu = rows.filter(function (r) { return r.v !== null && (r.v < 1 || r.turun); });
+    var kep = kepRows().map(function (r) { return { n: String(r['Aspek Kepatuhan']).trim(), v: kepVal(r, Bn) }; }).filter(function (r) { return r.v; });
+    var cap12 = D.BULAN.map(function (Bx, i) { return i + 1 > S.bulan || !konmanAda(Bx) ? null : totalSkor(Bx); });
+    var grafik = window.DashGrafik ? window.DashGrafik.batang(cap12, { sel: S.bulan, h: 200, fmt: function (v) { return D.fmt(v, 1); }, label: 'Capaian kinerja per bulan' }) : '';
+    openModal('<div class="modal-h"><div><div class="desc">Capaian kinerja · ' + bl + ' ' + S.tahun + '</div><h3>' + D.fmt(tot, 1) + '% <span class="pill ' + st.c + '">' + st.t + '</span></h3></div><button class="btn" data-close>Tutup</button></div>' +
+      '<div class="sub-h">Tren 12 bulan</div>' + grafik +
+      (perlu.length ? '<div class="sub-h">Perlu perhatian bulan ini</div><ul class="cap-perlu">' + perlu.map(function (r) {
+        return '<li class="' + r.st.c + '"><b>' + esc(labelNo(r.x)) + '. ' + esc(r.x.pendek) + '</b><span>' + D.fmt(r.v * 100, 0) + '%' + (r.v < 1 ? ' · di bawah target' : '') + (r.turun ? ' · turun dari ' + namaBulan(S.bulan - 1) : '') + '</span></li>';
+      }).join('') + '</ul>' : '<div class="note">Semua indikator mencapai target dan tidak ada yang turun dari bulan lalu.</div>') +
+      '<div class="sub-h">Cara angka ' + D.fmt(tot, 1) + '% terbentuk</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">Target</th><th class="r">Realisasi</th><th class="r">Capaian</th><th class="r">Bobot</th><th class="r">Skor</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr class="klik" data-ind="' + r.x.baris + '" tabindex="0"><td><b>' + esc(labelNo(r.x)) + '</b> ' + esc(r.x.pendek) + '</td><td class="r">' + esc((r.x.target[Bn] || {}).d || '–') + '</td><td class="r">' + esc((r.x.real[Bn] || {}).d || '–') + '</td>' +
+          '<td class="r ' + r.st.c + '"><b>' + (r.v === null ? '–' : D.fmt(r.v * 100, 0) + '%') + '</b></td><td class="r">' + (r.bw ? D.fmt(r.bw, 2) : '–') + '</td><td class="r"><b>' + (r.sk === null || r.sk === undefined ? '–' : D.fmt(r.sk, 2)) + '</b></td></tr>';
+      }).join('') +
+      (kep.length ? kep.map(function (k) { return '<tr><td colspan="5">Pengurang kepatuhan: ' + esc(k.n) + '</td><td class="r bad"><b>−' + D.fmt(Math.abs(k.v), 2) + '</b></td></tr>'; }).join('') : '') +
+      '<tr class="tot"><td colspan="5"><b>Total capaian kinerja</b></td><td class="r"><b>' + D.fmt(tot, 2) + '</b></td></tr></tbody></table></div>' +
+      '<div class="ig-aksi"><button type="button" class="btn primary" data-buka-kinerja>Buka tab Kinerja Unit →</button></div>', 'capaian');
   }
   function renderInd() {
     var Bn = B();
@@ -1575,7 +1605,7 @@
     var mxT = Math.max.apply(null, [110].concat(tren.map(function (x) { return x.v || 0; })));
     var kalimat = tot === null ? 'Data Kontrak Manajemen ' + bl + ' belum diisi.' :
       (totP !== null ? (tot >= totP ? 'Naik ' : 'Turun ') + D.fmt(Math.abs(tot - totP), 1) + ' poin dari ' + namaBulan(S.bulan - 1) + '. ' : '') + (tot >= 100 ? 'Target 100% terpenuhi.' : 'Kurang ' + D.fmt(100 - tot, 1) + ' poin dari target 100%.');
-    var hero = '<div class="rgk-hero ' + st.c + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
+    var hero = '<div class="rgk-hero ' + st.c + (tot === null ? '' : ' click" tabindex="0" role="button" data-act="capaian" title="Lihat rincian capaian kinerja') + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
       '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 1) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
       '<div class="rgk-tren" role="img" aria-label="Capaian kinerja per bulan">' + tren.map(function (x) {
         return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? '6px' : 'calc((100% - 34px) * ' + Math.max(0.06, x.v / mxT).toFixed(4) + ')') + '"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
@@ -1862,10 +1892,12 @@
     var rkc = t.closest('[data-rk]'); if (rkc) { var no = rkc.getAttribute('data-rk'); if (!$('modal').hidden) closeModal(); return sorotRisiko(no); }
     var kb = t.closest('[data-kembali]'); if (kb) return kb.getAttribute('data-kembali') === 'isu' ? openIsu() : openPbList();
     var pbc = t.closest('[data-pb]'); if (pbc) return openPihak(pbc.getAttribute('data-pb'), pbc.closest('#pbT') ? 'pb' : pbc.closest('#kxT') ? 'isu' : '');
+    if (t.closest('[data-buka-kinerja]')) { closeModal(); return pilihTab('kinerja', true); }
     var act = t.closest('[data-act]');
     if (act) {
       var a = act.getAttribute('data-act');
       if (a === 'kelas') return openKelas();
+      if (a === 'capaian') return openCapaian();
       if (a === 'hop') return openHop();
       if (a === 'tl') return openTL();
       if (a === 'kepuasan') return openKepuasan();

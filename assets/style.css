@@ -2040,3 +2040,18 @@ body:not([data-vt="semua"]) #kpis > .card:nth-child(3) { order: -1; }
   .kepm-r { grid-template-columns: 112px repeat(12, 26px) 30px; }
   .kepm-n { position: sticky; left: 0; z-index: 1; background: var(--g-card, var(--sheet)); }
 }
+
+/* Capaian Kinerja bisa diketuk: kartu utama Ringkasan dan kartu angka */
+.rgk-hero.click { cursor: pointer; position: relative; }
+.rgk-hero.click::after { content: "→"; position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+  display: grid; place-items: center; font-size: 15px; line-height: 1; color: #fff; transition: background .15s, border-color .15s, color .15s; }
+.rgk-hero.click:hover::after, .rgk-hero.click:focus-visible::after { background: var(--pink); border-color: var(--pink); color: var(--on-pink); }
+/* jendela rincian capaian */
+.cap-perlu { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 6px; }
+.cap-perlu li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 10px 13px; border-radius: 13px; background: var(--g-btn, var(--sheet)); border-left: 4px solid var(--warn); font-size: 14px; }
+.cap-perlu li.bad { border-left-color: var(--bad); } .cap-perlu li.good { border-left-color: var(--good); }
+.cap-perlu li span { color: var(--ink-2); }
+.tbl tr.tot td { border-top: 2px solid var(--ink-3); background: var(--accent-soft); }
+#capSide.click { cursor: pointer; position: relative; }
+#capSide.click::after { content: "→"; position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 14px; line-height: 1; color: var(--ink-3); transition: background .15s, border-color .15s, color .15s; }
+#capSide.click:hover::after, #capSide.click:focus-visible::after { background: var(--pink); border-color: var(--pink); color: var(--on-pink); }
