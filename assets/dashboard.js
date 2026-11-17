@@ -1922,17 +1922,17 @@
 
   /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
   /* layar memuat: sapaan + langkah proses */
-  var SAPA_PANGGIL = { admin: 'Admin', lihat: '' };
+  var SAPA_PANGGIL = { admin: '', lihat: '' };
   function sapaan() {
     var j = new Date().getHours(), w = j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
     var se = D.sesi(), p = se && se.peran === 'admin' ? SAPA_PANGGIL.admin : SAPA_PANGGIL.lihat;
-    return w + (p ? ', ' + p : '') + ' 👋';
+    return w + (p ? ', ' + p : '') + '! 👋';
   }
   var langkahT = null;
   function mulaiLangkah() {
     var el = $('skLangkah'), pr = $('skProg'), sp = $('skSapa'); if (!el) return;
     if (sp) sp.textContent = sapaan();
-    el.textContent = 'Sedang menyusun data & grafik…';
+    el.textContent = 'Admin sedang menyusun data & grafik untukmu…';
     clearInterval(langkahT); var n = 12; if (pr) pr.style.width = n + '%';
     langkahT = setInterval(function () { n = Math.min(n + (92 - n) * 0.25, 92); if (pr) pr.style.width = n + '%'; if (n > 91) clearInterval(langkahT); }, 700);
   }
