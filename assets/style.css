@@ -2254,3 +2254,12 @@ body:not(.peran-admin) .modal-c.guide :is(#g1,#g2,#g3,#g4,#g5,#g6), body:not(.pe
 .panel.gx-p > :not(.panel-h) { flex-grow: 0; }
 .panel.gx-p > .gx-hb { flex-grow: 1; }
 .panel.gx-p > .gx-hb { margin-top: var(--phi-2, 13px); }
+/* lanjutan: kartu yang isinya tidak sampai bawah — isi dibagi rata sampai dasar kartu */
+.panel { justify-content: space-between; }
+.card.mini2 { justify-content: space-between; }
+.rgk-tile { display: flex; flex-direction: column; }
+.rgk-tile > :last-child { margin-top: auto; }
+@media (min-width: 701px) { .rgk-hero .rgk-k { align-self: center; } }
+.panel > .tl-body { flex: 1 1 auto; justify-content: space-between; }
+.card .cv { min-width: 0; } .card .cv .val { min-width: 0; font-size: clamp(22px, 2.1vw, 28px); white-space: nowrap; }
+.kpis .card .cv .val { font-size: clamp(20px, 1.85vw, 28px) !important; letter-spacing: -.02em; } .kpis .card .cv .ring { flex: none; }
