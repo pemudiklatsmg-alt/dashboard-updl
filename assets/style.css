@@ -2194,3 +2194,27 @@ body.pres [data-bagian="isu"].solo-0 .bars { gap: 4px; }
   --f-display: var(--f-apple); --f-body: var(--f-apple); --f-serif: var(--f-apple); --f-compact: var(--f-apple); --f-mono: var(--f-apple); }
 body, button, input, select, textarea, option, svg text { font-family: var(--f-apple); }
 .at-u { font-family: var(--f-apple); font-variant-numeric: tabular-nums; }
+
+/* Ringkasan lebih padat tanpa menambah elemen: ikon sebaris judul, grafik kartu biru mengisi lebar, grafik mini lebih besar */
+@media (min-width: 701px) {
+  .rgk-tile .rgk-lbl { flex-direction: row; align-items: center; gap: 10px; }
+  .rgk-tile .ikb, html.glass .rgk-tile .ikb { width: 30px; height: 30px; padding: 6px; border-radius: 10px; flex: none; }
+  .rgk-tile { align-content: start; }
+  .rgk-tile .rgk-mid { align-items: center; }
+  .rgk-tile .rgk-mid > :first-child { flex: none; white-space: nowrap; }
+  .rgk-tile .spark { flex: 1 1 auto; width: auto; min-width: 0; max-width: 220px; height: 44px; }
+  .rgk-hero { grid-template-columns: minmax(210px, 250px) minmax(0, 1fr); column-gap: 34px; align-items: stretch; }
+  .rgk-hero .rgk-k { align-self: end; }
+  .rgk-tren { height: auto; min-height: 150px; align-self: stretch; gap: 6px; margin-top: 34px; container-type: inline-size; }
+  .rgk-hero { grid-template-columns: minmax(200px, 230px) minmax(0, 1fr); column-gap: 26px; }
+  .rgk-tren i { max-width: 46px; }
+}
+@media (max-width: 700px) { .rgk-tren i { max-width: 30px; } }
+@container (max-width: 420px) { .rgk-tren span:not(.on):not(:hover) .rgk-pv { visibility: hidden !important; } }
+@media (max-width: 700px) {
+  .rgk-tile .rgk-lbl { flex-direction: row; align-items: flex-start; gap: 8px; }
+  .rgk-tile .ikb, html.glass .rgk-tile .ikb { display: grid; width: 24px; height: 24px; padding: 4px; border-radius: 8px; flex: none; }
+  .rgk-tile .rgk-mid > :first-child { flex: none; white-space: nowrap; }
+  .rgk-tile .spark { flex: 1 1 auto; width: auto; min-width: 0; max-width: 90px; }
+}
+@media (max-width: 700px) { .rgk-tile .rgk-mid { flex-wrap: wrap; row-gap: 6px; } .rgk-tile .rgk-lbl { padding-right: 30px; } }
