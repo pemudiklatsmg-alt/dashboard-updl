@@ -517,7 +517,12 @@
       var fr = n === null ? null : a.maks ? Math.max(0, (a.maks - Math.abs(n)) / a.maks) : (n === 0 ? 1 : 0);
       return '<div class="kep-box" title="' + esc(a.row['Keterangan'] || '') + '"><h4>' + esc(a.nama) + '</h4>' +
         '<div class="kep-b">' + ring(fr, st.c, n === null ? '–' : (n === 0 ? '0' : '−' + D.fmt(Math.abs(n), 2)), a.nama + ': ' + st.t) +
-        '<div><span class="pill ' + st.c + '">' + st.t + '</span><div class="mx-l">maks ' + (a.maks || '–') + '</div></div></div></div>';
+        '<div><span class="pill ' + st.c + '">' + st.t + '</span><div class="mx-l">maks ' + (a.maks || '–') + '</div></div></div>' +
+        // riwayat 12 bulan: hijau = patuh, merah = ada pengurang, abu = belum diisi
+        '<div class="kep-12" aria-label="Riwayat ' + esc(a.nama) + ' tahun ' + S.tahun + '">' + D.BULAN.map(function (Bx, i) {
+          var v = kepVal(a.row, Bx), c = v === null ? (i + 1 > S.bulan ? 'fut' : 'idle') : v === 0 ? 'good' : 'bad';
+          return '<i class="' + c + (i + 1 === S.bulan ? ' on' : '') + '" title="' + D.cap(Bx) + ': ' + (v === null ? 'belum diisi' : v === 0 ? 'patuh' : 'pengurang −' + D.fmt(Math.abs(v), 2)) + '"></i>';
+        }).join('') + '</div><div class="kep-12l"><span>Jan</span><span>Des</span></div></div>';
     }).join('');
     $('kepList').innerHTML = h || '<div class="empty">Belum ada aspek kepatuhan untuk tahun ' + S.tahun + '.</div>';
     $('kepNote').innerHTML = isi ? 'Total pengurang ' + namaBulan(S.bulan) + ': <b>' + D.fmt(tot, 2) + '</b> (sudah dikurangkan dari Capaian Kinerja).' : 'Nilai kepatuhan ' + namaBulan(S.bulan) + ' belum diisi. Isi di ' + sheetLink('Google Sheets', 'Kepatuhan') + ' (0 = patuh).';

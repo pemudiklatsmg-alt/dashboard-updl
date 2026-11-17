@@ -1975,3 +1975,18 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .panel-h:has(> .seg) > .seg { order: 2; margin: 2px 0 2px; }
 .panel-h:has(> .seg) > div:first-child > :not(h2):not(h3) { order: 3; }
 .panel-h:has(> .seg) > :not(div:first-child):not(.seg) { order: 4; }
+
+/* Kepatuhan: kotak tidak lagi kosong memanjang; riwayat 12 bulan per aspek */
+#kepList { align-content: start; }
+.kep-box { min-height: 0; gap: var(--phi-1, 8px); }
+.kep-b { margin-top: 4px; }
+.kep-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
+.kep-12 i { height: 8px; border-radius: 3px; background: var(--idle-bg, #eef0f4); }
+.kep-12 i.good { background: var(--good); opacity: .75; }
+.kep-12 i.bad { background: var(--bad); }
+.kep-12 i.idle { background: var(--idle); opacity: .35; }
+.kep-12 i.fut { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.kep-12 i.on { opacity: 1; outline: 2px solid var(--ink); outline-offset: 1px; }
+.kep-12l { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: -2px; }
+.kep-b { flex-wrap: wrap; row-gap: 6px; } .kep-b .pill { white-space: nowrap; }
+#kepList > .kep-box { height: 100%; }
