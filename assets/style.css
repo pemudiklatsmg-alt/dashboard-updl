@@ -2082,3 +2082,6 @@ html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !im
   background: var(--g-modal, var(--sheet)); border-bottom: 1px solid transparent; transition: border-color .15s; }
 .modal-c.tergulir > .modal-h:first-child { border-bottom-color: var(--line); }
 @media (max-width: 640px) { .modal-c { max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); } }
+
+/* Bilah navigasi bawah tidak tampil di halaman login */
+body:has(#app[hidden]) .navbawah { display: none !important; }
