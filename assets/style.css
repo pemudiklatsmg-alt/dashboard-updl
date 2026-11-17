@@ -2227,3 +2227,17 @@ body:not(.peran-admin) .modal-c.guide :is(#g1,#g2,#g3,#g4,#g5,#g6), body:not(.pe
 /* Alih daya: nama tampil hanya pada sub bidang yang dibuka */
 .og-adc:not([open]) > ul { display: none !important; }
 .og-adc > summary { cursor: pointer; }
+
+/* Evaluasi lebih ringkas: nama aspek sebaris dengan butir (samar), bukan baris sendiri */
+.gx-hl small { display: inline !important; margin-left: 6px; font-size: 12px; color: var(--ink-3); opacity: .8; }
+.gx-hl small::before { content: "· "; }
+/* jarak catatan sumber ke garis di bawahnya lebih rapat */
+.sheet > .foot-note { margin-bottom: calc(-1 * var(--phi-2, 13px)); }
+/* Desktop: pilihan tab sejajar judul di kanan; HP tetap di bawah judul */
+@media (min-width: 701px) {
+  .panel-h:has(> .seg) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 4px; align-items: center; }
+  .panel-h:has(> .seg) h2, .panel-h:has(> .seg) h3 { grid-column: 1; grid-row: 1; }
+  .panel-h:has(> .seg) > .seg { grid-column: 2; grid-row: 1; justify-self: end; margin: 0; }
+  .panel-h:has(> .seg) > div:first-child > :not(h2):not(h3) { grid-column: 1 / -1; grid-row: 2; }
+  .panel-h:has(> .seg) > :not(div:first-child):not(.seg) { grid-column: 3; grid-row: 1; }
+}
