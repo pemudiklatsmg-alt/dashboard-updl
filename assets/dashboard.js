@@ -642,7 +642,7 @@
   }
   function renderMl() {
     var M = (S.data.maturity || []).map(function (r) { return { no: String(r[0]), ke: r[1], sa: D.num(r[2]), ver: D.num(r[3]) }; });
-    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis (sheet SMG) belum terbaca.</div>'; wadahMl().innerHTML = ''; return; }
+    if (!M.length) { $('mlList').innerHTML = '<div class="empty">Data MLI Probis belum terbaca.</div>'; wadahMl().innerHTML = ''; return; }
     var it = find(/Pengelolaan Proses Bisnis/i), Bn = B(), tgt = null;
     if (it) { tgt = konmanAda(Bn) ? D.num(it.target[Bn].v) : null; if (tgt === null) tgt = D.num(S.bulan <= 6 ? it.target1 : it.target2); }
     var vals = M.map(function (x) { return S.mlMode === 'ver' ? (x.ver !== null ? x.ver : x.sa) : x.sa; });
@@ -1859,7 +1859,7 @@
     if (!S.tahun || years.indexOf(S.tahun) < 0) { S.tahun = years[years.length - 1]; S.bulan = bulanBawaan(S.tahun); }
     if (!S.riskView) S.riskView = /inheren/i.test(data.risiko && data.risiko.tampilan) ? 'inheren' : /residu/i.test(data.risiko && data.risiko.tampilan) ? 'residual' : 'target';
     setPeriode(S.tahun, S.bulan);
-    $('footNote').textContent = 'Angka mengikuti Tahun & Bulan yang dipilih · Sumber: Konman, Rendiklat, MLI Probis (sheet SMG), Profil Risiko, dan spreadsheet Data Dashboard UPDL Semarang' + (m.source === 'live' ? ' · dimuat ulang otomatis tiap 5 menit' : '');
+    $('footNote').textContent = 'Sumber: Konman, Rendiklat, MLI Probis, dan Profil Risiko';
     if (m.source === 'live' && !m.stale) setTimeout(pengingatAdmin, 350);
     if (!S.sudahAtas) { S.sudahAtas = true; window.scrollTo(0, 0); }
   }

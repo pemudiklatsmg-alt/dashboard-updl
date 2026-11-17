@@ -192,7 +192,7 @@
           { n: 'Sertifikat Terbit (Finish TTE GM)', v: sertP, t: set.targetSertifikat, sat: '%', f: '0.0', cat: Se && Se.total ? D.fmt(Se.terbit, 0) + ' dari ' + D.fmt(Se.total, 0) + ' sertifikat · +' + D.fmt(Se.bulan, 0) + ' terbit di ' + a.namaBulan(S.bulan) : 'Belum ada data' }
         ]],
         ['Tata Kelola', [
-          { n: 'Maturity Level Proses Bisnis', v: mAvg, t: mT, sat: 'skala 0–5', f: '0.00', cat: M.length + ' key element (sheet SMG, verifikasi)' },
+          { n: 'Maturity Level Proses Bisnis', v: mAvg, t: mT, sat: 'skala 0–5', f: '0.00', cat: M.length + ' key element (verifikasi)' },
           { n: 'Perbaikan Berkelanjutan selesai', v: TL.length ? tlS / TL.length * 100 : null, t: TL.length ? 100 : null, sat: '%', f: '0', cat: tlS + ' dari ' + TL.length + ' masukan yang perlu tindakan (Selesai + Sudah Dilaporkan; OFI tidak dihitung)' },
           { n: 'Total pengurang kepatuhan', v: ada || kepIsi ? a.pengurang(Bn) : null, t: null, sat: 'poin', f: '0.00', cat: kepIsi ? kepIsi + ' dari ' + kepRows.length + ' aspek terisi' : 'Belum diisi', kep: true }
         ]]

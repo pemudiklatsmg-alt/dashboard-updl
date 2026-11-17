@@ -30,7 +30,7 @@
   }
   function halaman(judul, isiHtmlAtauEl) {
     var pg = document.createElement('div'); pg.className = 'cp-page';
-    pg.innerHTML = kop(judul) + '<div class="cp-body"><div class="cp-isi"></div></div><div class="cp-foot"><span>Sumber: spreadsheet Data Dashboard UPDL Semarang, Konman, Rendiklat, MLI Probis, Profil Risiko</span><span class="cp-no"></span></div>';
+    pg.innerHTML = kop(judul) + '<div class="cp-body"><div class="cp-isi"></div></div><div class="cp-foot"><span>Sumber: Konman, Rendiklat, MLI Probis, dan Profil Risiko</span><span class="cp-no"></span></div>';
     var isi = pg.querySelector('.cp-isi');
     (Array.isArray(isiHtmlAtauEl) ? isiHtmlAtauEl : [isiHtmlAtauEl]).forEach(function (x) { if (typeof x === 'string') isi.insertAdjacentHTML('beforeend', x); else if (x) isi.appendChild(x); });
     return pg;
@@ -117,7 +117,7 @@
     if (judulKop) judulKop.textContent = jenis === 'ringkas' ? 'Laporan ringkas' : jenis === 'lengkap' ? 'Laporan lengkap' : 'Laporan bagian terpilih';
     var tb = document.createElement('table'); tb.className = 'cp-doc';
     tb.innerHTML = '<thead><tr><td><div class="cp-atas"></div></td></tr></thead><tbody><tr><td class="cp-td"></td></tr></tbody>' +
-      '<tfoot><tr><td><div class="cp-bawah">Sumber: spreadsheet Data Dashboard UPDL Semarang, Konman, Rendiklat, MLI Probis, Profil Risiko</div></td></tr></tfoot>';
+      '<tfoot><tr><td><div class="cp-bawah">Sumber: Konman, Rendiklat, MLI Probis, dan Profil Risiko</div></td></tr></tfoot>';
     tb.querySelector('.cp-atas').appendChild(kopEl);
     var td = tb.querySelector('.cp-td');
     bag.forEach(function (p, i) {
