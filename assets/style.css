@@ -2165,3 +2165,18 @@ body:has(#app[hidden]) .navbawah { display: none !important; }
 .modal-c p, .guide p, .guide li, .gsec p, .gsec li { max-width: 70ch; }
 .duo { flex-wrap: wrap; column-gap: clamp(8px, 3vw, 16px); min-width: 0; } .duo div { min-width: 0; }
 @media (max-width: 520px) { .duo b { font-size: 20px; } }
+
+/* Mode presentasi: kontrol bawah berukuran tetap, tombol tidak bergeser saat judul slide berganti */
+.pres-bar { width: min(600px, calc(100vw - 24px)); box-sizing: border-box; }
+.pres-t { flex: 1 1 0; width: 0; }
+.pres-t b { max-width: 100%; display: block; text-align: center; }
+.pres-bar button.pz { width: 54px; flex: none; }
+.pres-bar button.pz.pz-auto { color: var(--ink-3); font-weight: 600; }
+/* Ringkasan dipecah dua slide bila perlu; kartu ringkasan lebih ringkas (ikon sebaris dengan judul) */
+body.pres #rgk.solo-a > .gx-rgk, body.pres #rgk.solo-b > :not(.gx-rgk) { display: none !important; }
+body.pres .rgk-tile .rgk-lbl { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+body.pres .rgk-tile .ikb { width: 28px; height: 28px; padding: 5px; flex: none; }
+body.pres .pair.solo-0 .kx-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; max-height: none; overflow: visible; }
+body.pres [data-bagian="isu"].solo-0 .kx-list { row-gap: 4px; }
+body.pres [data-bagian="isu"].solo-0 .kx-row { padding-top: 5px; padding-bottom: 5px; }
+body.pres [data-bagian="isu"].solo-0 .bars { gap: 4px; }

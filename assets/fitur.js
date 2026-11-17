@@ -47,22 +47,31 @@
   function namaSlide(sl) {
     return sl.map(function (u) {
       var x = u.split('#')[0], k = u.split('#')[1], e = el1(u);
+      if (x === 'rgk' && k) return k === 'b' ? 'Ringkasan · Grafik bulanan' : 'Ringkasan';
       if (k !== undefined && e) { var h = e.querySelectorAll(':scope > .panel h2')[+k]; if (h) return h.textContent.trim(); }
       return x === 'rgk' ? 'Ringkasan' : x === 'ringkasan' ? 'Pembelajaran' : BAGIAN[x];
     }).join(' · ');
   }
   function ruangLayar() { var atas = $('top') ? $('top').getBoundingClientRect().bottom : 0; return window.innerHeight - atas - 24 - 96; }
-  function aturSolo(e, k) { e.classList.remove('solo-0', 'solo-1'); if (k !== undefined && k !== null) e.classList.add('solo-' + k); }
+  function aturSolo(e, k) { e.classList.remove('solo-0', 'solo-1', 'solo-a', 'solo-b'); if (k !== undefined && k !== null) e.classList.add('solo-' + k); }
+  /* skala seragam untuk semua slide: huruf berukuran sama di setiap slide (mengikuti lebar layar, bukan isi slide) */
+  var TOLERANSI = 0.92, MIN_DARURAT = 0.78;
+  function skalaSeragam() { return Math.max(1, Math.min(1.4, window.innerWidth / 1366)); }
   function susun() {
-    var ruang = ruangLayar(), out = [];
+    var ruang = ruangLayar(), Z = skalaSeragam(), out = [];
+    var muat = function (t) { return t * Z * TOLERANSI <= ruang; };
     KELOMPOK.forEach(function (g) {
       var unit = [];
       g.forEach(function (x) {
         var e = el1(x); if (!e) return;
         e.hidden = false; e.style.zoom = ''; aturSolo(e, null);
         var t = e.getBoundingClientRect().height; if (!t) return;
-        // bagian dua-panel yang tidak terbaca utuh dipecah menjadi satu panel per slide
-        if (t * MIN_BACA > ruang && e.classList.contains('pair') && e.querySelectorAll(':scope > .panel').length === 2) {
+        // bagian dua-panel yang tidak muat pada skala seragam dipecah menjadi satu panel per slide
+        if (!muat(t) && x === 'rgk' && e.querySelector(':scope > .gx-rgk')) {
+          // Ringkasan terlalu tinggi: kartu angka di slide pertama, grafik di slide berikutnya
+          ['a', 'b'].forEach(function (k) { aturSolo(e, k); unit.push({ u: x + '#' + k, t: e.getBoundingClientRect().height }); });
+          aturSolo(e, null);
+        } else if (!muat(t) && e.classList.contains('pair') && e.querySelectorAll(':scope > .panel').length === 2) {
           [0, 1].forEach(function (k) { aturSolo(e, k); unit.push({ u: x + '#' + k, t: e.getBoundingClientRect().height }); });
           aturSolo(e, null);
         } else unit.push({ u: x, t: t });
@@ -70,7 +79,7 @@
       var cur = [], jml = 0;
       unit.forEach(function (o) {
         var t = o.t + (cur.length ? 18 : 0);
-        if (cur.length && ((jml + t) * MIN_BACA > ruang || o.u.indexOf('#') >= 0 || cur[0].indexOf('#') >= 0)) { out.push(cur); cur = []; jml = 0; t = o.t; }
+        if (cur.length && (!muat(jml + t) || o.u.indexOf('#') >= 0 || cur[0].indexOf('#') >= 0)) { out.push(cur); cur = []; jml = 0; t = o.t; }
         cur.push(o.u); jml += t;
       });
       if (cur.length) out.push(cur);
@@ -82,17 +91,18 @@
     if (!P.on) return;
     var E = slideEls(URUT[P.i] || []); if (!E.length) return;
     window.scrollTo({ top: 0, behavior: 'auto' });
-    var ruang = ruangLayar(), lo = 0.45, hi = 1.2, z = 1;   // diperbesar paling banyak 120% agar tata letak tidak pecah
-    var coba = function (v) { E.forEach(function (e) { e.style.zoom = v === 1 ? '' : v.toFixed(3); }); return tinggiSlide(E); };
-    if (coba(1) <= ruang) lo = 1; else hi = 1;
-    for (var k = 0; k < 7; k++) { z = (lo + hi) / 2; if (coba(z) <= ruang) lo = z; else hi = z; }
+    var ruang = ruangLayar(), Z = skalaSeragam(), lo = Z * MIN_DARURAT, hi = Z;
+    var coba = function (v) { E.forEach(function (e) { e.style.zoom = Math.abs(v - 1) < 0.001 ? '' : v.toFixed(3); }); return tinggiSlide(E); };
+    // skala seragam bila muat; hanya bila satu panel memang terlalu panjang, diperkecil sedikit (paling kecil 78%)
+    if (coba(Z) <= ruang) lo = Z;
+    else for (var k = 0; k < 7; k++) { var z = (lo + hi) / 2; if (coba(z) <= ruang) lo = z; else hi = z; }
     P.zDasar = lo; terapkanZoom();
   }
   /* perbesar/perkecil manual (+ / –) di atas skala otomatis; halaman bisa digulir bila melebihi layar */
   function terapkanZoom() {
     var E = slideEls(URUT[P.i] || []), z = (P.zDasar || 1) * (P.zManual || 1);
     E.forEach(function (e) { e.style.zoom = Math.abs(z - 1) < 0.001 ? '' : z.toFixed(3); });
-    var t = $('presZoom'); if (t) { t.textContent = Math.round((P.zManual || 1) * 100) + '%'; t.hidden = Math.abs((P.zManual || 1) - 1) < 0.001; }
+    var t = $('presZoom'); if (t) { t.textContent = Math.round((P.zManual || 1) * 100) + '%'; t.classList.toggle('pz-auto', Math.abs((P.zManual || 1) - 1) < 0.001); }
   }
   function ubahZoom(arah) {
     if (arah === 0) P.zManual = 1;
@@ -140,7 +150,7 @@
     '<span class="pres-t"><b id="presNama"></b><small id="presNo"></small></span>' +
     '<button type="button" data-p="jeda" id="presJeda" aria-label="Jeda" title="Jeda / lanjut (P)">❚❚</button>' +
     '<button type="button" data-p="next" aria-label="Bagian berikutnya" title="Berikutnya (→ atau spasi)">›</button>' +
-    '<span class="pres-sep" aria-hidden="true"></span><button type="button" data-p="kecil" aria-label="Perkecil" title="Perkecil (–)">−</button><button type="button" data-p="nol" class="pz" id="presZoom" hidden title="Kembali ke ukuran otomatis (0)">100%</button><button type="button" data-p="besar" aria-label="Perbesar" title="Perbesar (+)">+</button>' +
+    '<span class="pres-sep" aria-hidden="true"></span><button type="button" data-p="kecil" aria-label="Perkecil" title="Perkecil (–)">−</button><button type="button" data-p="nol" class="pz pz-auto" id="presZoom" title="Kembali ke ukuran otomatis (0)">100%</button><button type="button" data-p="besar" aria-label="Perbesar" title="Perbesar (+)">+</button>' +
     '<button type="button" data-p="keluar" class="x" aria-label="Keluar dari mode presentasi" title="Keluar (Esc)">✕</button>' +
     '<span class="pres-prog" aria-hidden="true"><i id="presProg"></i></span>';
   document.body.appendChild(bar);
