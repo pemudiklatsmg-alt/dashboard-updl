@@ -1500,6 +1500,19 @@
   function ikon(n) { return IKON[n] ? '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + IKON[n] + '</svg>' : ''; }
   var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'],
     [/^Pengembangan Pegawai/, 'orang'], [/^Pengembangan Inovasi/, 'lampu'], [/^Isu/, 'bumi'], [/^Pihak/, 'grup'], [/^Peta Risiko/, 'peta'], [/^Key Risk/, 'meter'], [/^Risiko Fraud/, 'waspada']];
+  function pasangHoverKet(pn) {
+    if (!pn || pn.dataset.kunciKet) return; pn.dataset.kunciKet = 1; {
+        // saat disorot: keterangan muncul tanpa mengubah ukuran kartu. Bila ada ruang, isi kartu yang merapat; bila tidak, keterangan melayang di bawah judul
+        pn.addEventListener('mouseenter', function () {
+          var ds = pn.querySelector('.desc-lipat'); if (!ds) return; var tg = pn.offsetHeight;
+          ds.classList.add('tampil'); if (pn.offsetHeight <= tg + 1) return;
+          pn.style.boxSizing = 'border-box'; pn.style.height = tg + 'px';
+          if (pn.scrollHeight > tg + 1) pn.classList.add('rapat');
+          if (pn.scrollHeight > tg + 1) { pn.classList.remove('rapat'); pn.style.height = ''; ds.classList.remove('tampil'); var hh = pn.querySelector('h2, h3'); ds.classList.add('melayang'); ds.style.top = (hh ? hh.offsetTop + hh.offsetHeight + 4 : 48) + 'px'; }
+        });
+        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang'); ds.style.top = ''; } });
+      }
+  }
   function lipatKet() {
     Array.prototype.forEach.call(document.querySelectorAll('main .card .hint'), function (hn) {
       if (hn.dataset.lipat) return; var h = hn.parentElement.querySelector('h3'); if (!h) return;
@@ -1507,6 +1520,7 @@
       if (!teks.length) return; hn.dataset.lipat = 1;
       var t = teks.map(function (n) { return n.textContent.trim(); }).join(' ').replace(/[·\s]+$/, '');
       teks.forEach(function (n) { n.remove(); });
+      h.insertAdjacentHTML('afterend', '<div class="desc desc-lipat">' + esc(t) + '</div>'); pasangHoverKet(hn.closest('.card'));
       Array.prototype.forEach.call(hn.querySelectorAll('br'), function (x) { x.remove(); });
       if (!h.querySelector('.info-i')) h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(t) + '"></button>');
     });
@@ -1515,17 +1529,7 @@
       var h = d.parentElement && d.parentElement.querySelector('h2, h3'); if (!h || h.querySelector('.info-i')) return;
       h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(d.textContent.trim()) + '"></button>');
       d.classList.add('desc-lipat');
-      var pn = d.closest('.panel, .card'); if (pn && !pn.dataset.kunciKet) { pn.dataset.kunciKet = 1;
-        // saat disorot: keterangan muncul tanpa mengubah ukuran kartu. Bila ada ruang, isi kartu yang merapat; bila tidak, keterangan melayang di bawah judul
-        pn.addEventListener('mouseenter', function () {
-          var ds = pn.querySelector('.desc-lipat'); if (!ds) return; var tg = pn.offsetHeight;
-          ds.classList.add('tampil'); if (pn.offsetHeight <= tg + 1) return;
-          pn.style.height = tg + 'px';
-          if (pn.scrollHeight > tg + 1) pn.classList.add('rapat');
-          if (pn.scrollHeight > tg + 1) { pn.classList.remove('rapat'); pn.style.height = ''; ds.classList.remove('tampil'); var hh = pn.querySelector('h2, h3'); ds.classList.add('melayang'); ds.style.top = (hh ? hh.offsetTop + hh.offsetHeight + 4 : 48) + 'px'; }
-        });
-        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang'); ds.style.top = ''; } });
-      }
+      pasangHoverKet(d.closest('.panel, .card'));
     });
   }
   (function () { var t = 0, mn = document.querySelector('main'); if (mn && window.MutationObserver) new MutationObserver(function () { clearTimeout(t); t = setTimeout(lipatKet, 80); }).observe(mn, { childList: true, subtree: true }); })();
