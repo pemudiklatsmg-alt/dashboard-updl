@@ -1,38 +1,33 @@
 /* Nomor versi website & catatan rilis.
-   Aturan: X.Y — X naik bila tampilan/cara pakai berubah besar, Y naik setiap pemasangan berikutnya.
+   Aturan: X.Y — X naik hanya bila tampilan/cara pakai berubah total (2.0 = tampilan baru 13 Nov 2026),
+   Y naik untuk fitur baru atau perubahan tampilan yang cukup besar.
    Tambah entri baru PALING ATAS di RILIS hanya untuk fitur baru atau perubahan tampilan yang besar.
    Perbaikan bug & penyesuaian kecil tidak menaikkan versi (boleh ditambahkan ke catatan versi terakhir). */
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
-    { v: '6.0', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
+    { v: '2.7', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
       l: ['Mode terang lebih bersih: latar polos, kartu putih solid, bayangan lembut', 'Ikon kartu dalam kotak warna pastel sesuai status; label tanpa huruf kapital', 'Huruf judul & angka Plus Jakarta Sans'], p: [] },
-    { v: '5.0', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
-      l: ['Pink kini khusus untuk lingkaran panah pembuka rincian', 'Pengaturan dipindah ke menu ☰ (Admin)', 'Di HP, keterangan grafik memakai lebar penuh; tombol pilihan pindah ke baris sendiri'],
-      p: ['Safari iPhone: tidak ada lagi garis bayangan di bawah bilah tab, dan halaman tampil sampai bawah di tema gelap'] },
-    { v: '4.6', t: '14 Nov 2026', b: [], l: ['Di HP, pilihan tab hanya ada di bilah bawah'],
-      p: ['Safari di iPhone: isi halaman tidak lagi terlihat di atas kepala halaman'] },
-    { v: '4.5', t: '14 Nov 2026', b: ['Navigasi bawah di HP ala Safari: mengecil saat digulir ke bawah, membesar saat digulir ke atas'],
-      l: ['Akun Lihat lebih ringkas: tanpa kartu "Perlu perhatian" dan lonceng', 'Isi halaman menghilang di balik kepala halaman, tidak lagi terlihat di atasnya'],
-      p: ['Tab Ringkasan kembali tersorot saat website pertama dibuka'] },
-    { v: '4.4', t: '14 Nov 2026', b: ['Dashboard langsung tampil dari data terakhir, lalu memperbarui diri di belakang layar'],
-      l: ['Server mengirim paket data yang sudah jadi, sehingga data termuat jauh lebih cepat', 'Website selalu dibuka di tab Ringkasan; tidak perlu login ulang setelah menutup tab (selama sesi 6 jam masih berlaku)'],
-      p: ['Di HP, halaman di belakang menu ☰ dan jendela pop-up tidak lagi ikut bergulir'] },
-    { v: '4.3', t: '14 Nov 2026', b: ['Menu samping & Status Data menampilkan kapan data sumber terakhir berubah', 'Pemeriksaan kualitas data di pengingat Admin, dengan pintasan ke baris yang perlu diperbaiki', 'Nomor versi & catatan rilis'],
-      l: ['Penanda klik seragam: panah dalam lingkaran yang menyala pink', 'Angka tampil di semua grafik tren; Peta Risiko meringkas sel padat menjadi "N risiko"'],
-      p: ['Tinggi batang Capaian Kinerja kini sebanding nilainya, warna status sama di semua grafik', 'Panduan yang berantakan dirapikan'] },
-    { v: '4.2', t: '13 Nov 2026', b: ['Rincian berlapis: klik grafik, metode, status kelas, atau KRI untuk melihat daftar lalu rinciannya', 'Grafik tren di Ringkasan, Rekap Pembelajaran, dan Evaluasi', 'Logo PLN'],
+    { v: '2.6', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
+      l: ['Pink kini khusus untuk lingkaran panah pembuka rincian', 'Pengaturan dipindah ke menu ☰ (Admin)', 'Di HP, keterangan grafik memakai lebar penuh; tombol pilihan pindah ke baris sendiri'], p: ['Safari iPhone: tidak ada lagi garis bayangan di bawah bilah tab, dan halaman tampil sampai bawah di tema gelap'] },
+    { v: '2.5', t: '14 Nov 2026', b: ['Navigasi bawah di HP ala Safari: mengecil saat digulir ke bawah, membesar saat digulir ke atas'],
+      l: ['Akun Lihat lebih ringkas: tanpa kartu "Perlu perhatian" dan lonceng', 'Isi halaman menghilang di balik kepala halaman, tidak lagi terlihat di atasnya', 'Di HP, pilihan tab hanya ada di bilah bawah'], p: ['Tab Ringkasan kembali tersorot saat website pertama dibuka', 'Safari di iPhone: isi halaman tidak lagi terlihat di atas kepala halaman'] },
+    { v: '2.4', t: '14 Nov 2026', b: ['Dashboard langsung tampil dari data terakhir, lalu memperbarui diri di belakang layar'],
+      l: ['Server mengirim paket data yang sudah jadi, sehingga data termuat jauh lebih cepat', 'Website selalu dibuka di tab Ringkasan; tidak perlu login ulang setelah menutup tab (selama sesi 6 jam masih berlaku)'], p: ['Di HP, halaman di belakang menu ☰ dan jendela pop-up tidak lagi ikut bergulir'] },
+    { v: '2.3', t: '14 Nov 2026', b: ['Menu samping & Status Data menampilkan kapan data sumber terakhir berubah', 'Pemeriksaan kualitas data di pengingat Admin, dengan pintasan ke baris yang perlu diperbaiki', 'Nomor versi & catatan rilis'],
+      l: ['Penanda klik seragam: panah dalam lingkaran yang menyala pink', 'Angka tampil di semua grafik tren; Peta Risiko meringkas sel padat menjadi "N risiko"'], p: ['Tinggi batang Capaian Kinerja kini sebanding nilainya, warna status sama di semua grafik', 'Panduan yang berantakan dirapikan'] },
+    { v: '2.2', t: '13 Nov 2026', b: ['Rincian berlapis: klik grafik, metode, status kelas, atau KRI untuk melihat daftar lalu rinciannya', 'Grafik tren di Ringkasan, Rekap Pembelajaran, dan Evaluasi', 'Logo PLN'],
       l: ['Kepala halaman mengambang saat digulir; lengkung sudut seragam'], p: ['Kartu yang diperbesar di mode presentasi tidak lagi buram'] },
-    { v: '4.1', t: '13 Nov 2026', b: ['Halaman Pengaturan lewat website (Admin): target, PIC, pengingat email, akun', 'Cetak / Simpan PDF: Ringkas, Lengkap, atau Halaman ini', 'Pengingat tugas saat Admin masuk'],
+    { v: '2.1', t: '13 Nov 2026', b: ['Halaman Pengaturan lewat website (Admin): target, PIC, pengingat email, akun', 'Cetak / Simpan PDF: Ringkas, Lengkap, atau Halaman ini', 'Pengingat tugas saat Admin masuk'],
       l: ['Satu tugas boleh punya lebih dari satu PIC'], p: ['Laporan PDF: ukuran huruf seragam, tidak ada tulisan keluar kotak'] },
-    { v: '4.0', t: '13 Nov 2026', b: ['Menu samping untuk berpindah bagian', 'Halaman Tugas Tim EPMK: data usang & tenggat per PIC'],
-      l: ['Tampilan saat memuat langsung memakai tata letak baru'], p: ['Data Rendiklat yang sempat gagal terbaca'] },
-    { v: '3.0', t: '13 Nov 2026', b: ['Halaman Ringkasan baru', 'Mode presentasi dengan zoom & fokus kartu'],
-      l: ['Tampilan kaca, tema terang/gelap'], p: ['Slide presentasi yang terpotong atau terlalu kosong', 'Panel Risiko Fraud yang berantakan'] },
-    { v: '2.0', t: '12 Nov 2026', b: ['Akun Admin & Lihat: data hanya tampil setelah login', 'Input data langsung dari dashboard; pengingat email bulanan'],
+    { v: '2.0', t: '13 Nov 2026', b: ['Halaman Ringkasan baru', 'Mode presentasi dengan zoom & fokus kartu', 'Menu samping untuk berpindah bagian'],
+      l: ['Tampilan kaca, tema terang/gelap', 'Tampilan saat memuat langsung memakai tata letak baru'], p: ['Slide presentasi yang terpotong atau terlalu kosong', 'Panel Risiko Fraud yang berantakan', 'Data Rendiklat yang sempat gagal terbaca'] },
+    { v: '1.2', t: '12 Nov 2026', b: ['Akun Admin & Lihat: data hanya tampil setelah login', 'Input data langsung dari dashboard; pengingat email bulanan'],
       l: ['Data dimuat lebih cepat; evaluasi per jadwal'], p: ['Pembacaan kolom data evaluasi yang tidak sesuai'] },
-    { v: '1.1', t: '10 Nov 2026', b: ['Struktur organisasi, IDP pegawai, dan inovasi'], l: [], p: ['Tata letak bagan struktur organisasi'] },
-    { v: '1.0', t: '5 Nov 2026', b: ['Rilis awal: kinerja Konman, Rendiklat, evaluasi pembelajaran, dan risiko'], l: [], p: [] }
+    { v: '1.1', t: '10 Nov 2026', b: ['Struktur organisasi, IDP pegawai, dan inovasi'],
+      l: [], p: ['Tata letak bagan struktur organisasi'] },
+    { v: '1.0', t: '5 Nov 2026', b: ['Rilis awal: kinerja Konman, Rendiklat, evaluasi pembelajaran, dan risiko'],
+      l: [], p: [] }
   ];
   var KINI = RILIS[0];
   var A = function () { return window.DashApp; }, $ = function (id) { return document.getElementById(id); };
@@ -55,7 +50,7 @@
           kat.map(function (k) { return '<div class="rl-k"><span>' + k[1] + '</span><ul>' + r[k[0]].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>'; }).join('') + '</section>';
       }).join('') + '</div>' +
       (baru ? '<div class="ig-aksi"><button type="button" class="btn" data-rilis>Lihat semua catatan rilis</button><button type="button" class="btn primary" data-close>Mengerti</button></div>' :
-        '<p class="note">Penomoran X.Y — X naik untuk perubahan besar tampilan/cara pakai, Y naik setiap ada pembaruan.</p>'), 'rilis');
+        '<p class="note">Penomoran X.Y — X naik bila tampilan berubah total, Y naik untuk fitur baru. Perbaikan kecil tidak menaikkan versi.</p>'), 'rilis');
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-rilis]'); if (!b) return;
@@ -67,7 +62,7 @@
     var a = A(); if (!a || !a.S || !a.S.data || $('app').hidden) return;
     clearInterval(tunggu);
     var lihat = null; try { lihat = localStorage.getItem('updl_versi'); } catch (x) { /* abaikan */ }
-    if (lihat === KINI.v) return;
+    if (lihat === KINI.v || parseFloat(lihat) >= 3) { try { localStorage.setItem('updl_versi', KINI.v); } catch (x) { /* abaikan */ } return; }
     var coba = setInterval(function () {
       if (!$('modal').hidden) return;   // tunggu pengingat Admin ditutup
       clearInterval(coba);
