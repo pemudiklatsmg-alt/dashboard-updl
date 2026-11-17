@@ -20,7 +20,7 @@
   }
   // vals: 12 angka/null · bayang: 12 angka (rencana, digambar samar di belakang) · sel: bulan terpilih (1-12)
   function batang(vals, o) {
-    o = o || {}; var W = 640, H = o.h || 245, L = 40, R = 8, T = 18, Bm = 24, cw = (W - L - R) / 12;
+    o = o || {}; var W = D.lebarSvg(640), H = D.sempit() ? Math.min(o.h || 245, 210) : o.h || 245, L = 40, R = 8, T = 18, Bm = 24, cw = (W - L - R) / 12;
     var semua = vals.concat(o.bayang || []).filter(function (v) { return v !== null && v !== undefined; });
     var mx = skala(Math.max.apply(null, [0].concat(semua)) * 1.08), y = function (v) { return T + (H - T - Bm) * (1 - v / mx); };
     var s = '<svg class="gx-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.label || 'Grafik per bulan') + '">';
@@ -29,14 +29,14 @@
       var x = L + i * cw + cw * 0.191, w = cw * 0.618, on = o.sel === i + 1, b = o.bayang ? o.bayang[i] : null;
       if (b) s += '<rect' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-ghost" x="' + x + '" y="' + y(b) + '" width="' + w + '" height="' + (y(0) - y(b)) + '" rx="4"><title>' + BLN[i] + ' · ' + esc(o.namaBayang || 'rencana') + ': ' + D.fmt(b, 0) + '</title></rect>';
       if (v) s += '<path' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-bar' + (on ? ' on' : '') + '" d="M' + x + ',' + y(0) + 'V' + (y(v) + 4) + 'q0,-4 4,-4h' + (w - 8) + 'q4,0 4,4V' + y(0) + 'z"><title>' + BLN[i] + ': ' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + (b ? ' dari ' + D.fmt(b, 0) + ' ' + esc(o.namaBayang || 'rencana') : '') + '</title></path>';
-      if (v) s += '<text class="gx-val' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (y(Math.max(v, b || 0)) - 5) + '" text-anchor="middle">' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + '</text>';
+      if (v) s += '<text class="gx-val' + (on ? ' on' : '') + (v === Math.max.apply(null, vals.map(function (q) { return q || 0; })) && !(o.sel && Math.abs(i + 1 - o.sel) <= 1) ? ' pen' : '') + '" x="' + (x + w / 2) + '" y="' + (y(Math.max(v, b || 0)) - 5) + '" text-anchor="middle">' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + '</text>';
       s += '<text class="gx-ax' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (H - 7) + '" text-anchor="middle">' + BL[i] + '</text>';
     });
     return s + '<line class="gx-base" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '"/></svg>';
   }
   // seri: [{n, v:[12], c:'a'|'b'}] · o.min/o.max · o.target
   function garis(seri, o) {
-    o = o || {}; var W = 640, H = o.h || 245, L = 40, R = 12, T = 14, Bm = 24, cw = (W - L - R) / 12;
+    o = o || {}; var W = D.lebarSvg(640), H = D.sempit() ? Math.min(o.h || 245, 210) : o.h || 245, L = 40, R = 12, T = 14, Bm = 24, cw = (W - L - R) / 12;
     var ada = []; seri.forEach(function (sr) { sr.v.forEach(function (v) { if (v !== null && v !== undefined) ada.push(v); }); }); if (o.target) ada.push(o.target);
     if (!ada.length) return '<div class="empty">Belum ada data tahun ini.</div>';
     var mn = Math.min.apply(null, ada), mxv = Math.max.apply(null, ada), st = [0.05, 0.1, 0.25, 0.5, 1].filter(function (x) { return (mxv - mn + 0.1) / x <= 4; })[0] || 1;
@@ -54,7 +54,8 @@
         if (v === null || v === undefined) return;
         s += '<circle class="gx-dot ' + sr.c + (o.sel === i + 1 ? ' on' : '') + '" cx="' + x(i).toFixed(1) + '" cy="' + y(v).toFixed(1) + '" r="' + (o.sel === i + 1 ? 5.5 : 4) + '"><title>' + BLN[i] + ' · ' + esc(sr.n) + ': ' + D.fmt(v, 2) + '</title></circle>';
         var lain = seri.filter(function (q) { return q !== sr && q.v[i] !== null && q.v[i] !== undefined; })[0], bawah = lain && lain.v[i] > v;
-        s += '<text class="gx-val ' + (o.sel === i + 1 ? 'on ' : '') + sr.c + '" x="' + x(i) + '" y="' + (bawah ? y(v) + 17 : y(v) - 9) + '" text-anchor="middle">' + D.fmt(v, 2) + '</text>';
+        var vs = sr.v.filter(function (q) { return q !== null && q !== undefined; });
+        s += '<text class="gx-val ' + (o.sel === i + 1 ? 'on ' : '') + ((v === Math.max.apply(null, vs) || v === Math.min.apply(null, vs)) && !(o.sel && Math.abs(i + 1 - o.sel) <= 1) ? 'pen ' : '') + sr.c + '" x="' + x(i) + '" y="' + (bawah || (D.sempit() && vs.length > 1 && v === Math.min.apply(null, vs)) ? y(v) + 19 : y(v) - 9) + '" text-anchor="middle">' + D.fmt(v, 2) + '</text>';
       });
     });
     for (var i = 0; i < 12; i++) s += '<text class="gx-ax' + (o.sel === i + 1 ? ' on' : '') + '" x="' + x(i) + '" y="' + (H - 7) + '" text-anchor="middle">' + BL[i] + '</text>';

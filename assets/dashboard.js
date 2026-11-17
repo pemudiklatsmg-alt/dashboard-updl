@@ -90,7 +90,7 @@
       '<path d="M15 82 A70 70 0 0 1 155 82" fill="none" stroke="var(--track)" stroke-width="12" stroke-linecap="round"/>' +
       (v ? '<path d="M15 82 A70 70 0 0 1 ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1) + '" fill="none" stroke="' + cv(st.c) + '" stroke-width="12" stroke-linecap="round"/>' : '') +
       '<line x1="' + t1[0].toFixed(1) + '" y1="' + t1[1].toFixed(1) + '" x2="' + t2[0].toFixed(1) + '" y2="' + t2[1].toFixed(1) + '" stroke="var(--ink)" stroke-width="2"/>' +
-      '<text x="' + cx + '" y="' + (cy - 8) + '" text-anchor="middle" font-family="var(--f-display)" font-weight="700" font-size="24" fill="var(--ink)">' + (v === null ? '–' : D.fmt(v * 100, 1) + '%') + '</text></svg>';
+      '<text x="' + cx + '" y="' + (cy - 8) + '" text-anchor="middle" style="font-family:var(--f-display)" font-weight="700" font-size="24" fill="var(--ink)">' + (v === null ? '–' : D.fmt(v * 100, 1) + '%') + '</text></svg>';
   }
   /* Lingkaran progres: f = 0..1 (null = tanpa data) */
   function ring(f, c, txt, label) {
@@ -471,7 +471,7 @@
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -482,11 +482,11 @@
         var top = y(Math.max(v, 0));
         s += '<g data-m="' + m + '"><rect class="hit" x="' + (cx - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>' +
           '<path class="b ' + status(v / 100).c + (sel ? ' sel' : '') + '" d="M' + x + ' ' + (T + ih) + 'V' + (top + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (T + ih) + 'z"><title>' + D.cap(Bn) + ': ' + D.fmt(v, 2) + '</title></path>' +
-          '<text class="bl num' + (sel ? ' on' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
+          '<text class="bl num' + (sel ? ' on' : '') + (v === Math.max.apply(null, vals.filter(function (q) { return q !== null; })) && Math.abs(m - S.bulan) > 1 ? ' pen' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
       }
-      s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (sel ? ' font-weight="700" fill="var(--ink)"' : '') + '>' + D.BLN3[m - 1] + '</text>';
+      s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (sel ? ' font-weight="700" fill="var(--ink)"' : '') + '>' + (D.sempit() ? D.BLN3[m - 1].charAt(0) : D.BLN3[m - 1]) + '</text>';
     });
-    s += '<line class="tgt" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(100) + '" y2="' + y(100) + '"/><text class="tgt-l" x="' + (W - Rr) + '" y="' + (y(100) - 4) + '" text-anchor="end">Target 100</text></svg>';
+    s += '<line class="tgt" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(100) + '" y2="' + y(100) + '"/>' + (D.sempit() ? '' : '<text class="tgt-l" x="' + (W - Rr) + '" y="' + (y(100) - 4) + '" text-anchor="end">Target 100</text>') + '</svg>';
     $('monthChart').innerHTML = s;
     Array.prototype.forEach.call($('monthChart').querySelectorAll('g[data-m]'), function (gg) { gg.addEventListener('click', function () { setPeriode(S.tahun, +gg.getAttribute('data-m')); }); });
   }
@@ -1184,12 +1184,12 @@
 
   /* ---------- modals: kelas, HOP, rekap ---------- */
   function barChart(vals, labels, selIdx, unit) {
-    var mx = Math.max.apply(null, vals.concat([1])), W = 600, H = 229, step = (W - 16) / vals.length, bw = step * 0.618, ih = H - 40;
+    var mx = Math.max.apply(null, vals.concat([1])), W = D.lebarSvg(600), H = D.sempit() ? 200 : 229, step = (W - 16) / vals.length, bw = step * 0.618, ih = H - 40;
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + vals.map(function (v, i) {
       var cx = 8 + step * i + step / 2, h = v / mx * ih, y = 14 + ih - h;
-      return (v ? '<path class="b' + (i === selIdx ? ' sel' : '') + '" d="M' + (cx - bw / 2) + ' ' + (14 + ih) + 'V' + (y + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (14 + ih) + 'z"><title>' + labels[i] + ': ' + D.fmt(v, 0) + ' ' + unit + '</title></path><text class="bl" x="' + cx + '" y="' + (y - 4) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
-        (v ? '<text class="bl num' + (i === selIdx ? ' on' : '') + '" x="' + cx + '" y="' + (y - 5) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
-        '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + labels[i] + '</text>';
+      return (v ? '<path class="b' + (i === selIdx ? ' sel' : '') + '" d="M' + (cx - bw / 2) + ' ' + (14 + ih) + 'V' + (y + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (14 + ih) + 'z"><title>' + labels[i] + ': ' + D.fmt(v, 0) + ' ' + unit + '</title></path>' : '') +
+        (v ? '<text class="bl num' + (i === selIdx ? ' on' : '') + (v === mx ? ' pen' : '') + '" x="' + cx + '" y="' + (y - 5) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
+        '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + (D.sempit() && vals.length > 6 ? String(labels[i]).charAt(0) : labels[i]) + '</text>';
     }).join('') + '</svg>';
   }
   function openKelas() {
@@ -1396,6 +1396,9 @@
   }
   function jadwalGulir() { clearTimeout(tGulir); tGulir = setTimeout(aturGulir, 60); }
   window.addEventListener('resize', jadwalGulir);
+  // grafik di HP digambar sesuai lebar layar: gambar ulang bila lebar layar berubah cukup jauh (mis. HP diputar)
+  (function () { var lw = window.innerWidth, t = 0; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(function () {
+    var w = window.innerWidth; if ((w <= 700 || lw <= 700) && Math.abs(w - lw) > 60 && !document.body.classList.contains('pres')) { lw = w; try { renderAll(); } catch (e) { /* abaikan */ } } }, 250); }); })();
   (function () { var mc = document.getElementById('modalC'); if (mc && window.MutationObserver) new MutationObserver(function (r) { if (r.some(function (x) { return x.type === 'childList'; })) jadwalGulir(); }).observe(mc, { childList: true, subtree: true }); })();
   function lapis(f) {
     return function () {
@@ -1755,7 +1758,7 @@
     if (!isFinite(mn)) mn = 0;
     var pad = (mx - mn) * 0.15 || 1; mx += pad; mn = Math.max(0, mn - pad);
     if (!o.des) { mn = Math.floor(mn); var st = Math.max(1, Math.ceil((mx - mn) / 4)); mx = mn + st * 4; }   // sumbu bilangan bulat tanpa label kembar
-    var W = 680, H = 260, L = 40, R = 16, T = 22, B = 30, n = 12, X = function (m) { return L + (m - 0.5) * (W - L - R) / n; }, Y = function (v) { return T + (1 - (v - mn) / (mx - mn || 1)) * (H - T - B); };
+    var W = D.lebarSvg(680), H = D.sempit() ? 220 : 260, L = 40, R = 16, T = 22, B = 30, n = 12, X = function (m) { return L + (m - 0.5) * (W - L - R) / n; }, Y = function (v) { return T + (1 - (v - mn) / (mx - mn || 1)) * (H - T - B); };
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tren-svg" role="img" aria-label="' + esc(o.judul) + ' per bulan">';
     for (var g = 0; g <= 4; g++) { var gv = mn + (mx - mn) * g / 4; s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(gv) + '" y2="' + Y(gv) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (Y(gv) + 4) + '" text-anchor="end">' + D.fmt(gv, o.des ? 1 : 0) + '</text>'; }
     if (tg.length) s += '<path class="tgt" d="' + tg.map(function (x, k) { return (k ? 'L' : 'M') + X(x.m) + ' ' + Y(x.v); }).join(' ') + '"/><text class="tgt-l" x="' + (W - R) + '" y="' + (Y(tg[tg.length - 1].v) - 6) + '" text-anchor="end">Target</text>';
@@ -1765,9 +1768,9 @@
     ada.forEach(function (x, k) {
       var naik = k ? x.v - ada[k - 1].v : 0, baik = o.turunBaik ? naik < 0 : naik > 0, kls = !k || !naik ? '' : baik ? 'up' : 'dn';
       s += '<circle class="tl-p ' + (x.m === S.bulan ? 'on ' : '') + kls + '" cx="' + X(x.m) + '" cy="' + Y(x.v) + '" r="' + (x.m === S.bulan ? 6 : 4.5) + '"><title>' + namaBulan(x.m) + ': ' + D.fmt(x.v, o.des) + '</title></circle>' +
-        '<text class="tl-v' + (x.m === S.bulan ? ' on' : '') + '" x="' + X(x.m) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + D.fmt(x.v, o.des) + '</text>';
+        '<text class="tl-v' + (x.m === S.bulan ? ' on' : '') + (x.v === Math.max.apply(null, ada.map(function (q) { return q.v; })) || x.v === Math.min.apply(null, ada.map(function (q) { return q.v; })) ? ' pen' : '') + '" x="' + X(x.m) + '" y="' + (Y(x.v) - 11) + '" text-anchor="middle">' + D.fmt(x.v, o.des) + '</text>';
     });
-    for (var m = 1; m <= 12; m++) s += '<text class="ax' + (m === S.bulan ? ' on' : '') + '" x="' + X(m) + '" y="' + (H - 9) + '" text-anchor="middle">' + D.BLN3[m - 1] + '</text>';
+    for (var m = 1; m <= 12; m++) s += '<text class="ax' + (m === S.bulan ? ' on' : '') + '" x="' + X(m) + '" y="' + (H - 9) + '" text-anchor="middle">' + (D.sempit() ? D.BLN3[m - 1].charAt(0) : D.BLN3[m - 1]) + '</text>';
     return s + '</svg>';
   }
   function openTren(i) {

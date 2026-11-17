@@ -2180,3 +2180,17 @@ body.pres .pair.solo-0 .kx-list { display: grid; grid-template-columns: 1fr 1fr;
 body.pres [data-bagian="isu"].solo-0 .kx-list { row-gap: 4px; }
 body.pres [data-bagian="isu"].solo-0 .kx-row { padding-top: 5px; padding-bottom: 5px; }
 body.pres [data-bagian="isu"].solo-0 .bars { gap: 4px; }
+
+/* HP: grafik digambar selebar layar; angka nilai hanya bulan terpilih & titik tertinggi/terendah agar tidak bertumpuk */
+@media (max-width: 700px) {
+  .gx-svg .gx-val:not(.on):not(.pen), #monthChart .bl:not(.on):not(.pen), .tren-svg .tl-v:not(.on):not(.pen), .modal-c svg .bl:not(.on):not(.pen) { display: none; }
+  .gx-ax, .gx-val, .gx-tgt-t, svg .ax, svg .bl, svg .tl-v, svg .tgt-l { font-size: 12px; }
+  .gx-val.on, svg .bl.on, svg .tl-v.on { font-size: 13px; }
+}
+
+/* Satu jenis huruf untuk seluruh website: huruf Apple (SF Pro) di iPhone/iPad/Mac;
+   perangkat lain memakai Inter, huruf paling mirip SF Pro yang boleh dipakai bebas di web */
+:root { --f-apple: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-display: var(--f-apple); --f-body: var(--f-apple); --f-serif: var(--f-apple); --f-compact: var(--f-apple); --f-mono: var(--f-apple); }
+body, button, input, select, textarea, option, svg text { font-family: var(--f-apple); }
+.at-u { font-family: var(--f-apple); font-variant-numeric: tabular-nums; }

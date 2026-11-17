@@ -355,7 +355,11 @@
   function cachedData() { return MEM; }
   function hapusCache() { /* data lama tetap tampil sampai data baru datang */ }
 
+  /* grafik di layar sempit digambar selebar layar (bukan digambar lebar lalu diperkecil) agar huruf tetap ≥ 12px */
+  function sempit() { return window.innerWidth <= 700; }
+  function lebarSvg(def) { return sempit() ? Math.max(260, Math.min(def, window.innerWidth - 98)) : def; }
   window.Dash = {
+    sempit: sempit, lebarSvg: lebarSvg,
     BULAN: BULAN, BLN3: BLN3, cap: cap, num: num, esc: esc, fmt: fmt, pct: pct, rows: rows,
     parseKonman: parseKonman, capaianItem: capaianItem, bobotFor: bobotFor, hasData: hasData,
     tgl: tgl, hariKerja: hariKerja, akhirBulan: akhirBulan, parseRendiklat: parseRendiklat, hitungRendiklat: hitungRendiklat,
