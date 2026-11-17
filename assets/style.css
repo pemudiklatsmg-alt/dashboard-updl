@@ -2271,3 +2271,18 @@ body:not(.peran-admin) .modal-c.guide :is(#g1,#g2,#g3,#g4,#g5,#g6), body:not(.pe
 .g-lihat { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; max-width: 70ch; }
 body.peran-admin .g-lihat { display: none; }
 body:not(.peran-admin) .modal-c.guide .modal-h .desc, body:not(.peran-admin) #g7 .no { display: none !important; }
+/* Panduan: ikon sama dengan menu + ilustrasi kecil */
+#g7 .time div { display: flex; flex-direction: column; gap: 4px; }
+.g-ik { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); margin-bottom: 6px; }
+.g-ik svg { width: 18px; height: 18px; }
+.g-mock { margin-top: auto; padding-top: 10px; display: flex; align-items: flex-end; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.g-mock i { font-style: normal; }
+.gm-pill { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: var(--sheet); color: var(--ink); }
+.gm-arrow { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); }
+.gm-bars { height: 44px; } .gm-bars i { width: 14px; border-radius: 4px 4px 2px 2px; background: var(--bar, #3b4a8a); opacity: .35; }
+.gm-bars i.on { opacity: 1; background: var(--accent); }
+.gm-live { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); align-self: center; }
+.gm-seg { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); } .gm-seg.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+body:not(.peran-admin) #g7 > h4 { display: none; }
+body:not(.peran-admin) .g-lihat { margin-top: 0; }
+body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: span 2; }
