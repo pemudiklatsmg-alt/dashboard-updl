@@ -1907,3 +1907,25 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 @media (max-width: 640px) {
   body.nb-aktif:not(.nb-kcl) .nb-isi { pointer-events: auto !important; touch-action: pan-x; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 }
+
+/* ===================== Proporsi rasio emas (φ ≈ 1,618) =====================
+   Lebar dua kolom 62 : 38 · tingkatan huruf ×≈1,6 (14 → 22 → 36 → 58) · jarak 8 · 13 · 21 · 34 */
+:root { --phi-1: 8px; --phi-2: 13px; --phi-3: 21px; --phi-4: 34px; }
+/* 1) lebar kolom */
+.rgk-top, .row2, .gx-row { grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr); }
+@media (max-width: 1000px) { .rgk-top { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .row2, .gx-row { grid-template-columns: minmax(0, 1fr); } }
+.rgk-top.satu { grid-template-columns: minmax(0, 1fr); }
+/* 2) tingkatan huruf */
+.panel h2 { font-size: 22px; letter-spacing: -.012em; }
+.rgk-tile b { font-size: 36px; }
+.rgk-big { font-size: clamp(40px, 5.2vw, 58px); }
+@media (max-width: 700px) { .panel h2 { font-size: 19px; } .rgk-tile b { font-size: 28px; } }
+/* 3) jarak */
+.sheet { gap: var(--phi-4); }
+.rgk, .rgk-top, .rgk-t, .row2, .gx-row, .kpis { gap: var(--phi-3); }
+.panel { padding: var(--phi-3) var(--phi-3); }
+.rgk-tile { padding: var(--phi-3); gap: var(--phi-1); }
+.rgk-tile .rgk-lbl { gap: var(--phi-2); }
+.panel-h { gap: var(--phi-2); margin-bottom: var(--phi-2); }
+@media (max-width: 700px) { .sheet { gap: var(--phi-3); } .rgk, .rgk-top, .rgk-t, .row2, .gx-row, .kpis { gap: var(--phi-2); } .panel, .rgk-tile { padding: 17px; } }
