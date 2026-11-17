@@ -1356,10 +1356,53 @@
     menutup = 0; if (G) { G.bersih($('modal')); G.bersih($('modalC')); }
     if ($('modal').hidden) { lastFocus = document.activeElement; modalAsal = G ? G.catat() : null; }
     $('modalC').className = 'modal-c' + (kelas ? ' ' + kelas : ''); $('modalC').innerHTML = html; $('modal').hidden = false;
+    hiasKepala();
     var b = $('modalC').querySelector('[data-close]'); if (b) b.focus({ preventScroll: true });
     if (G && modalAsal && baru) { G.pudar($('modal'), true); G.jalan($('modalC'), modalAsal.r || G.balik(modalAsal), true); }
   }
-  function closeModal() {
+  /* ---------- jendela berlapis: ✕ untuk menutup, ← Kembali ke jendela sebelumnya ---------- */
+  var lapisan = [], bukaKini = null, fnKini = null, nHist = 0, abaikanPop = 0;
+  function hiasKepala() {
+    var mc = $('modalC'), h = mc.querySelector('.modal-h'); if (!h) return;
+    var x = h.querySelector(':scope > [data-close]');
+    if (x && !x.classList.contains('m-x')) { x.className = 'm-x'; x.setAttribute('aria-label', 'Tutup'); x.setAttribute('title', 'Tutup'); x.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
+    var lama = h.querySelector('.m-back'); if (lama) lama.remove();
+    mc.classList.toggle('ada-back', lapisan.length > 0);
+    if (lapisan.length) h.insertAdjacentHTML('afterbegin', '<button type="button" class="m-back" data-mback><span aria-hidden="true">←</span> Kembali</button>');
+  }
+  function lapis(f) {
+    return function () {
+      var a = arguments, m = $('modal');
+      if (!m.hidden && !menutup && bukaKini && fnKini !== f) {
+        lapisan.push(bukaKini);
+        try { history.pushState({ updlModal: 1 }, ''); nHist++; } catch (e) { /* abaikan */ }
+      } else if (m.hidden || menutup) {
+        lapisan = [];
+        try { history.pushState({ updlModal: 1 }, ''); nHist++; } catch (e) { /* abaikan */ }
+      }
+      bukaKini = function () { f.apply(null, a); }; fnKini = f;
+      return f.apply(this, a);
+    };
+  }
+  function kembaliLapis() {
+    var prev = lapisan.pop(); if (!prev) return closeModal();
+    bukaKini = prev; fnKini = null; prev(); hiasKepala();
+  }
+  // tombol kembali bawaan HP / browser menutup satu lapis jendela
+  window.addEventListener('popstate', function () {
+    if (abaikanPop > 0) { abaikanPop--; return; }
+    if (nHist > 0) nHist--;
+    if ($('modal').hidden) return;
+    if (lapisan.length) kembaliLapis(); else { nHist = 0; closeModal(true); }
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-mback]'); if (!b) return;
+    e.stopPropagation();
+    if (nHist > 0) history.back(); else kembaliLapis();
+  }, true);
+  function closeModal(dariHistori) {
+    if (!dariHistori && nHist > 0) { abaikanPop += 1; var n = nHist; nHist = 0; try { history.go(-n); } catch (e) { abaikanPop = 0; } }
+    lapisan = []; bukaKini = null; fnKini = null;
     if ($('modal').hidden || menutup) return;
     var token = menutup = Date.now();
     function selesai() { if (menutup !== token) return; menutup = 0; $('modal').hidden = true; $('modalC').innerHTML = ''; if (G) { G.bersih($('modal')); } if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
@@ -1951,6 +1994,7 @@
   });
 
   /* dipakai input.js dan export.js */
+  openKualitas = lapis(openKualitas); openSegar = lapis(openSegar); openCapaian = lapis(openCapaian); openInd = lapis(openInd); openTL = lapis(openTL); modalKri = lapis(modalKri); openFra = lapis(openFra); openFr = lapis(openFr); openIdp = lapis(openIdp); openIno = lapis(openIno); openIsu = lapis(openIsu); openPbList = lapis(openPbList); openPihak = lapis(openPihak); openOrg = lapis(openOrg); openKelas = lapis(openKelas); openHop = lapis(openHop); openKepuasan = lapis(openKepuasan); openInstruktur = lapis(openInstruktur); openKsa = lapis(openKsa); openCc = lapis(openCc); openSert = lapis(openSert); openRekap = lapis(openRekap); openTren = lapis(openTren);
   window.DashApp = {
     S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
