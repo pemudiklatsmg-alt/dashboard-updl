@@ -1515,6 +1515,17 @@
       var h = d.parentElement && d.parentElement.querySelector('h2, h3'); if (!h || h.querySelector('.info-i')) return;
       h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(d.textContent.trim()) + '"></button>');
       d.classList.add('desc-lipat');
+      var pn = d.closest('.panel, .card'); if (pn && !pn.dataset.kunciKet) { pn.dataset.kunciKet = 1;
+        // saat disorot: keterangan muncul tanpa mengubah ukuran kartu. Bila ada ruang, isi kartu yang merapat; bila tidak, keterangan melayang di bawah judul
+        pn.addEventListener('mouseenter', function () {
+          var ds = pn.querySelector('.desc-lipat'); if (!ds) return; var tg = pn.offsetHeight;
+          ds.classList.add('tampil'); if (pn.offsetHeight <= tg + 1) return;
+          pn.style.height = tg + 'px';
+          if (pn.scrollHeight > tg + 1) pn.classList.add('rapat');
+          if (pn.scrollHeight > tg + 1) { pn.classList.remove('rapat'); pn.style.height = ''; ds.classList.remove('tampil'); var hh = pn.querySelector('h2, h3'); ds.classList.add('melayang'); ds.style.top = (hh ? hh.offsetTop + hh.offsetHeight + 4 : 48) + 'px'; }
+        });
+        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang'); ds.style.top = ''; } });
+      }
     });
   }
   (function () { var t = 0, mn = document.querySelector('main'); if (mn && window.MutationObserver) new MutationObserver(function () { clearTimeout(t); t = setTimeout(lipatKet, 80); }).observe(mn, { childList: true, subtree: true }); })();
