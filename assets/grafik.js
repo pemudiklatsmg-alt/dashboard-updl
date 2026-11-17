@@ -12,13 +12,13 @@
   function skala(maks) { if (maks <= 0) return 1; var p = Math.pow(10, Math.floor(Math.log10(maks))), n = maks / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
   // vals: 12 angka/null · bayang: 12 angka (rencana, digambar samar di belakang) · sel: bulan terpilih (1-12)
   function batang(vals, o) {
-    o = o || {}; var W = 640, H = o.h || 210, L = 40, R = 8, T = 18, Bm = 24, cw = (W - L - R) / 12;
+    o = o || {}; var W = 640, H = o.h || 245, L = 40, R = 8, T = 18, Bm = 24, cw = (W - L - R) / 12;
     var semua = vals.concat(o.bayang || []).filter(function (v) { return v !== null && v !== undefined; });
     var mx = skala(Math.max.apply(null, [0].concat(semua)) * 1.08), y = function (v) { return T + (H - T - Bm) * (1 - v / mx); };
     var s = '<svg class="gx-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.label || 'Grafik per bulan') + '">';
     for (var g = 0; g <= 4; g++) { var gv = mx * g / 4, gy = y(gv); s += '<line class="gx-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '"/><text class="gx-ax" x="' + (L - 6) + '" y="' + (gy + 3.5) + '" text-anchor="end">' + esc(o.fmtAx ? o.fmtAx(gv) : D.fmt(gv, 0)) + '</text>'; }
     vals.forEach(function (v, i) {
-      var x = L + i * cw + cw * 0.18, w = cw * 0.64, on = o.sel === i + 1, b = o.bayang ? o.bayang[i] : null;
+      var x = L + i * cw + cw * 0.191, w = cw * 0.618, on = o.sel === i + 1, b = o.bayang ? o.bayang[i] : null;
       if (b) s += '<rect' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-ghost" x="' + x + '" y="' + y(b) + '" width="' + w + '" height="' + (y(0) - y(b)) + '" rx="4"><title>' + BLN[i] + ' · ' + esc(o.namaBayang || 'rencana') + ': ' + D.fmt(b, 0) + '</title></rect>';
       if (v) s += '<path' + (o.klik ? ' data-gxm="' + (i + 1) + '"' : '') + ' class="gx-bar' + (on ? ' on' : '') + '" d="M' + x + ',' + y(0) + 'V' + (y(v) + 4) + 'q0,-4 4,-4h' + (w - 8) + 'q4,0 4,4V' + y(0) + 'z"><title>' + BLN[i] + ': ' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + (b ? ' dari ' + D.fmt(b, 0) + ' ' + esc(o.namaBayang || 'rencana') : '') + '</title></path>';
       if (v) s += '<text class="gx-val' + (on ? ' on' : '') + '" x="' + (x + w / 2) + '" y="' + (y(Math.max(v, b || 0)) - 5) + '" text-anchor="middle">' + esc(o.fmt ? o.fmt(v) : D.fmt(v, 0)) + '</text>';
@@ -28,7 +28,7 @@
   }
   // seri: [{n, v:[12], c:'a'|'b'}] · o.min/o.max · o.target
   function garis(seri, o) {
-    o = o || {}; var W = 640, H = o.h || 210, L = 40, R = 12, T = 14, Bm = 24, cw = (W - L - R) / 12;
+    o = o || {}; var W = 640, H = o.h || 245, L = 40, R = 12, T = 14, Bm = 24, cw = (W - L - R) / 12;
     var ada = []; seri.forEach(function (sr) { sr.v.forEach(function (v) { if (v !== null && v !== undefined) ada.push(v); }); }); if (o.target) ada.push(o.target);
     if (!ada.length) return '<div class="empty">Belum ada data tahun ini.</div>';
     var mn = Math.min.apply(null, ada), mxv = Math.max.apply(null, ada), st = [0.05, 0.1, 0.25, 0.5, 1].filter(function (x) { return (mxv - mn + 0.1) / x <= 4; })[0] || 1;

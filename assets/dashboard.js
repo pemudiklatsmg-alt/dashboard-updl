@@ -94,15 +94,15 @@
   }
   /* Lingkaran progres: f = 0..1 (null = tanpa data) */
   function ring(f, c, txt, label) {
-    var R = 26, C = 2 * Math.PI * R, v = f === null || f === undefined || !isFinite(f) ? null : Math.max(0, Math.min(1, f));
+    var R = 24.5, C = 2 * Math.PI * R, v = f === null || f === undefined || !isFinite(f) ? null : Math.max(0, Math.min(1, f));
     return '<svg class="ring" viewBox="0 0 64 64" role="img" aria-label="' + esc(label || txt) + '">' +
-      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="7"/>' +
-      (v ? '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(c) + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (C * v).toFixed(2) + ' ' + C.toFixed(2) + '" transform="rotate(-90 32 32)"/>' : '') +
+      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="11.5"/>' +
+      (v ? '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(c) + '" stroke-width="11.5" stroke-linecap="round" stroke-dasharray="' + (C * v).toFixed(2) + ' ' + C.toFixed(2) + '" transform="rotate(-90 32 32)"/>' : '') +
       '<text x="32" y="36" text-anchor="middle" class="ring-t">' + esc(txt) + '</text></svg>';
   }
   /* Donat beberapa segmen: seg = [{n, c, t}] */
   function donut(seg, txt, sub) {
-    var R = 26, C = 2 * Math.PI * R, tot = seg.reduce(function (a, x) { return a + x.n; }, 0), off = 0, gap = seg.filter(function (x) { return x.n; }).length > 1 ? 1.6 : 0;
+    var R = 24.5, C = 2 * Math.PI * R, tot = seg.reduce(function (a, x) { return a + x.n; }, 0), off = 0, gap = seg.filter(function (x) { return x.n; }).length > 1 ? 1.6 : 0;
     var h = '<svg class="ring donut" viewBox="0 0 64 64" role="img" aria-label="' + esc(seg.map(function (x) { return x.t + ' ' + x.n; }).join(', ')) + '">' +
       '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="8"/>';
     if (tot) seg.forEach(function (x) {
@@ -443,7 +443,7 @@
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : 250, L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -1121,7 +1121,7 @@
 
   /* ---------- modals: kelas, HOP, rekap ---------- */
   function barChart(vals, labels, selIdx, unit) {
-    var mx = Math.max.apply(null, vals.concat([1])), W = 600, H = 170, step = (W - 16) / vals.length, bw = step * 0.6, ih = H - 40;
+    var mx = Math.max.apply(null, vals.concat([1])), W = 600, H = 229, step = (W - 16) / vals.length, bw = step * 0.618, ih = H - 40;
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img">' + vals.map(function (v, i) {
       var cx = 8 + step * i + step / 2, h = v / mx * ih, y = 14 + ih - h;
       return (v ? '<path class="b' + (i === selIdx ? ' sel' : '') + '" d="M' + (cx - bw / 2) + ' ' + (14 + ih) + 'V' + (y + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (14 + ih) + 'z"><title>' + labels[i] + ': ' + D.fmt(v, 0) + ' ' + unit + '</title></path><text class="bl" x="' + cx + '" y="' + (y - 4) + '" text-anchor="middle">' + D.fmt(v, 0) + '</text>' : '') +
