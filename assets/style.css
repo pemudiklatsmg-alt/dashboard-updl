@@ -1933,7 +1933,6 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .rgk-tren b, .rgk-tren .v { font-size: 11px !important; letter-spacing: -.02em; }
 .rgk-tren span.on b, .rgk-tren span.on .v { font-size: 14px !important; }
 @media (max-width: 700px) { .rgk-tren span.on b, .rgk-tren span.on .v { font-size: 11px !important; } }
-=======
 /* kotak peringatan di dalam kartu sorotan biru tua: latar kuning transparan, teks terang */
 body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel)
   :is(.warnbox, .note, .empty) { background: rgba(255,212,107,.16) !important; border-color: rgba(255,212,107,.45) !important; color: #fff !important; }
@@ -1947,3 +1946,11 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .rgk-s { font-size: 14px; }
 
 
+/* seri kedua grafik (mis. Penilaian instruktur) di kartu sorotan biru tua: pink terang agar terbaca */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel) {
+  --bar: #f5a8c6; --bar-dim: rgba(255,255,255,.2); --track: rgba(255,255,255,.14); }
+/* pengingat Admin: tautan langsung ke tempat data diperbaiki */
+.ig-ul li { display: flex; align-items: flex-start; gap: 8px; }
+.ig-ul li > span { flex: 1 1 auto; min-width: 0; }
+.ig-go { flex: none; align-self: center; font: 600 13px/1 var(--f-body); color: var(--accent); background: var(--accent-soft); padding: 7px 12px; border-radius: 999px; text-decoration: none; white-space: nowrap; }
+.ig-go:hover { background: var(--accent); color: var(--on-accent, #fff); }

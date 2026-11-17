@@ -274,8 +274,20 @@
   }
   /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai di luar aturan */
   function picUntuk(k) { var T = (S.data.meta || {}).tugas || {}, v = T.pic && T.pic[k]; if (typeof v === 'string') v = v.split(/\s*[,;\/&]\s*/); return v && v.length ? v : [PIC_DEF[k]]; }
+  /* tautan ke tempat data sebuah tugas diperbaiki: file luar (Profil Risiko, Rendiklat, MLI, FRA, DOC) atau tab di spreadsheet Data Dashboard */
+  function linkTugas(tab) {
+    if (!tab || !S.data) return '';
+    var L = (S.data.meta && S.data.meta.links) || {};
+    if (/Profil Risiko/i.test(tab)) return L.profilRisiko || '';
+    if (/^file Rendiklat|^Rendiklat\b/i.test(tab)) return (L.rendiklat && L.rendiklat[S.tahun]) || '';
+    if (/MLI|SMG/i.test(tab)) return L.mli || '';
+    if (/\bFRA\b/.test(tab)) return L.fra || '';
+    if (/DOC 1/i.test(tab)) return L.el1 || '';
+    if (/DOC 2/i.test(tab)) return L.el2 || '';
+    return urlTab(tab);
+  }
   function urlTab(tab, baris) {
-    var L = (S.data.meta && S.data.meta.links) || {}, u = L.data || DEFAULT_LINKS.data, g = L.gid && L.gid[tab];
+    var L = (S.data.meta && S.data.meta.links) || {}, u = L.data || DEFAULT_LINKS.data, g = L.gid && L.gid[tab]; if (typeof g !== 'number' && !/^\d+$/.test(String(g))) g = undefined;
     return u + (g !== undefined ? '#gid=' + g + (baris ? '&range=A' + baris : '') : '');
   }
   /* pemeriksaan kualitas isian: data ganda, kolom wajib kosong, nilai janggal. Tiap temuan membawa daftar baris untuk ditelusuri */
@@ -1744,7 +1756,8 @@
     var per = PIC_EPMK.map(function (p) {
       var X = L.filter(function (x) { return x.pics.indexOf(p) >= 0; }); if (!X.length) return '';
       return '<div class="ig-pic"><div class="ig-pic-h"><span class="tg-av">' + p.split(' ')[0] + '</span><b>' + p + '</b><small>' + X.length + ' tugas</small></div><ul class="ig-ul">' +
-        X.map(function (x) { return '<li data-st="' + x.st + '"><i></i><span><b>' + esc(x.judul) + '</b><small>' + esc(x.status) + (x.tab ? ' · ' + esc(x.tab) : '') + '</small></span></li>'; }).join('') + '</ul></div>';
+        X.map(function (x) { var u = linkTugas(x.tab); return '<li data-st="' + x.st + '"><i></i><span><b>' + esc(x.judul) + '</b><small>' + esc(x.status) + (x.tab ? ' · ' + esc(x.tab) : '') + '</small></span>' +
+          (u ? '<a class="ig-go" href="' + esc(u) + '" target="_blank" rel="noopener" title="Buka ' + esc(x.tab) + '">Buka ↗</a>' : '') + '</li>'; }).join('') + '</ul></div>';
     }).join('');
     openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length || Q.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim & data beres 🎉') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
       (L.length || Q.length ? '<div class="ig-sum"><span class="pill bad">' + nB + ' terlambat</span><span class="pill warn">' + nW + ' segera</span>' + (Q.length ? '<span class="pill bad">' + Q.length + ' masalah data</span>' : '') + '</div><div class="ig-list">' + per +
