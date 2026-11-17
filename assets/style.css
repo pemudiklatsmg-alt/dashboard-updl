@@ -1946,7 +1946,4 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .rgk-s, .desc, .note, .panel-h .desc, .rgk-hero p, .lbox p, .sn-t small, .ph-i, .mini-sum span { line-height: 1.45; }
 .rgk-s { font-size: 14px; }
 
-/* Varian B (uji coba): kartu abu muda di atas latar putih, seperti situs Apple — aktif bila <html class="kartu-abu"> */
-@media (prefers-color-scheme: light) { html.kartu-abu:not([data-theme="dark"]) { --g-bg: #ffffff; --g-card: #f5f5f7; --g-btn: #ffffff; --g-shadow: none; --g-border: transparent; --sheet: #f5f5f7; } }
-html.kartu-abu[data-theme="light"] { --g-bg: #ffffff; --g-card: #f5f5f7; --g-btn: #ffffff; --g-shadow: none; --g-border: transparent; --sheet: #f5f5f7; }
-html.kartu-abu .sheet { background: #ffffff !important; }
+

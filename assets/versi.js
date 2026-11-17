@@ -6,6 +6,8 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '2.8', t: '17 Nov 2026', b: [],
+      l: ['Proporsi rasio emas: lebar kolom 62 : 38, tangga ukuran huruf, jarak & lengkungan sudut yang seragam', 'Teks keterangan lebih besar dan lebih kontras, jarak antarbaris lebih lega', 'Grafik lebih proporsional dengan skala sumbu yang lebih rapat'], p: [] },
     { v: '2.7', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
       l: ['Mode terang lebih bersih: latar polos, kartu putih solid, bayangan lembut', 'Ikon kartu dalam kotak warna pastel sesuai status; label tanpa huruf kapital', 'Huruf judul & angka Plus Jakarta Sans'], p: [] },
     { v: '2.6', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
