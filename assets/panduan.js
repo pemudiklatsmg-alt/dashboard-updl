@@ -57,6 +57,43 @@
     if (!bisa) e.preventDefault();
   }, { passive: false });
 
+  /* HP: lembar menu bisa digeser ke bawah untuk menutup (seperti lembar bawah di aplikasi) */
+  (function () {
+    var y0 = null, t0 = 0, dy = 0, tarik = false;
+    function lepas(tutupkan) {
+      menu.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; scrim.style.transition = 'opacity .22s ease';
+      if (tutupkan) {
+        menu.style.transform = 'translateY(105%)'; scrim.style.opacity = '0';
+        var token = menutup = Date.now(); btn.setAttribute('aria-expanded', 'false'); document.documentElement.classList.remove('kunci-gulir');
+        setTimeout(function () { if (menutup !== token) return; menutup = 0; menu.hidden = true; scrim.hidden = true; menu.style.transform = ''; menu.style.transition = ''; scrim.style.opacity = ''; scrim.style.transition = ''; }, 230);
+      } else {
+        menu.style.transform = ''; scrim.style.opacity = '';
+        setTimeout(function () { menu.style.transition = ''; scrim.style.transition = ''; }, 240);
+      }
+    }
+    menu.addEventListener('touchstart', function (e) {
+      if (window.innerWidth > 640 || menu.hidden || menutup || e.touches.length !== 1) return;
+      // hanya bila daftar menu sudah di posisi paling atas (agar tidak bentrok dengan menggulir isi menu)
+      if (menu.scrollTop > 0) { y0 = null; return; }
+      y0 = e.touches[0].clientY; t0 = Date.now(); dy = 0; tarik = false;
+    }, { passive: true });
+    menu.addEventListener('touchmove', function (e) {
+      if (y0 === null) return;
+      dy = e.touches[0].clientY - y0;
+      if (!tarik && dy > 6) { tarik = true; menu.style.transition = 'none'; scrim.style.transition = 'none'; }
+      if (!tarik) return;
+      var d = Math.max(0, dy); menu.style.transform = 'translateY(' + d + 'px)';
+      scrim.style.opacity = String(Math.max(0, 1 - d / (menu.offsetHeight || 400)));
+      e.preventDefault();
+    }, { passive: false });
+    menu.addEventListener('touchend', function () {
+      if (y0 === null) return; y0 = null; if (!tarik) return; tarik = false;
+      var cepat = dy / Math.max(1, Date.now() - t0) > 0.6;           // jentikan cepat ke bawah
+      lepas(dy > Math.min(120, (menu.offsetHeight || 400) * 0.25) || (cepat && dy > 30));
+    });
+    menu.addEventListener('touchcancel', function () { if (tarik) lepas(false); y0 = null; tarik = false; });
+  })();
+
   /* titik status di samping judul mengikuti label status di menu */
   var badge = $('srcBadge'), dot = $('stDot');
   function sinkron() { var c = badge.className.match(/\b(live|snap|err)\b/); dot.className = 'st ' + (c ? c[1] : 'snap'); dot.title = badge.textContent; }
