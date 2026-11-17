@@ -1466,6 +1466,9 @@
   /* Satu bagian yang gagal tidak menghentikan bagian lain */
   /* ---------- ikon garis untuk judul panel & kotak Ringkasan ---------- */
   var IKON = {
+    pensil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    centang: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+    file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
     kalender: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     bulan: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
     org: '<rect x="9" y="3" width="6" height="5" rx="1.5"/><rect x="3" y="16" width="6" height="5" rx="1.5"/><rect x="15" y="16" width="6" height="5" rx="1.5"/><path d="M12 8v4M6 16v-2h12v2"/>',
@@ -1651,7 +1654,7 @@
           '<span class="tg-meta"><span class="tg-tag">' + esc(x.jenis) + '</span>' + sheetLink(x.tab) + '</span></div>' +
           '<div class="tg-when"><span class="tg-pic-c">' + esc(x.pic) + '</span>' + (x.akhirTeks !== '—' ? '<span>' + esc(x.akhirTeks) + '</span>' : '') + (x.batas !== '—' ? '<small>' + esc(x.batas) + '</small>' : '') + '</div>' +
           '<div class="tg-st"><span class="pill ' + (x.st === 'idle' ? '' : x.st) + '">' + esc(x.status) + '</span>' + (x.act ? '<button type="button" class="btn sm" data-act="' + x.act + '">Lihat</button>' : '') + '</div></div>';
-      }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini. 🎉</div>') + '</div>' +
+      }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini.</div>') + '</div>' +
       '<p class="note tg-cara">PIC tiap tugas dan batas waktu bisa diubah di halaman <button type="button" class="lnk" data-vt="pengaturan">Pengaturan</button>.</p></div>';
   }
   function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
@@ -1910,7 +1913,7 @@
         X.map(function (x) { var u = linkTugas(x.tab); return '<li data-st="' + x.st + '"><i></i><span><b>' + esc(x.judul) + '</b><small>' + esc(x.status) + (x.tab ? ' · ' + esc(x.tab) : '') + '</small></span>' +
           (u ? '<a class="ig-go" href="' + esc(u) + '" target="_blank" rel="noopener" title="Buka ' + esc(x.tab) + '">Buka ↗</a>' : '') + '</li>'; }).join('') + '</ul></div>';
     }).join('');
-    openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length || Q.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim & data beres 🎉') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
+    openModal('<div class="modal-h"><div><div class="desc">' + sapa + ', ' + esc(S.user || 'Admin') + ' · ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><h3>' + (L.length || Q.length ? 'Yang perlu dikerjakan hari ini' : 'Semua tugas tim & data beres') + '</h3></div><button class="btn" data-close>Tutup</button></div>' +
       (L.length || Q.length ? '<div class="ig-sum"><span class="pill bad">' + nB + ' terlambat</span><span class="pill warn">' + nW + ' segera</span>' + (Q.length ? '<span class="pill bad">' + Q.length + ' masalah data</span>' : '') + '</div><div class="ig-list">' + per +
         (Q.length ? '<div class="ig-pic ig-q"><div class="ig-pic-h"><span class="tg-av">!</span><b>Kualitas data</b><small>' + Q.length + ' temuan · klik untuk lihat baris & perbaiki</small></div>' + daftarKualitasHtml(Q) + '</div>' : '') + '</div>' :
         '<p class="desc">Tidak ada data yang usang atau isian yang terlambat. Terima kasih!</p>') +
@@ -1975,7 +1978,7 @@
   function sapaan() {
     var j = new Date().getHours(), w = j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
     var se = D.sesi(), p = se && se.peran === 'admin' ? SAPA_PANGGIL.admin : SAPA_PANGGIL.lihat;
-    return w + (p ? ', ' + p : '') + '! 👋';
+    return w + (p ? ', ' + p : '') + '!';
   }
   var langkahT = null;
   function mulaiLangkah() {

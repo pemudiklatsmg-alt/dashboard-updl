@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261117zr">
+<link rel="stylesheet" href="assets/style.css?v=20261117zs">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -27,7 +27,7 @@
       <div class="lg-deko" aria-hidden="true"><i style="height:38%"></i><i style="height:56%"></i><i style="height:47%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:84%"></i><i class="on" style="height:92%"></i></div>
     </div>
     <form class="lbox lg-form" id="loginForm" novalidate>
-      <h2>Selamat datang 👋</h2>
+      <h2>Selamat datang</h2>
       <p class="desc" style="margin:0">Masuk dengan akun yang diberikan admin.</p>
       <div class="field"><label for="uName">Username</label>
         <div class="lg-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nama pengguna"></div></div>
@@ -97,7 +97,7 @@
     <button type="button" role="tab" data-vt="semua" class="vt-semua">Semua</button>
   </nav>
   <section class="muat-skel" id="muatSkel" aria-live="polite" aria-label="Memuat data">
-    <div class="sk-sapa"><b id="skSapa">Halo! ✨</b><p class="sk-t"><span class="spin" aria-hidden="true"></span><span id="skLangkah">Admin sedang menyusun data &amp; grafik untukmu…</span></p><div class="sk-prog"><i id="skProg"></i></div></div>
+    <div class="sk-sapa"><b id="skSapa">Halo!</b><p class="sk-t"><span class="spin" aria-hidden="true"></span><span id="skLangkah">Admin sedang menyusun data &amp; grafik untukmu…</span></p><div class="sk-prog"><i id="skProg"></i></div></div>
     <div class="sk-top"><div class="sk sk-hero"></div><div class="sk sk-side"></div></div>
     <div class="sk-tiles"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
   </section>
@@ -251,26 +251,26 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261117zr"></script>
-<script src="assets/common.js?v=20261117zr"></script>
-<script src="assets/genie.js?v=20261117zr"></script>
-<script src="assets/dashboard.js?v=20261117zr"></script>
-<script src="assets/input.js?v=20261117zr"></script>
-<script src="assets/export.js?v=20261117zr"></script>
-<script src="assets/fitur.js?v=20261117zr"></script>
-<script src="assets/cetak.js?v=20261117zr"></script>
-<script src="assets/pengaturan.js?v=20261117zr"></script>
-<script src="assets/grafik.js?v=20261117zr"></script>
-<script src="assets/versi.js?v=20261117zr"></script>
-  <script src="assets/navbawah.js?v=20261117zr"></script>
+<script src="config.js?v=20261117zs"></script>
+<script src="assets/common.js?v=20261117zs"></script>
+<script src="assets/genie.js?v=20261117zs"></script>
+<script src="assets/dashboard.js?v=20261117zs"></script>
+<script src="assets/input.js?v=20261117zs"></script>
+<script src="assets/export.js?v=20261117zs"></script>
+<script src="assets/fitur.js?v=20261117zs"></script>
+<script src="assets/cetak.js?v=20261117zs"></script>
+<script src="assets/pengaturan.js?v=20261117zs"></script>
+<script src="assets/grafik.js?v=20261117zs"></script>
+<script src="assets/versi.js?v=20261117zs"></script>
+  <script src="assets/navbawah.js?v=20261117zs"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
   <div class="flow">
-   <div class="st"><span class="ic">📄</span><b>Sumber</b><span>Rendiklat, MLI Probis, Profil Risiko, dan hasil tarikan aplikasi (EL1, EL2, sertifikat)</span></div>
-   <div class="st"><span class="ic">🗂️</span><b>Spreadsheet</b><span>Admin menempel / mengisi tab "Data - …", Konman, Kepatuhan. Bisa juga lewat tombol Input Data</span></div>
-   <div class="st"><span class="ic">⚙️</span><b>Apps Script</b><span>Membaca &amp; menghitung otomatis. Data hanya dikirim ke akun yang login</span></div>
-   <div class="st"><span class="ic">📊</span><b>Dashboard</b><span>Pilih Tahun &amp; Bulan. Dimuat ulang otomatis tiap 5 menit</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="file"></span><b>Sumber</b><span>Rendiklat, MLI Probis, Profil Risiko, dan hasil tarikan aplikasi (EL1, EL2, sertifikat)</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="grid"></span><b>Spreadsheet</b><span>Admin menempel / mengisi tab "Data - …", Konman, Kepatuhan. Bisa juga lewat tombol Input Data</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="gir"></span><b>Apps Script</b><span>Membaca &amp; menghitung otomatis. Data hanya dikirim ke akun yang login</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="grafik"></span><b>Dashboard</b><span>Pilih Tahun &amp; Bulan. Dimuat ulang otomatis tiap 5 menit</span></div>
   </div>
  </section>
 
@@ -328,9 +328,9 @@
 
  <section class="g-sec adm" id="g6"><h4><span class="no">7</span>Mengubah pengaturan (khusus Admin)</h4>
   <div class="flow">
-   <div class="st"><span class="ic">⚙️</span><b>Buka</b><span>Menu samping → <b>Pengaturan</b> (di HP: tab Pengaturan)</span></div>
-   <div class="st"><span class="ic">✏️</span><b>Ubah</b><span>Pilih bagian, ubah isian. Baris yang berubah ditandai kuning. Tombol <b>?</b> menjelaskan kapan perlu diubah</span></div>
-   <div class="st"><span class="ic">✅</span><b>Simpan</b><span>Tekan <b>Simpan perubahan</b>, periksa daftar perubahan, lalu <b>Ya, simpan</b></span></div>
+   <div class="st"><span class="ic g-ik" data-ik="gir"></span><b>Buka</b><span>Menu samping → <b>Pengaturan</b> (di HP: tab Pengaturan)</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="pensil"></span><b>Ubah</b><span>Pilih bagian, ubah isian. Baris yang berubah ditandai kuning. Tombol <b>?</b> menjelaskan kapan perlu diubah</span></div>
+   <div class="st"><span class="ic g-ik" data-ik="centang"></span><b>Simpan</b><span>Tekan <b>Simpan perubahan</b>, periksa daftar perubahan, lalu <b>Ya, simpan</b></span></div>
    <div class="st"><span class="ic">↩️</span><b>Keliru?</b><span>Tekan <b>Urungkan</b> sesaat setelah menyimpan</span></div>
   </div>
   <div class="time">
@@ -343,6 +343,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261117zr"></script>
+<script src="assets/panduan.js?v=20261117zs"></script>
 </body>
 </html>
