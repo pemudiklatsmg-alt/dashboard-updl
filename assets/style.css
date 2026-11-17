@@ -2241,3 +2241,16 @@ body:not(.peran-admin) .modal-c.guide :is(#g1,#g2,#g3,#g4,#g5,#g6), body:not(.pe
   .panel-h:has(> .seg) > div:first-child > :not(h2):not(h3) { grid-column: 1 / -1; grid-row: 2; }
   .panel-h:has(> .seg) > :not(div:first-child):not(.seg) { grid-column: 3; grid-row: 1; }
 }
+
+/* Jarak atas & bawah kartu seragam (rasio emas 8·13·21·34): kartu yang direntang setinggi barisnya
+   tidak lagi menyisakan ruang kosong di bawah; isi utama mengisi tinggi kartu */
+.card { padding: var(--phi-2, 13px) var(--phi-2, 13px); }
+.card.mini2 { padding: var(--phi-1, 8px) var(--phi-2, 13px); }
+.card > :last-child { margin-top: auto; }
+.panel { display: flex; flex-direction: column; }
+.panel > .panel-h { flex: none; }
+.panel > :last-child:not(.panel-h) { margin-top: auto; }
+.panel.gx-p > .gx-hb, .panel > .gx-body > .gx-hb { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-between; }
+.panel.gx-p > :not(.panel-h) { flex-grow: 0; }
+.panel.gx-p > .gx-hb { flex-grow: 1; }
+.panel.gx-p > .gx-hb { margin-top: var(--phi-2, 13px); }
