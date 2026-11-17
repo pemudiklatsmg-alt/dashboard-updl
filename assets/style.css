@@ -1907,3 +1907,6 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 @media (max-width: 640px) {
   body.nb-aktif:not(.nb-kcl) .nb-isi { pointer-events: auto !important; touch-action: pan-x; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 }
+/* kotak peringatan di dalam kartu sorotan biru tua: latar kuning transparan, teks terang */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel)
+  :is(.warnbox, .note, .empty) { background: rgba(255,212,107,.16) !important; border-color: rgba(255,212,107,.45) !important; color: #fff !important; }
