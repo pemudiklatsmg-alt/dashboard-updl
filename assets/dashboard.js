@@ -479,7 +479,7 @@
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent ? Math.max(230, Math.min(420, tinggiChartPres(lebar))) : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -1547,7 +1547,7 @@
         '<div><b class="num">' + D.fmt(hi.v, 1) + '</b><span>tertinggi · ' + namaBulan(hi.m) + '</span></div>' +
         '<div><b class="num">' + D.fmt(lo.v, 1) + '</b><span>terendah · ' + namaBulan(lo.m) + '</span></div></div>' +
       '<div class="cs-pg ' + (pg ? 'bad' : 'good') + '">' + (pg ? 'Pengurang kepatuhan ' + bl + ': <b>−' + D.fmt(pg, 2) + ' poin</b>' : 'Tidak ada pengurang kepatuhan ' + bl) + '</div>' +
-      '<div class="sub-h">' + (bawah.length ? 'Indikator di bawah 100%' : 'Indikator tertinggi') + '</div><div class="cs-l">' + (bawah.length ? bawah : atas).map(baris).join('') + '</div>' +
+      '<div class="cs-ind"><div class="sub-h">' + (bawah.length ? 'Indikator di bawah 100%' : 'Indikator tertinggi') + '</div><div class="cs-l">' + (bawah.length ? bawah : atas).map(baris).join('') + '</div></div>' +
       // saat presentasi ada ruang lebih: tampilkan juga indikator tertinggi
       (bawah.length ? '<div class="cs-pres"><div class="sub-h">Indikator tertinggi</div><div class="cs-l">' + ind.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 5).map(baris).join('') + '</div></div>' : '') +
       '<div class="cs-pres cs-ket">' + ind.filter(function (x) { return x.v >= 0.9999; }).length + ' dari ' + ind.length + ' indikator mencapai target ' + bl + '.</div>';
@@ -1825,6 +1825,7 @@
   });
   window.addEventListener('afterprint', function () { var t = S.vtCetak; S.vtCetak = null; if (t) pilihTab(t); });
   function renderAll() {
+    setTimeout(function () { if (window.innerWidth > 1000 && !document.body.classList.contains('pres')) try { renderChart(); } catch (e) { /* abaikan */ } }, 0);
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
     [['Navigasi', renderSidenav], ['Ringkasan', renderRingkasan], ['Tugas', function () { if (S.vt === 'tugas') renderTugas(); }], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],

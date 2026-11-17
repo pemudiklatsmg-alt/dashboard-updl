@@ -2294,3 +2294,9 @@ body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: spa
 .gx-hr .gx-ht i { background: var(--bar) !important; opacity: .85; }
 .gx-hr[data-st="warn"] .gx-hv { color: var(--warn); } .gx-hr[data-st="bad"] .gx-hv { color: var(--bad); }
 .bars .r .t i { background: var(--bar) !important; }
+
+/* Capaian Kinerja per Bulan: tombol → di kanan atas sejajar judul; kartu ringkasan di kanan lebih ringkas
+   (daftar indikator di bawah 100% ada di rincian saat kartu diklik; tetap tampil di mode presentasi) */
+[data-bagian="bulanan"] > .panel:first-child > .panel-h { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; }
+[data-bagian="bulanan"] > .panel:first-child > .panel-h > .ke-rinci { flex: none; margin: 0; }
+.cs-ind { display: none; } body.pres .cs-ind { display: block; }
