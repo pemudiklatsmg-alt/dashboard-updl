@@ -2300,3 +2300,4 @@ body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: spa
 [data-bagian="bulanan"] > .panel:first-child > .panel-h { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; }
 [data-bagian="bulanan"] > .panel:first-child > .panel-h > .ke-rinci { flex: none; margin: 0; }
 .cs-ind { display: none; } body.pres .cs-ind { display: block; }
+.info-i { font-size: 12px; } .info-i::before { content: "i"; }

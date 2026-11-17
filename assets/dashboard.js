@@ -1501,7 +1501,7 @@
     // keterangan di bawah judul dipindah ke tombol ⓘ (tampil saat diketuk/disorot), ala apple.com
     Array.prototype.forEach.call(document.querySelectorAll('main .panel-h .desc, main .gx-p .panel-h .desc'), function (d) {
       var h = d.parentElement && d.parentElement.querySelector('h2, h3'); if (!h || h.querySelector('.info-i')) return;
-      h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(d.textContent.trim()) + '">i</button>');
+      h.insertAdjacentHTML('beforeend', '<button type="button" class="info-i" aria-label="Keterangan" title="' + esc(d.textContent.trim()) + '"></button>');
       d.classList.add('desc-lipat');
     });
   }
