@@ -2072,3 +2072,13 @@ body:not([data-vt="semua"]) #kpis > .card:nth-child(3) { order: -1; }
 /* kartu sorotan: tanpa garis tepi sama sekali (Safari menampilkan tepi gelap tipis pada garis transparan + gradien) */
 body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel),
 html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !important; -webkit-background-clip: padding-box !important; }
+
+/* Jendela pop-up tidak pernah melewati layar: isinya yang digulir, kepala jendela (judul, ✕, ← Kembali) tetap di atas */
+.modal { overflow: hidden; align-items: center; }
+.modal-c { max-height: calc(100vh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; align-content: start; }
+.modal-c > .modal-h:first-child { position: sticky; top: -18px; z-index: 3; margin: -18px -20px 0; padding: 18px 20px 12px;
+  background: var(--g-modal, var(--sheet)); border-bottom: 1px solid transparent; transition: border-color .15s; }
+.modal-c.tergulir > .modal-h:first-child { border-bottom-color: var(--line); }
+@media (max-width: 640px) { .modal-c { max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); } }

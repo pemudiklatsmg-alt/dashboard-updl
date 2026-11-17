@@ -1357,7 +1357,7 @@
     if ($('modal').hidden) { lastFocus = document.activeElement; modalAsal = G ? G.catat() : null; }
     if (baru) dariMenu = Date.now() - ketukMenu < 1500;
     $('modalC').className = 'modal-c' + (kelas ? ' ' + kelas : ''); $('modalC').innerHTML = html; $('modal').hidden = false;
-    hiasKepala();
+    hiasKepala(); $('modalC').scrollTop = 0; $('modalC').classList.remove('tergulir');
     var b = $('modalC').querySelector('[data-close]'); if (b) b.focus({ preventScroll: true });
     if (G && modalAsal && baru) { G.pudar($('modal'), true); G.jalan($('modalC'), modalAsal.r || G.balik(modalAsal), true); }
   }
@@ -1365,6 +1365,8 @@
   var lapisan = [], bukaKini = null, fnKini = null, nHist = 0, abaikanPop = 0, dariMenu = false, ketukMenu = 0;
   // jendela yang dibuka dari menu ☰ adalah lapis kedua: "← Kembali" membuka menu itu lagi
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#mainMenu .mi')) ketukMenu = Date.now(); }, true);
+  // garis tipis di bawah kepala jendela saat isinya digulir
+  (function () { var mc = document.getElementById('modalC'); if (mc) mc.addEventListener('scroll', function () { mc.classList.toggle('tergulir', mc.scrollTop > 4); }, { passive: true }); })();
   function hiasKepala() {
     var mc = $('modalC'), h = mc.querySelector('.modal-h'); if (!h) return;
     var x = h.querySelector(':scope > [data-close]') || Array.prototype.filter.call(h.querySelectorAll('[data-close]'), function (q) { return /^\s*Tutup\s*$/.test(q.textContent); })[0];
