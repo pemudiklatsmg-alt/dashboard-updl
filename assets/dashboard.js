@@ -1375,8 +1375,28 @@
     var lama = h.querySelector('.m-back'); if (lama) lama.remove();
     var adaBack = lapisan.length > 0 || dariMenu;
     mc.classList.toggle('ada-back', adaBack);
-    if (adaBack) h.insertAdjacentHTML('afterbegin', '<button type="button" class="m-back" data-mback><span aria-hidden="true">←</span> Kembali</button>');
+    if (adaBack) h.insertAdjacentHTML('beforeend', '<button type="button" class="m-back" data-mback aria-label="Kembali" title="Kembali"><span aria-hidden="true">←</span> Kembali</button>');
+    aturGulir();
   }
+  /* daftar/tabel terpanjang di jendela yang digulir sendiri; grafik & ringkasan di atasnya tetap diam */
+  var tGulir = 0;
+  function aturGulir() {
+    var mc = $('modalC'); if (!mc || $('modal').hidden) return;
+    Array.prototype.forEach.call(mc.querySelectorAll('.m-gulir'), function (el) { el.classList.remove('m-gulir'); el.style.maxHeight = ''; });
+    if (mc.scrollHeight <= mc.clientHeight + 2) return;
+    var cal = null, tg = 0;
+    Array.prototype.forEach.call(mc.querySelectorAll('.tbl-wrap, .list, ul, ol, [data-gulir]'), function (el) {
+      if (el.closest('.modal-h') || el.parentElement.closest('.m-gulir, .tbl-wrap')) return;
+      var t = el.offsetHeight; if (t > tg) { tg = t; cal = el; }
+    });
+    if (!cal || tg < 200) return;
+    var lebih = mc.scrollHeight - mc.clientHeight, sisa = tg - lebih - 4;
+    if (sisa < 180) return;   // ruang terlalu sempit (mis. HP kecil): seluruh jendela tetap digulir
+    cal.classList.add('m-gulir'); cal.style.maxHeight = sisa + 'px'; mc.scrollTop = 0;
+  }
+  function jadwalGulir() { clearTimeout(tGulir); tGulir = setTimeout(aturGulir, 60); }
+  window.addEventListener('resize', jadwalGulir);
+  (function () { var mc = document.getElementById('modalC'); if (mc && window.MutationObserver) new MutationObserver(function (r) { if (r.some(function (x) { return x.type === 'childList'; })) jadwalGulir(); }).observe(mc, { childList: true, subtree: true }); })();
   function lapis(f) {
     return function () {
       var a = arguments, m = $('modal');

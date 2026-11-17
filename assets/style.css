@@ -2085,3 +2085,16 @@ html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !im
 
 /* Bilah navigasi bawah tidak tampil di halaman login */
 body:has(#app[hidden]) .navbawah { display: none !important; }
+
+/* Jendela lapis kedua: tombol ← Kembali menggantikan ✕ di pojok kanan atas */
+.modal-c.ada-back .modal-h > .m-x { display: none; }
+.modal-c.ada-back .modal-h { flex-wrap: nowrap; }
+.m-back, .modal-c.ada-back .m-back { order: 9; flex: none; align-self: flex-start; height: 38px; margin: 0; padding: 0 16px 0 12px; border-radius: 999px;
+  background: var(--accent); color: #fff; border: 0; box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+  font: 600 14px/1 var(--f-body); white-space: nowrap; }
+.m-back:hover, .m-back:focus-visible { filter: brightness(1.08); }
+.m-back span { font-size: 17px; }
+@media (max-width: 640px) { .modal-c.ada-back .modal-h { flex-wrap: wrap; } .modal-c.ada-back .modal-h > div:not(.m-back) { flex: 1 1 0; } }
+/* Daftar/tabel panjang digulir di tempat; grafik di atasnya diam */
+.m-gulir { overflow: auto !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; border-radius: 13px; }
+.m-gulir thead th { position: sticky !important; top: 0; z-index: 2; background: var(--sheet) !important; box-shadow: inset 0 -1px 0 var(--line); }
