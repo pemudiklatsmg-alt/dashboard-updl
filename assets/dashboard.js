@@ -1355,21 +1355,25 @@
     var baru = $('modal').hidden || !!menutup;
     menutup = 0; if (G) { G.bersih($('modal')); G.bersih($('modalC')); }
     if ($('modal').hidden) { lastFocus = document.activeElement; modalAsal = G ? G.catat() : null; }
+    if (baru) dariMenu = Date.now() - ketukMenu < 1500;
     $('modalC').className = 'modal-c' + (kelas ? ' ' + kelas : ''); $('modalC').innerHTML = html; $('modal').hidden = false;
     hiasKepala();
     var b = $('modalC').querySelector('[data-close]'); if (b) b.focus({ preventScroll: true });
     if (G && modalAsal && baru) { G.pudar($('modal'), true); G.jalan($('modalC'), modalAsal.r || G.balik(modalAsal), true); }
   }
   /* ---------- jendela berlapis: ✕ untuk menutup, ← Kembali ke jendela sebelumnya ---------- */
-  var lapisan = [], bukaKini = null, fnKini = null, nHist = 0, abaikanPop = 0;
+  var lapisan = [], bukaKini = null, fnKini = null, nHist = 0, abaikanPop = 0, dariMenu = false, ketukMenu = 0;
+  // jendela yang dibuka dari menu ☰ adalah lapis kedua: "← Kembali" membuka menu itu lagi
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#mainMenu .mi')) ketukMenu = Date.now(); }, true);
   function hiasKepala() {
     var mc = $('modalC'), h = mc.querySelector('.modal-h'); if (!h) return;
     var x = h.querySelector(':scope > [data-close]') || Array.prototype.filter.call(h.querySelectorAll('[data-close]'), function (q) { return /^\s*Tutup\s*$/.test(q.textContent); })[0];
     if (x && x.parentElement !== h) h.appendChild(x);   // tombol tutup yang terselip di baris lain dipindah ke pojok kanan atas
     if (x && !x.classList.contains('m-x')) { x.className = 'm-x'; x.setAttribute('aria-label', 'Tutup'); x.setAttribute('title', 'Tutup'); x.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
     var lama = h.querySelector('.m-back'); if (lama) lama.remove();
-    mc.classList.toggle('ada-back', lapisan.length > 0);
-    if (lapisan.length) h.insertAdjacentHTML('afterbegin', '<button type="button" class="m-back" data-mback><span aria-hidden="true">←</span> Kembali</button>');
+    var adaBack = lapisan.length > 0 || dariMenu;
+    mc.classList.toggle('ada-back', adaBack);
+    if (adaBack) h.insertAdjacentHTML('afterbegin', '<button type="button" class="m-back" data-mback><span aria-hidden="true">←</span> Kembali</button>');
   }
   function lapis(f) {
     return function () {
@@ -1386,7 +1390,8 @@
     };
   }
   function kembaliLapis() {
-    var prev = lapisan.pop(); if (!prev) return closeModal();
+    var prev = lapisan.pop();
+    if (!prev) { var keMenu = dariMenu; closeModal(); if (keMenu) setTimeout(function () { var mb = $('menuBtn'); if (mb) mb.click(); }, 280); return; }
     bukaKini = prev; fnKini = null; prev(); hiasKepala();
   }
   // tombol kembali bawaan HP / browser menutup satu lapis jendela
@@ -1394,7 +1399,7 @@
     if (abaikanPop > 0) { abaikanPop--; return; }
     if (nHist > 0) nHist--;
     if ($('modal').hidden) return;
-    if (lapisan.length) kembaliLapis(); else { nHist = 0; closeModal(true); }
+    if (lapisan.length || dariMenu) kembaliLapis(); else { nHist = 0; closeModal(true); }
   });
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-mback]'); if (!b) return;
@@ -1403,7 +1408,7 @@
   }, true);
   function closeModal(dariHistori) {
     if (!dariHistori && nHist > 0) { abaikanPop += 1; var n = nHist; nHist = 0; try { history.go(-n); } catch (e) { abaikanPop = 0; } }
-    lapisan = []; bukaKini = null; fnKini = null;
+    lapisan = []; bukaKini = null; fnKini = null; var dm = dariMenu; dariMenu = false;
     if ($('modal').hidden || menutup) return;
     var token = menutup = Date.now();
     function selesai() { if (menutup !== token) return; menutup = 0; $('modal').hidden = true; $('modalC').innerHTML = ''; if (G) { G.bersih($('modal')); } if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
