@@ -1364,7 +1364,8 @@
   var lapisan = [], bukaKini = null, fnKini = null, nHist = 0, abaikanPop = 0;
   function hiasKepala() {
     var mc = $('modalC'), h = mc.querySelector('.modal-h'); if (!h) return;
-    var x = h.querySelector(':scope > [data-close]');
+    var x = h.querySelector(':scope > [data-close]') || Array.prototype.filter.call(h.querySelectorAll('[data-close]'), function (q) { return /^\s*Tutup\s*$/.test(q.textContent); })[0];
+    if (x && x.parentElement !== h) h.appendChild(x);   // tombol tutup yang terselip di baris lain dipindah ke pojok kanan atas
     if (x && !x.classList.contains('m-x')) { x.className = 'm-x'; x.setAttribute('aria-label', 'Tutup'); x.setAttribute('title', 'Tutup'); x.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
     var lama = h.querySelector('.m-back'); if (lama) lama.remove();
     mc.classList.toggle('ada-back', lapisan.length > 0);

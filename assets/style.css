@@ -2069,3 +2069,6 @@ body:not([data-vt="semua"]) #kpis > .card:nth-child(3) { order: -1; }
 .modal-c.ada-back .modal-h > div:not(.m-back) { flex: 1 1 0; min-width: 0; }
 /* tombol "kembali" lama di dalam isi jendela tidak perlu lagi bila sudah ada ← Kembali di atas */
 .modal-c.ada-back .kx-back, .modal-c.ada-back [data-kembali] { display: none !important; }
+/* kartu sorotan: tanpa garis tepi sama sekali (Safari menampilkan tepi gelap tipis pada garis transparan + gradien) */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel),
+html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !important; -webkit-background-clip: padding-box !important; }

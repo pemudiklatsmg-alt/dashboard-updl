@@ -6,10 +6,9 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
-    { v: '2.9', t: '17 Nov 2026', b: ['Grafik mini 12 bulan di kartu angka (layar lebar)', 'Kepatuhan sebagai matriks aspek × bulan', 'Rincian Capaian Kinerja: dari mana angka total terbentuk'],
-      l: ['Kartu sorotan selalu tampil paling atas di tabnya', 'Jendela pop-up: ✕ untuk menutup, ← Kembali ke jendela sebelumnya (juga tombol kembali HP)', 'Menu ☰ di HP bisa digeser ke bawah untuk menutup'], p: [] },
-    { v: '2.8', t: '17 Nov 2026', b: [],
-      l: ['Proporsi rasio emas: lebar kolom 62 : 38, tangga ukuran huruf, jarak & lengkungan sudut yang seragam', 'Teks keterangan lebih besar dan lebih kontras, jarak antarbaris lebih lega', 'Grafik lebih proporsional dengan skala sumbu yang lebih rapat'], p: [] },
+    { v: '2.8', t: '17 Nov 2026', b: ['Grafik mini 12 bulan di kartu angka (layar lebar) & Kepatuhan sebagai matriks aspek × bulan', 'Rincian Capaian Kinerja: dari mana angka total terbentuk', 'Jendela pop-up: ✕ untuk menutup, ← Kembali ke jendela sebelumnya (juga tombol kembali HP)'],
+      l: ['Proporsi rasio emas: lebar kolom, tangga huruf, jarak & lengkungan sudut seragam; teks keterangan lebih besar dan kontras', 'Kartu sorotan selalu paling atas di tabnya; tombol pilihan tepat di bawah judul kartu', 'Menu ☰ di HP bisa digeser ke bawah untuk menutup; tugas di pengingat Admin punya tombol Buka'],
+      p: ['Skala sumbu grafik lebih rapat, angka peta risiko tanpa lingkaran putih', 'Teks di kartu sorotan biru (peringatan, baris tabel, garis grafik) kini terbaca di mode terang', 'Bilah tab bawah HP bisa digeser lagi; nomor versi & catatan rilis tampil kembali'] },
     { v: '2.7', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
       l: ['Mode terang lebih bersih: latar polos, kartu putih solid, bayangan lembut', 'Ikon kartu dalam kotak warna pastel sesuai status; label tanpa huruf kapital', 'Huruf judul & angka Plus Jakarta Sans'], p: [] },
     { v: '2.6', t: '14 Nov 2026', b: ['Tema warna PLN: biru sebagai warna utama, garis biru–kuning–merah di kepala halaman'],
@@ -66,7 +65,8 @@
     var a = A(); if (!a || !a.S || !a.S.data || $('app').hidden) return;
     clearInterval(tunggu);
     var lihat = null; try { lihat = localStorage.getItem('updl_versi'); } catch (x) { /* abaikan */ }
-    if (lihat === KINI.v || parseFloat(lihat) >= 3) { try { localStorage.setItem('updl_versi', KINI.v); } catch (x) { /* abaikan */ } return; }
+    var bandingV = function (a, b) { a = String(a || '0').split('.'); b = String(b || '0').split('.'); return (+a[0] - +b[0]) || ((+a[1] || 0) - (+b[1] || 0)); };
+    if (lihat === KINI.v || parseFloat(lihat) >= 3 || bandingV(lihat, KINI.v) > 0) { try { localStorage.setItem('updl_versi', KINI.v); } catch (x) { /* abaikan */ } return; }
     var coba = setInterval(function () {
       if (!$('modal').hidden) return;   // tunggu pengingat Admin ditutup
       clearInterval(coba);
