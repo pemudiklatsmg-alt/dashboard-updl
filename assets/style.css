@@ -2090,7 +2090,7 @@ html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !im
 .lg-brand { position: relative; overflow: hidden; color: #fff; padding: 40px 40px 0; display: flex; flex-direction: column; gap: 22px; min-height: 520px;
   background: radial-gradient(420px 300px at 92% 4%, rgba(255,242,0,.22), transparent 70%), radial-gradient(380px 320px at 0% 100%, rgba(236,120,170,.28), transparent 70%),
               linear-gradient(140deg, #0b2550 0%, #0a3d7a 52%, #0077b6 100%); }
-.lg-brand .pln-login { width: 52px; padding: 6px; border-radius: 13px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.lg-brand .pln-login { width: 44px; padding: 0; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
 .lg-brand .pln-login img { width: 100%; height: auto; display: block; }
 .lg-kicker { font: 700 11px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.72); }
 .lg-brand h1 { margin: 10px 0 12px; font: 800 36px/1.12 var(--f-display); letter-spacing: -.02em; color: #fff; }

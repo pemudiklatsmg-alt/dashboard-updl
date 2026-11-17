@@ -1922,20 +1922,19 @@
 
   /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
   /* layar memuat: sapaan + langkah proses */
-  var SAPA_PANGGIL = { admin: 'Kak Admin', lihat: 'Kak' };
+  var SAPA_PANGGIL = { admin: 'Admin', lihat: '' };
   function sapaan() {
     var j = new Date().getHours(), w = j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
     var se = D.sesi(), p = se && se.peran === 'admin' ? SAPA_PANGGIL.admin : SAPA_PANGGIL.lihat;
-    return w + ', ' + p + '! ✨';
+    return w + (p ? ', ' + p : '') + ' 👋';
   }
   var langkahT = null;
   function mulaiLangkah() {
     var el = $('skLangkah'), pr = $('skProg'), sp = $('skSapa'); if (!el) return;
     if (sp) sp.textContent = sapaan();
-    var bl = namaBulan ? D.cap(D.BULAN[(S.bulan || new Date().getMonth() + 1) - 1]) : '';
-    var L = ['Menghubungkan ke server…', 'Mengambil data ' + bl + ' ' + (S.tahun || new Date().getFullYear()) + '…', 'Menyusun grafik & kartu…', 'Hampir selesai…'], i = 0;
-    clearInterval(langkahT); el.textContent = L[0]; if (pr) pr.style.width = '12%';
-    langkahT = setInterval(function () { i = Math.min(i + 1, L.length - 1); el.textContent = L[i]; if (pr) pr.style.width = (12 + i * 26) + '%'; if (i === L.length - 1) clearInterval(langkahT); }, 1400);
+    el.textContent = 'Sedang menyusun data & grafik…';
+    clearInterval(langkahT); var n = 12; if (pr) pr.style.width = n + '%';
+    langkahT = setInterval(function () { n = Math.min(n + (92 - n) * 0.25, 92); if (pr) pr.style.width = n + '%'; if (n > 91) clearInterval(langkahT); }, 700);
   }
   function tampilMemuat() {
     document.body.classList.add('memuat'); mulaiLangkah();
