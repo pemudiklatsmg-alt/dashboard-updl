@@ -6,6 +6,8 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '2.9', t: '17 Nov 2026', b: ['Grafik mini 12 bulan di kartu angka (layar lebar)', 'Kepatuhan sebagai matriks aspek × bulan'],
+      l: ['Kartu sorotan selalu tampil paling atas di tabnya', 'Menu ☰ di HP bisa digeser ke bawah untuk menutup', 'Tugas di pengingat Admin punya tombol Buka ke tempat datanya'], p: [] },
     { v: '2.8', t: '17 Nov 2026', b: [],
       l: ['Proporsi rasio emas: lebar kolom 62 : 38, tangga ukuran huruf, jarak & lengkungan sudut yang seragam', 'Teks keterangan lebih besar dan lebih kontras, jarak antarbaris lebih lega', 'Grafik lebih proporsional dengan skala sumbu yang lebih rapat'], p: [] },
     { v: '2.7', t: '15 Nov 2026', b: ['Kartu sorotan biru tua: satu informasi terpenting di setiap tab', 'Bilah tab bawah di HP kini berikon'],
