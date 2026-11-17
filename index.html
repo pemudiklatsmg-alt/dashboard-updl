@@ -9,23 +9,36 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261117u">
+<link rel="stylesheet" href="assets/style.css?v=20261117v">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
 <!-- Halaman login: satu-satunya yang terlihat sebelum masuk -->
 <section class="login" id="loginGate">
-  <form class="lbox" id="loginForm" novalidate>
-    <span class="pln-logo pln-login"><img src="assets/pln.png" alt="Logo PLN" width="41" height="60"></span>
-    <h1>Dashboard Kinerja UPDL Semarang</h1>
-    <p class="desc" style="margin:0">Masuk untuk melihat dashboard. Data tidak ditampilkan sebelum login.</p>
-    <div class="field"><label for="uName">Username</label><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-    <div class="field"><label for="uPass">Password</label><input class="inp" id="uPass" type="password" autocomplete="current-password"></div>
-    <div class="errmsg" id="loginErr" hidden></div>
-    <button class="btn primary big" type="submit" id="loginBtn">Masuk</button>
-    <div class="roles"><span><b>Akun Admin</b> · melihat, input data, export Excel</span><span><b>Akun Lihat</b> · hanya melihat dashboard</span></div>
-    <p class="desc" style="margin:0">Lupa password? Pemilik spreadsheet bisa membuat password baru lewat menu <b>Dashboard → Atur akun</b>.</p>
-  </form>
+  <div class="lg-wrap">
+    <div class="lg-brand" aria-hidden="false">
+      <span class="pln-logo pln-login"><img src="assets/pln.png" alt="Logo PLN" width="41" height="60"></span>
+      <div class="lg-teks">
+        <span class="lg-kicker">PLN UPDL Semarang</span>
+        <h1>Dashboard Kinerja<br>UPDL Semarang</h1>
+        <p class="lg-sub">Satu layar untuk memantau kinerja, pembelajaran, evaluasi, dan risiko unit, langsung dari sumber datanya.</p>
+        <div class="lg-chips"><span>Kinerja</span><span>Pembelajaran</span><span>Evaluasi</span><span>Risiko</span></div>
+      </div>
+      <div class="lg-deko" aria-hidden="true"><i style="height:38%"></i><i style="height:56%"></i><i style="height:47%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:84%"></i><i class="on" style="height:92%"></i></div>
+    </div>
+    <form class="lbox lg-form" id="loginForm" novalidate>
+      <h2>Selamat datang 👋</h2>
+      <p class="desc" style="margin:0">Masuk dengan akun yang diberikan admin.</p>
+      <div class="field"><label for="uName">Username</label>
+        <div class="lg-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input class="inp" id="uName" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nama pengguna"></div></div>
+      <div class="field"><label for="uPass">Password</label>
+        <div class="lg-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input class="inp" id="uPass" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="lg-mata" id="lgMata" aria-label="Tampilkan password" title="Tampilkan password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div class="errmsg" id="loginErr" hidden></div>
+      <button class="btn primary big" type="submit" id="loginBtn">Masuk</button>
+      <p class="desc lg-lupa" style="margin:0">Lupa password? Hubungi admin.</p>
+    </form>
+  </div>
 </section>
 
 <aside class="sidenav" id="sidenav" aria-label="Navigasi dashboard" hidden></aside>
@@ -84,7 +97,7 @@
     <button type="button" role="tab" data-vt="semua" class="vt-semua">Semua</button>
   </nav>
   <section class="muat-skel" id="muatSkel" aria-live="polite" aria-label="Memuat data">
-    <p class="sk-t"><span class="spin" aria-hidden="true"></span>Memuat data dashboard… biasanya 10–20 detik.</p>
+    <div class="sk-sapa"><b id="skSapa">Halo! ✨</b><p class="sk-t"><span class="spin" aria-hidden="true"></span><span id="skLangkah">Menghubungkan ke server…</span></p><div class="sk-prog"><i id="skProg"></i></div></div>
     <div class="sk-top"><div class="sk sk-hero"></div><div class="sk sk-side"></div></div>
     <div class="sk-tiles"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
   </section>
@@ -238,18 +251,18 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261117u"></script>
-<script src="assets/common.js?v=20261117u"></script>
-<script src="assets/genie.js?v=20261117u"></script>
-<script src="assets/dashboard.js?v=20261117u"></script>
-<script src="assets/input.js?v=20261117u"></script>
-<script src="assets/export.js?v=20261117u"></script>
-<script src="assets/fitur.js?v=20261117u"></script>
-<script src="assets/cetak.js?v=20261117u"></script>
-<script src="assets/pengaturan.js?v=20261117u"></script>
-<script src="assets/grafik.js?v=20261117u"></script>
-<script src="assets/versi.js?v=20261117u"></script>
-  <script src="assets/navbawah.js?v=20261117u"></script>
+<script src="config.js?v=20261117v"></script>
+<script src="assets/common.js?v=20261117v"></script>
+<script src="assets/genie.js?v=20261117v"></script>
+<script src="assets/dashboard.js?v=20261117v"></script>
+<script src="assets/input.js?v=20261117v"></script>
+<script src="assets/export.js?v=20261117v"></script>
+<script src="assets/fitur.js?v=20261117v"></script>
+<script src="assets/cetak.js?v=20261117v"></script>
+<script src="assets/pengaturan.js?v=20261117v"></script>
+<script src="assets/grafik.js?v=20261117v"></script>
+<script src="assets/versi.js?v=20261117v"></script>
+  <script src="assets/navbawah.js?v=20261117v"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -325,6 +338,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261117u"></script>
+<script src="assets/panduan.js?v=20261117v"></script>
 </body>
 </html>

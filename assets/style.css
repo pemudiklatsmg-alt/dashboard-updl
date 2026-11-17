@@ -2082,3 +2082,51 @@ html .rgk-hero.rgk-hero { border: 0 !important; background-clip: padding-box !im
   background: var(--g-modal, var(--sheet)); border-bottom: 1px solid transparent; transition: border-color .15s; }
 .modal-c.tergulir > .modal-h:first-child { border-bottom-color: var(--line); }
 @media (max-width: 640px) { .modal-c { max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); } }
+
+/* ===================== Halaman login (desain baru) ===================== */
+.login { min-height: 100dvh; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); display: grid; place-items: center; }
+.lg-wrap { width: min(980px, 100%); display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); border-radius: 34px; overflow: hidden;
+  background: var(--g-card, var(--sheet)); box-shadow: 0 30px 80px rgba(10,40,90,.18), 0 2px 6px rgba(10,40,90,.06); }
+.lg-brand { position: relative; overflow: hidden; color: #fff; padding: 40px 40px 0; display: flex; flex-direction: column; gap: 22px; min-height: 520px;
+  background: radial-gradient(420px 300px at 92% 4%, rgba(255,242,0,.22), transparent 70%), radial-gradient(380px 320px at 0% 100%, rgba(236,120,170,.28), transparent 70%),
+              linear-gradient(140deg, #0b2550 0%, #0a3d7a 52%, #0077b6 100%); }
+.lg-brand .pln-login { width: 52px; padding: 6px; border-radius: 13px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.lg-brand .pln-login img { width: 100%; height: auto; display: block; }
+.lg-kicker { font: 700 11px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.72); }
+.lg-brand h1 { margin: 10px 0 12px; font: 800 36px/1.12 var(--f-display); letter-spacing: -.02em; color: #fff; }
+.lg-sub { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(255,255,255,.84); max-width: 34ch; }
+.lg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.lg-chips span { font: 600 11px/1 var(--f-body); padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: #fff; }
+.lg-deko { margin-top: auto; display: flex; align-items: flex-end; gap: 10px; height: 150px; padding: 0 4px; }
+.lg-deko i { flex: 1; border-radius: 8px 8px 0 0; background: rgba(255,255,255,.16); }
+.lg-deko i.on { background: linear-gradient(180deg, #fff200, #f5a8c6); box-shadow: 0 -6px 24px rgba(255,242,0,.35); }
+.lg-form.lbox { border: 0 !important; box-shadow: none !important; background: transparent !important; border-radius: 0; padding: 44px 40px; display: flex; flex-direction: column; justify-content: center; gap: 14px; width: auto; max-width: none; }
+.lg-form h2 { margin: 0; font: 800 26px/1.2 var(--f-display); letter-spacing: -.015em; color: var(--ink); }
+.lg-inp { position: relative; }
+.lg-inp > svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; fill: none; stroke: var(--ink-3); stroke-width: 1.8; stroke-linecap: round; pointer-events: none; }
+.lg-inp .inp { width: 100%; height: 48px; padding-left: 42px; padding-right: 44px; border-radius: 13px; font-size: 14px; }
+.lg-inp .inp:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+.lg-mata { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: none; border-radius: 50%; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
+.lg-mata svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lg-mata:hover, .lg-mata.on { color: var(--accent); background: var(--accent-soft); }
+.lg-form .btn.big { height: 50px; border-radius: 13px; font-size: 14px; margin-top: 4px; box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 35%, transparent); }
+.lg-lupa { text-align: center; }
+@media (max-width: 760px) {
+  .login { padding-top: max(16px, env(safe-area-inset-top, 0px)); align-items: start; }
+  .lg-wrap { grid-template-columns: minmax(0, 1fr); border-radius: 21px; }
+  .lg-brand { min-height: 0; padding: 26px 24px 0; gap: 14px; }
+  .lg-brand h1 { font-size: 28px; margin: 8px 0 8px; }
+  .lg-chips { display: none; }
+  .lg-deko { height: 64px; gap: 6px; }
+  .lg-form.lbox { padding: 26px 24px 30px; }
+}
+
+/* ===================== Layar memuat: sapaan + langkah ===================== */
+.sk-sapa { display: grid; justify-items: center; gap: 8px; margin: 6px 0 4px; }
+.sk-sapa > b { font: 800 22px/1.2 var(--f-display); color: var(--ink); letter-spacing: -.01em; }
+.sk-prog { width: min(260px, 70%); height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.sk-prog i { display: block; height: 100%; width: 12%; border-radius: inherit; background: linear-gradient(90deg, var(--pln-biru, #00aeef), var(--pink, #d64f84)); transition: width .9s ease; }
+/* bilah tab bawah tidak tampil di halaman login */
+body:has(#app[hidden]) .navbawah { display: none !important; }
+.sk-sapa > b { text-align: center; text-wrap: balance; }
+@media (max-width: 640px) { .sk-sapa > b { font-size: 19px; } }

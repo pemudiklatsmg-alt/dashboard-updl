@@ -1889,6 +1889,11 @@
     $('loginErr').hidden = !pesan; $('loginErr').textContent = pesan || '';
     $('uPass').value = ''; setTimeout(function () { ($('uName').value ? $('uPass') : $('uName')).focus(); }, 30);
   }
+  document.addEventListener('click', function (e) {
+    var m = e.target.closest && e.target.closest('#lgMata'); if (!m) return;
+    var i = $('uPass'), lihat = i.type === 'password'; i.type = lihat ? 'text' : 'password';
+    m.classList.toggle('on', lihat); m.setAttribute('aria-label', lihat ? 'Sembunyikan password' : 'Tampilkan password'); i.focus();
+  });
   function tampilApp() { $('loginGate').hidden = true; $('app').hidden = false; window.scrollTo(0, 0); }
   /* label perangkat untuk tab Log Login (tanpa data pribadi): jenis perangkat + browser */
   function perangkat() {
@@ -1916,8 +1921,24 @@
   $('logoutBtn').addEventListener('click', function () { keluar(); });
 
   /* selama data pertama belum datang: tampilkan kerangka tata letak baru, bukan panel kosong */
+  /* layar memuat: sapaan + langkah proses */
+  var SAPA_PANGGIL = { admin: 'Kak Admin', lihat: 'Kak' };
+  function sapaan() {
+    var j = new Date().getHours(), w = j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
+    var se = D.sesi(), p = se && se.peran === 'admin' ? SAPA_PANGGIL.admin : SAPA_PANGGIL.lihat;
+    return w + ', ' + p + '! ✨';
+  }
+  var langkahT = null;
+  function mulaiLangkah() {
+    var el = $('skLangkah'), pr = $('skProg'), sp = $('skSapa'); if (!el) return;
+    if (sp) sp.textContent = sapaan();
+    var bl = namaBulan ? D.cap(D.BULAN[(S.bulan || new Date().getMonth() + 1) - 1]) : '';
+    var L = ['Menghubungkan ke server…', 'Mengambil data ' + bl + ' ' + (S.tahun || new Date().getFullYear()) + '…', 'Menyusun grafik & kartu…', 'Hampir selesai…'], i = 0;
+    clearInterval(langkahT); el.textContent = L[0]; if (pr) pr.style.width = '12%';
+    langkahT = setInterval(function () { i = Math.min(i + 1, L.length - 1); el.textContent = L[i]; if (pr) pr.style.width = (12 + i * 26) + '%'; if (i === L.length - 1) clearInterval(langkahT); }, 1400);
+  }
   function tampilMemuat() {
-    document.body.classList.add('memuat');
+    document.body.classList.add('memuat'); mulaiLangkah();
     if (!S.vt) { S.vt = 'ringkasan'; document.body.setAttribute('data-vt', S.vt); }
     try { renderSidenav(); } catch (e) { /* abaikan */ }
   }
