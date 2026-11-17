@@ -1841,11 +1841,11 @@
     if (m.links && m.links.data) $('sheetBtn').href = m.links.data;
     var badge = $('srcBadge');
     if (m.dariSimpanan && !m.stale) { badge.className = 'badge snap'; badge.textContent = 'Memperbarui data…'; }
-    else if (m.source === 'live' && !m.stale) { badge.className = 'badge live'; badge.textContent = 'Terhubung ke Google Sheets'; }
+    else if (m.source === 'live' && !m.stale) { badge.className = 'badge live'; badge.textContent = 'Terhubung ke database'; }
     else if (m.stale) { badge.className = 'badge err'; badge.textContent = 'Data tersimpan (gagal memuat ulang)'; }
     else { badge.className = 'badge snap'; badge.textContent = 'Data belum terhubung'; }
     var t = m.generatedAt ? new Date(m.generatedAt) : null;
-    var pt0 = perubahanTerakhir(); $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (pt0 ? 'data berubah ' + jamTgl(pt0.d) + ' (' + pt0.nama + ')' : t ? 'diambil ' + jamTgl(t) : '');
+    var pt0 = perubahanTerakhir(); $('srcInfo').textContent = (m.unit ? m.unit + ' · ' : '') + (pt0 ? 'data berubah ' + jamTgl(pt0.d) + (admin() ? ' (' + pt0.nama + ')' : '') : t ? 'diambil ' + jamTgl(t) : '');
     var w = [];
     if (m.source !== 'live') w.push(esc(m.reason || 'Data tidak terhubung ke Google Sheets.'));
     if (m.stale) w.push('Gagal memuat data terbaru: ' + esc(m.stale));
