@@ -1106,6 +1106,7 @@
       '<div class="row-gap"><input class="og-cari" id="orgCari" type="search" placeholder="Cari nama atau jabatan…" aria-label="Cari nama atau jabatan">' +
       '<div class="seg" role="group" aria-label="Tampilan struktur"><button type="button" data-ov="peg" aria-pressed="true">Pegawai PLN</button><button type="button" data-ov="ad" aria-pressed="false">Alih Daya</button></div><button class="btn" data-close>Tutup</button></div></div><div id="orgBody"></div>', 'xwide');
     $('orgCari').addEventListener('input', cariOrg);
+    var ob = $('orgBody'); if (ob) ob.addEventListener('toggle', function (e) { var d = e.target; if (!d.classList || !d.classList.contains('og-adc') || !d.open || ($('orgCari') && $('orgCari').value)) return; Array.prototype.forEach.call(ob.querySelectorAll('.og-adc[open]'), function (x) { if (x !== d) x.open = false; }); }, true);
     renderOrg();
   }
   function cariOrg() {
