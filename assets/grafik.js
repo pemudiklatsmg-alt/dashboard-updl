@@ -9,7 +9,14 @@
   var G = { pembMode: 'kelas' };
 
   /* ---------- pembuat grafik (SVG, mengikuti warna tema) ---------- */
-  function skala(maks) { if (maks <= 0) return 1; var p = Math.pow(10, Math.floor(Math.log10(maks))), n = maks / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+  // batas atas sumbu: angka bulat terdekat di atas nilai tertinggi; pilihan dibuat rapat agar grafik tidak banyak ruang kosong,
+  // dan tiap pilihan habis dibagi 4 (garis bantu 0, ¼, ½, ¾, penuh tetap angka rapi, mis. 120 → 30-60-90)
+  function skala(maks) {
+    if (maks <= 0) return 1;
+    var p = Math.pow(10, Math.floor(Math.log10(maks))), n = maks / p, L = [1, 1.2, 1.6, 2, 2.4, 3, 4, 5, 6, 8, 10];
+    for (var i = 0; i < L.length; i++) if (n <= L[i] + 1e-9) return L[i] * p;
+    return 10 * p;
+  }
   // vals: 12 angka/null · bayang: 12 angka (rencana, digambar samar di belakang) · sel: bulan terpilih (1-12)
   function batang(vals, o) {
     o = o || {}; var W = 640, H = o.h || 210, L = 40, R = 8, T = 18, Bm = 24, cw = (W - L - R) / 12;
