@@ -1975,3 +1975,6 @@ body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #k
 .panel-h:has(> .seg) > .seg { order: 2; margin: 2px 0 2px; }
 .panel-h:has(> .seg) > div:first-child > :not(h2):not(h3) { order: 3; }
 .panel-h:has(> .seg) > :not(div:first-child):not(.seg) { order: 4; }
+/* baris tabel yang disorot kursor di dalam kartu sorotan: latar terang transparan (bukan abu muda) agar teks putih tetap terbaca */
+body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel) {
+  --idle-bg: rgba(255,255,255,.10); --hover: rgba(255,255,255,.10); }
