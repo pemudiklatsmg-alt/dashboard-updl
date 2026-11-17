@@ -2286,3 +2286,11 @@ body:not(.peran-admin) .modal-c.guide .modal-h .desc, body:not(.peran-admin) #g7
 body:not(.peran-admin) #g7 > h4 { display: none; }
 body:not(.peran-admin) .g-lihat { margin-top: 0; }
 body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: span 2; }
+
+/* CONTOH ala apple.com: (3) keterangan judul dilipat ke tombol ⓘ, (2) warna lebih tenang */
+.desc-lipat { display: none; }
+.panel-h:has(.info-i.buka) .desc-lipat, .panel-h:hover .desc-lipat { display: block; }
+.info-i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink-3); font: 600 11px/1 Georgia, serif; font-style: italic; margin-left: 8px; vertical-align: middle; cursor: help; padding: 0; }
+.gx-hr .gx-ht i { background: var(--bar) !important; opacity: .85; }
+.gx-hr[data-st="warn"] .gx-hv { color: var(--warn); } .gx-hr[data-st="bad"] .gx-hv { color: var(--bad); }
+.bars .r .t i { background: var(--bar) !important; }
