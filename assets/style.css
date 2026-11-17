@@ -2326,3 +2326,60 @@ body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: spa
 .panel.rapat { gap: 4px; } .panel.rapat .gx-hb, .panel.rapat .bars, .panel.rapat .kx-list, .panel.rapat .cs-l { gap: 0 !important; row-gap: 0 !important; }
 .panel.rapat .gx-hb { margin-top: 4px !important; } .panel.rapat .gx-hr { padding-top: 0; padding-bottom: 0; }
 .panel .desc-lipat.tampil { animation: ketMuncul .18s ease; } @keyframes ketMuncul { from { opacity: 0; } to { opacity: 1; } }
+.bid-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 13px; }
+.bid-i { border: 1px solid var(--line); border-radius: 13px; padding: 8px 13px; display: grid; gap: 2px; }
+.bid-i b { font-size: 14px; } .bid-i .num { font: 700 22px/1.1 var(--f-display); } .bid-i .good { color: var(--good); } .bid-i .warn { color: var(--warn); } .bid-i .bad { color: var(--bad); }
+.bid-i small { color: var(--ink-3); font-size: 12px; }
+.asp-ring { display: flex; flex-wrap: wrap; gap: 6px 16px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.asp-ring b { color: var(--ink); font-weight: 600; }
+
+/* ===== 18 Nov: penyempurnaan ala apple.com ===== */
+/* pencarian */
+.cari-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--g-btn, var(--sheet)); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; flex: none; }
+.cari-btn svg { width: 18px; height: 18px; } .cari-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.cari-wrap { position: fixed; inset: 0; z-index: 90; background: rgba(10,14,28,.38); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; }
+.cari-box { width: min(640px, 100%); background: var(--sheet); border-radius: 21px; box-shadow: 0 24px 60px rgba(0,0,0,.28); overflow: hidden; display: flex; flex-direction: column; max-height: 70vh; }
+.cari-in { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.cari-in svg { width: 20px; height: 20px; color: var(--ink-3); flex: none; }
+.cari-in input { flex: 1; border: 0; outline: 0; background: transparent; font: 500 18px/1.3 var(--f-body); color: var(--ink); min-width: 0; }
+.cari-in kbd { font: 600 12px var(--f-body); color: var(--ink-3); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.cari-hasil { overflow-y: auto; padding: 8px; }
+.cari-g { font: 700 12px var(--f-body); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); padding: 10px 10px 4px; }
+.cari-i { display: grid; width: 100%; text-align: left; gap: 2px; border: 0; background: transparent; padding: 8px 10px; border-radius: 10px; cursor: pointer; color: var(--ink); }
+.cari-i b { font-weight: 600; font-size: 14px; } .cari-i small { font-size: 12px; color: var(--ink-3); }
+.cari-i:hover, .cari-i.on { background: var(--accent-soft); }
+.cari-kosong { color: var(--ink-3); font-size: 14px; padding: 14px 10px; margin: 0; }
+.cari-tanda { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; transition: outline-color .4s; }
+@media (max-width: 700px) { .cari-wrap { padding-top: 8vh; } }
+/* tipografi: angka berlebar seragam, angka utama lebih tegas */
+.num, .val, .rgk-big, .cs-big, .gx-hv { font-variant-numeric: tabular-nums; }
+.rgk-hero .rgk-big { font-size: clamp(46px, 4.4vw, 58px); letter-spacing: -.02em; }
+.card h3, .rgk-tile .rgk-lbl { color: var(--ink-3); }
+/* animasi halus: batang grafik tumbuh saat muncul */
+@media (prefers-reduced-motion: no-preference) {
+  .gx-bar, .gx-ghost, #monthChart .b { transform-box: fill-box; transform-origin: bottom; animation: tumbuh .6s cubic-bezier(.2,.8,.2,1) both; }
+  .rgk-tren i, .m12 i, .gx-ht i, .bars .t i { transform-origin: bottom left; animation: tumbuhX .6s cubic-bezier(.2,.8,.2,1) both; }
+  .rgk-tren i, .m12 i { transform-origin: bottom; animation-name: tumbuh; }
+  @keyframes tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes tumbuhX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+/* HP: kartu angka dalam satu baris yang bisa digeser */
+@media (max-width: 700px) {
+  .kpis, .rgk-t { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 13px; padding-bottom: 6px; margin-inline: -4px; padding-inline: 4px; scrollbar-width: none; }
+  .kpis::-webkit-scrollbar, .rgk-t::-webkit-scrollbar { display: none; }
+  .kpis > *, .rgk-t > * { flex: 0 0 72%; scroll-snap-align: start; }
+}
+/* mode presentasi ramah proyektor: kontras lebih tinggi, garis lebih tebal */
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) body.pres { --ink-2: #2f3650; --ink-3: #454c63; --line: #c4c9d6; --track: #dfe2ea; } }
+:root[data-theme="light"] body.pres { --ink-2: #2f3650; --ink-3: #454c63; --line: #c4c9d6; --track: #dfe2ea; }
+body.pres .gx-grid, body.pres #monthChart .grid { stroke-width: 1.5; }
+body.pres .gx-ln, body.pres .tl-l { stroke-width: 3.5; }
+body.pres .gx-hr .gx-ht, body.pres .bars .t { height: 12px; }
+body.pres .pill, body.pres .tag { filter: saturate(1.4) contrast(1.1); }
+body.pres [data-bagian="isu"].solo-0a .kx-list, body.pres [data-bagian="isu"].solo-0a .sub-h:has(+ .kx-list), body.pres [data-bagian="isu"].solo-0a .kx-list ~ .btn { display: none !important; }
+body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(+ .kx-list)) { display: none !important; }
+.pres-bar #presJeda svg { width: 18px; height: 18px; }
+.desc-lipat.melayang.apung { background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; border-radius: 0; }
+/* kartu bertinggi bebas: beri sedikit ruang di bawah judul agar keterangan bisa muncul tanpa menggeser isi */
+.panel > .panel-h { margin-bottom: 0; }
+.asp-ring { margin-top: 13px !important; }

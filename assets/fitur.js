@@ -48,12 +48,12 @@
     return sl.map(function (u) {
       var x = u.split('#')[0], k = u.split('#')[1], e = el1(u);
       if (x === 'rgk' && k) return k === 'b' ? 'Ringkasan · Grafik bulanan' : 'Ringkasan';
-      if (k !== undefined && e) { var h = e.querySelectorAll(':scope > .panel h2')[+k]; if (h) return h.textContent.trim(); }
+      if (k !== undefined && e) { var h = e.querySelectorAll(':scope > .panel h2')[parseInt(k, 10)]; if (h && /[ab]$/.test(k)) return h.textContent.trim() + (k.slice(-1) === 'a' ? ' · Ringkasan' : ' · Daftar isu'); if (h) return h.textContent.trim(); }
       return x === 'rgk' ? 'Ringkasan' : x === 'ringkasan' ? 'Pembelajaran' : BAGIAN[x];
     }).join(' · ');
   }
   function ruangLayar() { var atas = $('top') ? $('top').getBoundingClientRect().bottom : 0; return window.innerHeight - atas - 24 - 96; }
-  function aturSolo(e, k) { e.classList.remove('solo-0', 'solo-1', 'solo-a', 'solo-b'); if (k !== undefined && k !== null) e.classList.add('solo-' + k); }
+  function aturSolo(e, k) { e.classList.remove('solo-0', 'solo-1', 'solo-a', 'solo-b', 'solo-0a', 'solo-0b'); if (k && /^[01][ab]$/.test(k)) e.classList.add('solo-' + k.charAt(0)); if (k !== undefined && k !== null) e.classList.add('solo-' + k); }
   /* skala seragam untuk semua slide: huruf berukuran sama di setiap slide (mengikuti lebar layar, bukan isi slide) */
   var TOLERANSI = 0.92, MIN_DARURAT = 0.78;
   function skalaSeragam() { return Math.max(1, Math.min(1.4, window.innerWidth / 1366)); }
@@ -72,7 +72,9 @@
           ['a', 'b'].forEach(function (k) { aturSolo(e, k); unit.push({ u: x + '#' + k, t: e.getBoundingClientRect().height }); });
           aturSolo(e, null);
         } else if (!muat(t) && e.classList.contains('pair') && e.querySelectorAll(':scope > .panel').length === 2) {
-          [0, 1].forEach(function (k) { aturSolo(e, k); unit.push({ u: x + '#' + k, t: e.getBoundingClientRect().height }); });
+          [0, 1].forEach(function (k) { aturSolo(e, k); var tk = e.getBoundingClientRect().height;
+            if (!muat(tk) && x === 'isu' && k === 0 && e.querySelector('.kx-list')) { ['0a', '0b'].forEach(function (kk) { aturSolo(e, kk); unit.push({ u: x + '#' + kk, t: e.getBoundingClientRect().height }); }); }
+            else unit.push({ u: x + '#' + k, t: tk }); });
           aturSolo(e, null);
         } else unit.push({ u: x, t: t });
       });
@@ -148,7 +150,7 @@
   bar.className = 'pres-bar'; bar.id = 'presBar'; bar.hidden = true; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Kontrol presentasi');
   bar.innerHTML = '<button type="button" data-p="prev" aria-label="Bagian sebelumnya" title="Sebelumnya (←)">‹</button>' +
     '<span class="pres-t"><b id="presNama"></b><small id="presNo"></small></span>' +
-    '<button type="button" data-p="jeda" id="presJeda" aria-label="Jeda" title="Jeda / lanjut (P)">❚❚</button>' +
+    '<button type="button" data-p="jeda" id="presJeda" aria-label="Jeda" title="Jeda / lanjut (P)"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button>' +
     '<button type="button" data-p="next" aria-label="Bagian berikutnya" title="Berikutnya (→ atau spasi)">›</button>' +
     '<span class="pres-sep" aria-hidden="true"></span><button type="button" data-p="kecil" aria-label="Perkecil" title="Perkecil (–)">−</button><button type="button" data-p="nol" class="pz pz-auto" id="presZoom" title="Kembali ke ukuran otomatis (0)">100%</button><button type="button" data-p="besar" aria-label="Perbesar" title="Perbesar (+)">+</button>' +
     '<button type="button" data-p="keluar" class="x" aria-label="Keluar dari mode presentasi" title="Keluar (Esc)">✕</button>' +
@@ -178,7 +180,7 @@
   }
   function jeda(v) {
     P.jeda = v === undefined ? !P.jeda : v;
-    $('presJeda').textContent = P.jeda ? '▶' : '❚❚'; $('presJeda').setAttribute('aria-label', P.jeda ? 'Lanjut' : 'Jeda');
+    $('presJeda').innerHTML = P.jeda ? '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>'; $('presJeda').setAttribute('aria-label', P.jeda ? 'Lanjut' : 'Jeda');
     bar.classList.toggle('jeda', P.jeda); jadwal();
   }
   function mulai() {
@@ -190,7 +192,7 @@
       try { var pr = el.requestFullscreen(); P.layar = true; if (pr && pr.catch) pr.catch(function () { P.layar = false; }); } catch (e) { P.layar = false; }
     }
     try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (k) { P.kunci = k; }, function () {}); } catch (e) {}
-    $('presJeda').textContent = '❚❚'; bar.classList.remove('jeda');
+    $('presJeda').innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>'; bar.classList.remove('jeda');
     setTimeout(function () { susun(); tampil(0); }, 250);
   }
   function berhenti() {

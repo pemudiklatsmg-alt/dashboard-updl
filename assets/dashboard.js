@@ -174,7 +174,7 @@
     var pctK = r.terjadwal ? r.kelas / r.terjadwal : null;
     h += card({ title: 'Total Kelas', hint: 'Rendiklat, status Selesai s.d. ' + bl, delta: rP && r.kelas ? delta(r.kelas, rP.kelas, 0, '', 0) : '', val: r.kelas ? D.fmt(r.kelas, 0) : '–',
       ring: ring(pctK, status(pctK).c, pctTxt(pctK), 'Kelas selesai ' + pctTxt(pctK) + ' dari terjadwal'),
-      foot: r.terjadwal ? D.pct(pctK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' kelas terjadwal · +' + r.kelasBulan + ' di ' + bl : 'Belum ada data Rendiklat', cls: status(pctK).c, click: 'kelas',
+      foot: r.terjadwal ? D.pct(pctK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' kelas terjadwal · +' + r.kelasBulan + ' di ' + bl + (S.bulan < 12 && r.kelas ? ' · proyeksi Des ±' + D.fmt(Math.round(r.kelas / S.bulan * 12), 0) : '') : 'Belum ada data Rendiklat', cls: status(pctK).c, click: 'kelas',
       m12: mini12(rk12.map(function (x) { return x ? x.kelasBulan : null; }), function (x) { return D.fmt(x, 0) + ' kelas selesai'; }, null, 'Kelas selesai per bulan') });
 
     var H = hop(S.tahun, S.bulan), itH = find(/Tingkat Pelaksanaan Pembelajaran/i), tgt = itH && konmanAda(Bn) ? D.num(itH.target[Bn].v) : null;
@@ -388,7 +388,8 @@
     }).join('');
     var kual = '<h4 class="sg-h" data-st="' + (Q.length ? 'warn' : 'good') + '">Pemeriksaan kualitas isian · ' + Q.length + ' temuan</h4>' + (Q.length ? daftarKualitasHtml(Q) : '<p class="desc">Tidak ditemukan data ganda, kolom wajib kosong, atau nilai janggal.</p>');
     openModal('<div class="modal-h"><div><div class="desc">Patokan ' + namaBulan(S.bulan) + ' ' + S.tahun + (function () { var pt = perubahanTerakhir(); return (pt ? ' · data terakhir berubah ' + esc(jamTgl(pt.d)) + ' (' + esc(pt.nama) + (pt.via ? ', ' + esc(pt.via) : '') + ')' : '') + (t ? ' · dicek ' + esc(jamTgl(t)) : ''); })() + '</div><h3>Status Data</h3></div><button class="btn" data-close>Tutup</button></div>' +
-      sum + kual + tbl + '<div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>', 'wide');
+      sum + kual + (function () { var P = (S.data.meta || {}).perubahan || {}, R = Object.keys(P.tab || {}).filter(function (k) { return !/^(Log Login|Cadangan|\(Lama\))/i.test(k) && P.tab[k] && P.tab[k].t; }).map(function (k) { return { k: k, d: new Date(P.tab[k].t), via: P.tab[k].via }; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 12);
+        return R.length ? '<h4 class="sg-h" data-st="good">Riwayat perubahan terakhir · ' + R.length + '</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tab</th><th>Waktu</th><th>Lewat</th></tr></thead><tbody>' + R.map(function (r) { return '<tr><td><b>' + esc(r.k) + '</b></td><td>' + esc(jamTgl(r.d)) + '</td><td>' + (r.via === 'dashboard' ? 'dashboard' : r.via === 'manual' ? 'edit manual' : '–') + '</td></tr>'; }).join('') + '</tbody></table></div>' : ''; })() + tbl + '<div class="note">Sumber bulanan dianggap lengkap bila sudah terisi s.d. bulan terpilih. Data evaluasi ditandai bila tanggal terakhirnya lebih dari 45 hari sebelum akhir bulan terpilih. Isi atau perbarui di ' + sheetLink('Google Sheets') + '.</div>', 'wide');
   }
 
   /* ---------- perlu perhatian ---------- */
@@ -473,13 +474,14 @@
     var kepala = (mc.getBoundingClientRect().top - mc.closest('.panel').getBoundingClientRect().top) / r + 16;
     return Math.max(260, Math.round(isi - kepala));
   }
+  var koreksiTinggi = 0;
   function renderChart() {
     var months = K().months;
     if (!months.length) { $('monthChart').innerHTML = '<div class="empty">Tab Konman ' + S.tahun + ' belum ada.</div>'; return; }
     var vals = months.map(function (Bn) { return totalSkor(Bn); });
     var maxV = Math.ceil(Math.max.apply(null, [120].concat(vals.filter(function (v) { return v !== null; }))) / 20) * 20;
     var lebar = $('monthChart').clientWidth || 640;   // ikuti lebar wadah agar grafik tidak membesar ke bawah
-    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = document.body.classList.contains('pres') ? tinggiChartPres(lebar) : window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent ? (function () { var cs = $('capSide'); cs.style.alignSelf = 'start'; var h = Math.max(180, Math.min(380, tinggiChartPres(lebar) - 16)); cs.style.alignSelf = ''; return h; })() : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
+    var W = Math.max(D.sempit() ? 260 : 560, Math.min(1500, Math.round(lebar))), H = koreksiTinggi ? koreksiTinggi : document.body.classList.contains('pres') ? tinggiChartPres(lebar) : window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent ? (function () { var cs = $('capSide'); cs.style.alignSelf = 'start'; var h = Math.max(180, Math.min(380, tinggiChartPres(lebar) - 16)); cs.style.alignSelf = ''; return h; })() : Math.max(230, Math.min(340, Math.round(W / 2.618))), L = 34, Rr = 8, T = 16, Bt = 26, iw = W - L - Rr, ih = H - T - Bt, step = iw / months.length, bw = Math.min(56, step * 0.56);
     function y(v) { return T + ih - (v / maxV) * ih; }
     var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Capaian kinerja per bulan">';
     for (var g = 0; g <= maxV; g += 20) s += '<line class="grid" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(g) + '" y2="' + y(g) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
@@ -496,6 +498,7 @@
     });
     s += '<line class="tgt" x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(100) + '" y2="' + y(100) + '"/>' + (D.sempit() ? '' : '<text class="tgt-l" x="' + (W - Rr) + '" y="' + (y(100) - 4) + '" text-anchor="end">Target 100</text>') + '</svg>';
     $('monthChart').innerHTML = s;
+    if (!koreksiTinggi && !document.body.classList.contains('pres') && window.innerWidth > 1000 && $('capSide') && $('capSide').offsetParent) { var pc = $('monthChart').closest('.panel'), cs = $('capSide'); cs.style.alignSelf = 'start'; var selisih = cs.offsetHeight - pc.offsetHeight; cs.style.alignSelf = ''; if (Math.abs(selisih) > 4 && H + selisih >= 160) { koreksiTinggi = H + selisih; renderChart(); koreksiTinggi = 0; return; } }
     Array.prototype.forEach.call($('monthChart').querySelectorAll('g[data-m]'), function (gg) { gg.addEventListener('click', function () { setPeriode(S.tahun, +gg.getAttribute('data-m')); }); });
   }
 
@@ -525,6 +528,9 @@
       (perlu.length ? '<div class="sub-h">Perlu perhatian bulan ini</div><ul class="cap-perlu">' + perlu.map(function (r) {
         return '<li class="' + r.st.c + '"><b>' + esc(labelNo(r.x)) + '. ' + esc(r.x.pendek) + '</b><span>' + D.fmt(r.v * 100, 0) + '%' + (r.v < 1 ? ' · di bawah target' : '') + (r.turun ? ' · turun dari ' + namaBulan(S.bulan - 1) : '') + '</span></li>';
       }).join('') + '</ul>' : '<div class="note">Semua indikator mencapai target dan tidak ada yang turun dari bulan lalu.</div>') +
+      (function () { var G = {}; it.forEach(function (x) { var c = D.capaianItem(x, Bn); if (c === null || c === undefined) return; var k = (x.pic || 'Lainnya').split(/[,/&]/)[0].trim() || 'Lainnya'; (G[k] = G[k] || { n: 0, s: 0, b: 0 }); G[k].n++; G[k].s += Math.min(c, 1.1); if (c < 0.9999) G[k].b++; });
+        var ks = Object.keys(G).sort(function (a, b) { return G[a].s / G[a].n - G[b].s / G[b].n; }); if (ks.length < 2) return '';
+        return '<div class="sub-h">Per bidang (PIC)</div><div class="bid-g">' + ks.map(function (k) { var g = G[k], r = g.s / g.n; return '<div class="bid-i"><b>' + esc(k) + '</b><span class="num ' + status(r).c + '">' + D.fmt(r * 100, 0) + '%</span><small>' + g.n + ' indikator' + (g.b ? ' · ' + g.b + ' di bawah 100%' : '') + '</small></div>'; }).join('') + '</div>'; })() +
       '<div class="sub-h">Cara angka ' + D.fmt(tot, 1) + '% terbentuk</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">Target</th><th class="r">Realisasi</th><th class="r">Capaian</th><th class="r">Bobot</th><th class="r">Skor</th></tr></thead><tbody>' +
       rows.map(function (r) {
         return '<tr class="klik" data-ind="' + r.x.baris + '" tabindex="0"><td><b>' + esc(labelNo(r.x)) + '</b> ' + esc(r.x.pendek) + '</td><td class="r">' + esc((r.x.target[Bn] || {}).d || '–') + '</td><td class="r">' + esc((r.x.real[Bn] || {}).d || '–') + '</td>' +
@@ -1505,12 +1511,16 @@
         // saat disorot: keterangan muncul tanpa mengubah ukuran kartu. Bila ada ruang, isi kartu yang merapat; bila tidak, keterangan melayang di bawah judul
         pn.addEventListener('mouseenter', function () {
           var ds = pn.querySelector('.desc-lipat'); if (!ds) return; var tg = pn.offsetHeight;
+          // 1) bila ada ruang kosong di bawah judul: keterangan mengisi ruang itu, isi kartu tidak bergeser sama sekali
+          var hh0 = pn.querySelector('h2, h3'), kp = pn.querySelector('.panel-h'), isi = kp ? kp.nextElementSibling : (hh0 && hh0.nextElementSibling && hh0.nextElementSibling !== ds ? hh0.nextElementSibling : null);
+          if (hh0 && isi) { ds.classList.add('melayang', 'apung'); ds.style.top = (hh0.offsetTop + hh0.offsetHeight + 2) + 'px';
+            if (ds.getBoundingClientRect().bottom <= isi.getBoundingClientRect().top - 2) return; ds.classList.remove('melayang', 'apung'); ds.style.top = ''; }
           ds.classList.add('tampil'); if (pn.offsetHeight <= tg + 1) return;
           pn.style.boxSizing = 'border-box'; pn.style.height = tg + 'px';
           if (pn.scrollHeight > tg + 1) pn.classList.add('rapat');
           if (pn.scrollHeight > tg + 1) { pn.classList.remove('rapat'); pn.style.height = ''; ds.classList.remove('tampil'); var hh = pn.querySelector('h2, h3'); ds.classList.add('melayang'); ds.style.top = (hh ? hh.offsetTop + hh.offsetHeight + 4 : 48) + 'px'; }
         });
-        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang'); ds.style.top = ''; } });
+        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang', 'apung'); ds.style.top = ''; } });
       }
   }
   function lipatKet() {
@@ -2100,6 +2110,7 @@
   /* dipakai input.js dan export.js */
   openKualitas = lapis(openKualitas); openSegar = lapis(openSegar); openCapaian = lapis(openCapaian); openInd = lapis(openInd); openTL = lapis(openTL); modalKri = lapis(modalKri); openFra = lapis(openFra); openFr = lapis(openFr); openIdp = lapis(openIdp); openIno = lapis(openIno); openIsu = lapis(openIsu); openPbList = lapis(openPbList); openPihak = lapis(openPihak); openOrg = lapis(openOrg); openKelas = lapis(openKelas); openHop = lapis(openHop); openKepuasan = lapis(openKepuasan); openInstruktur = lapis(openInstruktur); openKsa = lapis(openKsa); openCc = lapis(openCc); openSert = lapis(openSert); openRekap = lapis(openRekap); openTren = lapis(openTren);
   window.DashApp = {
+    lompatKe: function (b, p) { return lompatKe(b, p); },
     S: S, K: K, kelas: kelas, set: set, find: find, konmanAda: konmanAda, totalSkor: totalSkor, pengurang: pengurang,
     kepRows: kepRows, kepVal: kepVal, pegawai: pegawai, hop: hop, status: status, labelNo: labelNo, namaBulan: namaBulan, B: B,
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
