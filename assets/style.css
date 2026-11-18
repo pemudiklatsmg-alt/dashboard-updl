@@ -2442,3 +2442,14 @@ html body .tumpuk[hidden] + .tm-dots { display: none !important; }
 
 /* kartu dobel (Kepuasan Peserta + Penilaian Instruktur) dipecah jadi dua kartu sendiri di tumpukan, sudutnya ikut melengkung */
 @media (max-width: 700px) { body:not(.pres) .tumpuk > .stack2 { display: contents !important; } body:not(.pres) .tumpuk .tm-i { border-radius: var(--r-card, 21px); } }
+
+/* Tumpukan HP mengikuti rasio emas (8 · 13 · 21): intipan 8 & 13px, tinggi kartu belakang 95% & 89%, titik 8px / aktif 21px */
+@media (max-width: 700px) {
+  body:not(.pres) .tumpuk { padding-right: 13px; }
+  body:not(.pres) .tumpuk .tm-i.tm-n1 { transform: translateX(8px) scaleY(.95); }
+  body:not(.pres) .tumpuk .tm-i.tm-n2 { transform: translateX(13px) scaleY(.89); }
+  body:not(.pres) .tumpuk .tm-i.tm-n1, body:not(.pres) .tumpuk .tm-i.tm-n2 { clip-path: inset(-13px -21px -13px calc(100% - 8px)); }
+  .tm-dots { gap: 8px; margin: 8px 0 13px; }
+  .tm-dots button { width: 8px; height: 8px; }
+  .tm-dots button.on { width: 21px; border-radius: 4px; }
+}
