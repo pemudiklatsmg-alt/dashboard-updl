@@ -1713,6 +1713,7 @@
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
   var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* abaikan */ }
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
   function pilihTab(t, gulir) {
     if ((t === 'tugas' || t === 'pengaturan') && !admin()) t = 'ringkasan';
@@ -1726,9 +1727,8 @@
     $('rgk').hidden = t !== 'ringkasan'; $('tugas').hidden = t !== 'tugas'; if ($('pengaturan')) $('pengaturan').hidden = t !== 'pengaturan';
     if (t === 'tugas') renderTugas();
     if (t === 'pengaturan' && window.DashApp.renderPengaturan) window.DashApp.renderPengaturan();
-    if (gulir && window.innerWidth >= 1100) window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (gulir) window.scrollTo(0, 0);   // tab baru selalu tampil dari data paling atas (HP & desktop)
     if (t === 'semua' || t === 'kinerja') { try { renderChart(); } catch (e) { /* abaikan */ } }
-    if (gulir) { var nv = $('vtabs'); if (nv && nv.getBoundingClientRect().top < 0) nv.scrollIntoView({ block: 'start' }); }
   }
   function renderRingkasan() {
     var el = $('rgk'); if (!el) return;

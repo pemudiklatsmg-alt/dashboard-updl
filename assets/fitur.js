@@ -23,7 +23,9 @@
   var awal = true;
   document.addEventListener('dash:periode', function () {
     if (!awal) return; awal = false;
-    var n = dariHash(); if (n) setTimeout(function () { ke(n, false); }, 80);
+    // saat dibuka selalu mulai dari Ringkasan paling atas: tanda bagian (#...) dari kunjungan sebelumnya dihapus, tidak dilompati
+    if (location.hash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* abaikan */ } }
+    window.scrollTo(0, 0);
   });
   window.addEventListener('hashchange', function () { var n = dariHash(); if (n) ke(n, true); });
   document.addEventListener('click', function (e) {
