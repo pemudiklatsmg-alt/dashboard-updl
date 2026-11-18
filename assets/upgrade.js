@@ -149,6 +149,7 @@
         c.parentNode.insertBefore(dt, c.nextSibling);
       }
       dt.style.order = getComputedStyle(c).order;
+      dt.hidden = c.hidden || !!c.closest('[hidden]');
       c.classList.toggle('tm-dua', kids.length === 2);
       // petunjuk gerak sekali per kunjungan: kartu teratas bergeser ke kiri lalu kembali
       var kunci = 'tmIntip'; try { if (!sessionStorage.getItem(kunci) && c.getBoundingClientRect().top < window.innerHeight) { sessionStorage.setItem(kunci, 1); c.classList.add('tm-intip'); setTimeout(function () { c.classList.remove('tm-intip'); }, 2000); } } catch (e) { /* abaikan */ }

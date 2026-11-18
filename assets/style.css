@@ -2428,3 +2428,6 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 }
 /* kartu depan tetap sama warnanya dengan kartu lain; kartu di belakang hanya digambar pada bagian yang mengintip di kanan */
 @media (max-width: 700px) { body:not(.pres) .tumpuk > .tm-n1, body:not(.pres) .tumpuk > .tm-n2 { clip-path: inset(-10px -20px -10px calc(100% - 9px)); } }
+/* tumpukan tidak boleh memunculkan bagian yang sedang disembunyikan (tab lain) */
+html body .tumpuk[hidden], html body [hidden] > .tumpuk { display: none !important; }
+html body .tumpuk[hidden] + .tm-dots { display: none !important; }
