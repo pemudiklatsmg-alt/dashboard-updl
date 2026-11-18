@@ -115,16 +115,19 @@
   }
   /* ---------- 4. HP: kartu angka bertumpuk (geser kiri/kanan) ---------- */
   function sempit() { return window.innerWidth <= 700 && !document.body.classList.contains('pres'); }
+  function kosong(k) { return /Belum diisi/.test(k.textContent); }
+  // urutan tumpukan: kartu yang sudah ada datanya dulu, kartu "Belum diisi" di paling belakang
+  function urut(c) { var L = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }); return L.filter(function (k) { return !kosong(k); }).concat(L.filter(kosong)); }
   function tampilTumpuk(c) {
-    var kids = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }), n = kids.length, i = +c.dataset.tmI || 0;
+    var kids = urut(c), n = kids.length, i = +c.dataset.tmI || 0;
     if (i >= n) i = 0; c.dataset.tmI = i;
     kids.forEach(function (k, j) { var d = (j - i + n) % n; k.classList.toggle('tm-on', d === 0); k.classList.toggle('tm-n1', d === 1); k.classList.toggle('tm-n2', d === 2); k.setAttribute('aria-hidden', d === 0 ? 'false' : 'true'); });
     var dt = c.nextElementSibling; if (dt && dt.classList.contains('tm-dots')) Array.prototype.forEach.call(dt.children, function (b, j) { b.classList.toggle('on', j === i); });
   }
   function aturTumpuk() {
-    Array.prototype.forEach.call(document.querySelectorAll('main .kpis, main .rgk-t'), function (c) {
+    Array.prototype.forEach.call(document.querySelectorAll('main .kpis, main .rgk-t, main .minis'), function (c) {
       var dt = c.nextElementSibling && c.nextElementSibling.classList.contains('tm-dots') ? c.nextElementSibling : null;
-      var kids = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; });
+      var kids = urut(c);
       if (!sempit() || kids.length < 2) { c.classList.remove('tumpuk'); Array.prototype.forEach.call(c.children, function (k) { k.classList.remove('tm-on', 'tm-n1', 'tm-n2'); k.removeAttribute('aria-hidden'); }); if (dt) dt.remove(); return; }
       if (!c.classList.contains('tumpuk')) {
         c.classList.add('tumpuk');
@@ -138,7 +141,7 @@
           c.addEventListener('touchstart', function (e) { if (!c.classList.contains('tumpuk')) return; var tx = e.touches[0].clientX; if (tx < 28 || tx > window.innerWidth - 28) { x0 = null; return; } x0 = tx; y0 = e.touches[0].clientY; dx = 0; }, { passive: true });
           c.addEventListener('touchmove', function (e) { if (x0 === null) return; dx = e.touches[0].clientX - x0; var dy = e.touches[0].clientY - y0; if (Math.abs(dy) > Math.abs(dx)) { x0 = null; return; } var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.add('tm-geser'); var lim = window.innerWidth * 0.35, ddx = Math.max(-lim, Math.min(lim, dx)); on.style.transform = 'translateX(' + ddx + 'px) rotate(' + (ddx / 50) + 'deg)'; var n1 = c.querySelector(':scope > .tm-n1'); if (n1) { var pr = Math.min(1, Math.abs(ddx) / lim); n1.style.transition = 'none'; n1.style.transform = 'translateX(' + (6 * (1 - pr)) + 'px) scaleY(' + (0.93 + 0.07 * pr) + ')'; } } }, { passive: true });
           c.addEventListener('touchend', function () { var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.remove('tm-geser'); on.style.transform = ''; } Array.prototype.forEach.call(c.children, function (k) { k.style.transition = ''; if (!k.classList.contains('tm-on')) k.style.transform = ''; });
-            if (x0 !== null && Math.abs(dx) > 45) { var n = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }).length; c.dataset.tmI = ((+c.dataset.tmI || 0) + (dx < 0 ? 1 : -1) + n) % n; tampilTumpuk(c); c.dataset.tmBaruGeser = Date.now(); }
+            if (x0 !== null && Math.abs(dx) > 45) { var n = urut(c).length; c.dataset.tmI = ((+c.dataset.tmI || 0) + (dx < 0 ? 1 : -1) + n) % n; tampilTumpuk(c); c.dataset.tmBaruGeser = Date.now(); }
             x0 = null; });
           // ketukan setelah menggeser tidak membuka rincian kartu
           c.addEventListener('click', function (e) { if (Date.now() - (+c.dataset.tmBaruGeser || 0) < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
@@ -146,7 +149,7 @@
       }
       if (!dt || dt.children.length !== kids.length) {
         if (dt) dt.remove(); dt = document.createElement('div'); dt.className = 'tm-dots'; dt.setAttribute('role', 'tablist');
-        dt.innerHTML = kids.map(function (k, j) { var h = k.querySelector('h3, .rgk-lbl'); return '<button type="button" role="tab" aria-label="Kartu ' + (j + 1) + (h ? ': ' + esc(h.textContent.trim()) : '') + '" data-tm="' + j + '"></button>'; }).join('');
+        dt.innerHTML = kids.map(function (k, j) { var h = k.querySelector('h3, .rgk-lbl'); return '<button type="button" role="tab"' + (kosong(k) ? ' class="kosong"' : '') + ' aria-label="Kartu ' + (j + 1) + (h ? ': ' + esc(h.textContent.trim()) : '') + (kosong(k) ? ' (belum diisi)' : '') + '" data-tm="' + j + '"></button>'; }).join('');
         dt.addEventListener('click', function (e) { var b = e.target.closest('[data-tm]'); if (b) { c.dataset.tmI = b.getAttribute('data-tm'); tampilTumpuk(c); } });
         c.parentNode.insertBefore(dt, c.nextSibling);
       }
