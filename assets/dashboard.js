@@ -1522,6 +1522,7 @@
       }
   }
   function lipatKet() {
+    return;   // keterangan kembali tampil di bawah judul (permintaan 18 Nov); tombol ⓘ tidak dipakai
     Array.prototype.forEach.call(document.querySelectorAll('main .card .hint'), function (hn) {
       if (hn.dataset.lipat) return; var h = hn.parentElement.querySelector('h3'); if (!h) return;
       var teks = Array.prototype.filter.call(hn.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
