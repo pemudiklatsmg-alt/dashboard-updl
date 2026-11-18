@@ -1509,18 +1509,16 @@
   function pasangHoverKet(pn) {
     if (!pn || pn.dataset.kunciKet) return; pn.dataset.kunciKet = 1; {
         // saat disorot: keterangan muncul tanpa mengubah ukuran kartu. Bila ada ruang, isi kartu yang merapat; bila tidak, keterangan melayang di bawah judul
+        // saat disorot: keterangan (1 baris) muncul di bawah judul; ruang diambil dari jarak atas & bawah kartu dan jarak antarbaris isi,
+        // jadi ukuran kartu tetap, isi tidak tertutup dan tidak ikut turun
         pn.addEventListener('mouseenter', function () {
           var ds = pn.querySelector('.desc-lipat'); if (!ds) return; var tg = pn.offsetHeight;
-          // 1) bila ada ruang kosong di bawah judul: keterangan mengisi ruang itu, isi kartu tidak bergeser sama sekali
-          var hh0 = pn.querySelector('h2, h3'), kp = pn.querySelector('.panel-h'), isi = kp ? kp.nextElementSibling : (hh0 && hh0.nextElementSibling && hh0.nextElementSibling !== ds ? hh0.nextElementSibling : null);
-          if (hh0 && isi) { ds.classList.add('melayang', 'apung'); ds.style.top = (hh0.offsetTop + hh0.offsetHeight + 2) + 'px';
-            if (ds.getBoundingClientRect().bottom <= isi.getBoundingClientRect().top - 2) return; ds.classList.remove('melayang', 'apung'); ds.style.top = ''; }
-          ds.classList.add('tampil'); if (pn.offsetHeight <= tg + 1) return;
-          pn.style.boxSizing = 'border-box'; pn.style.height = tg + 'px';
+          pn.style.boxSizing = 'border-box'; pn.style.height = tg + 'px'; pn.classList.add('ket-on'); ds.classList.add('tampil');
           if (pn.scrollHeight > tg + 1) pn.classList.add('rapat');
-          if (pn.scrollHeight > tg + 1) { pn.classList.remove('rapat'); pn.style.height = ''; ds.classList.remove('tampil'); var hh = pn.querySelector('h2, h3'); ds.classList.add('melayang'); ds.style.top = (hh ? hh.offsetTop + hh.offsetHeight + 4 : 48) + 'px'; }
+          var ov = pn.scrollHeight - tg; if (ov > 1) { var pb = parseFloat(getComputedStyle(pn).paddingBottom) || 0; pn.style.paddingBottom = Math.max(2, pb - ov) + 'px'; }
+          if (pn.scrollHeight > tg + 1) pn.classList.add('tanpa-cat');   // terakhir: sembunyikan catatan kaki kecil (legenda/catatan) selama keterangan tampil
         });
-        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.classList.remove('rapat'); if (ds) { ds.classList.remove('tampil', 'melayang', 'apung'); ds.style.top = ''; } });
+        pn.addEventListener('mouseleave', function () { var ds = pn.querySelector('.desc-lipat'); pn.style.height = ''; pn.style.paddingBottom = ''; pn.classList.remove('rapat', 'ket-on', 'tanpa-cat'); if (ds) ds.classList.remove('tampil'); });
       }
   }
   function lipatKet() {

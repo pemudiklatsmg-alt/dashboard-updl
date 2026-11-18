@@ -2383,3 +2383,16 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 /* kartu bertinggi bebas: beri sedikit ruang di bawah judul agar keterangan bisa muncul tanpa menggeser isi */
 .panel > .panel-h { margin-bottom: 0; }
 .asp-ring { margin-top: 13px !important; }
+
+/* Keterangan saat disorot (perbaikan): tidak melayang menutupi isi; ruang diambil dari jarak atas-bawah kartu */
+.desc-lipat.tampil { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 0; }
+.panel.ket-on { padding-top: 6px !important; overflow: hidden; }
+.card.ket-on { padding-top: 3px !important; overflow: hidden; }
+.panel.ket-on { row-gap: 0 !important; gap: 0 !important; }
+.panel.ket-on > .panel-h, .card.ket-on h3 { margin-bottom: 0 !important; }
+.card.rapat { gap: 2px !important; } .card.rapat > * { margin-top: 0 !important; margin-bottom: 0 !important; }
+.panel.rapat .dev-body, .panel.rapat .tl-body { gap: 6px !important; row-gap: 6px !important; }
+.panel.tanpa-cat > .note:last-child, .panel.tanpa-cat > [class*="legend"]:last-child, .panel.tanpa-cat > .lg:last-child { display: none !important; }
+.panel.rapat .ind, .panel.rapat .ind-list, .panel.rapat .kep { gap: 2px !important; row-gap: 2px !important; }
+.panel-h > div:first-child { min-width: 0; } .panel-h:not(:has(> .seg)) > div:first-child { flex: 1 1 0; } .desc-lipat.tampil { max-width: 100%; }
+.panel.ket-on .panel-h { row-gap: 0 !important; } .desc-lipat.tampil { font-size: 12px; line-height: 1.35; }
