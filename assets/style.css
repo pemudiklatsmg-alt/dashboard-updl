@@ -2405,3 +2405,6 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 .panel.rapat .ind, .panel.rapat .ind-list, .panel.rapat .kep { gap: 2px !important; row-gap: 2px !important; }
 .panel-h > div:first-child { min-width: 0; } .panel-h:not(:has(> .seg)) > div:first-child { flex: 1 1 0; } .desc-lipat.tampil { max-width: 100%; }
 .panel.ket-on .panel-h { row-gap: 0 !important; } .desc-lipat.tampil { font-size: 12px; line-height: 1.35; }
+/* HP: tombol cari di menu ☰ (bilah atas tetap: judul kiri, tombol kanan) */
+@media (max-width: 700px) { #top .cari-btn { display: none !important; } }
+@media (min-width: 701px) { #mainMenu .mi-cari { display: none !important; } }
