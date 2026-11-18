@@ -2363,12 +2363,21 @@ body:not(.peran-admin) #g7 .time > div:has(> [data-ik="org"]) { grid-column: spa
   @keyframes tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
   @keyframes tumbuhX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 }
-/* HP: kartu angka dalam satu baris yang bisa digeser */
+/* HP: kartu angka bertumpuk ala Smart Stack iPhone — geser kiri/kanan untuk berpindah kartu */
 @media (max-width: 700px) {
-  .kpis, .rgk-t { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 13px; padding-bottom: 6px; margin-inline: -4px; padding-inline: 4px; scrollbar-width: none; }
-  .kpis::-webkit-scrollbar, .rgk-t::-webkit-scrollbar { display: none; }
-  .kpis > *, .rgk-t > * { flex: 0 0 72%; scroll-snap-align: start; }
+  body:not(.pres) .tumpuk { display: grid !important; grid-template-columns: 1fr !important; position: relative; padding-bottom: 14px; touch-action: pan-y; }
+  body:not(.pres) .tumpuk > * { grid-area: 1 / 1 !important; grid-column: 1 / 2 !important; grid-row: 1 / 2 !important; width: auto !important; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; will-change: transform; min-width: 0; }
+  body:not(.pres) .tumpuk > :not(.tm-on) { pointer-events: none; opacity: 0; transform: translateY(14px) scale(.9); }
+  body:not(.pres) .tumpuk > .tm-n1 { opacity: .55; transform: translateY(8px) scale(.95); z-index: 1; }
+  body:not(.pres) .tumpuk > .tm-n2 { opacity: .3; transform: translateY(14px) scale(.9); z-index: 0; }
+  body:not(.pres) .tumpuk > .tm-on { opacity: 1; transform: none; z-index: 2; }
+  body:not(.pres) .tumpuk > .tm-on.tm-geser { transition: none; }
+  .tm-dots { display: flex; justify-content: center; gap: 8px; margin: 4px 0 13px; }
+  .tm-dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: var(--ink-3); opacity: .35; cursor: pointer; transition: width .25s, opacity .25s; }
+  .tm-dots button.on { width: 18px; border-radius: 4px; opacity: 1; background: var(--accent); }
 }
+@media (min-width: 701px) { .tm-dots { display: none; } }
+body.pres .tm-dots { display: none; }
 /* mode presentasi ramah proyektor: kontras lebih tinggi, garis lebih tebal */
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) body.pres { --ink-2: #2f3650; --ink-3: #454c63; --line: #c4c9d6; --track: #dfe2ea; } }
 :root[data-theme="light"] body.pres { --ink-2: #2f3650; --ink-3: #454c63; --line: #c4c9d6; --track: #dfe2ea; }

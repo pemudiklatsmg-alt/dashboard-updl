@@ -107,5 +107,45 @@
       }
     });
   }
-  var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { ganti(); jalankanHitung(); }, 60); }).observe(document.body, { childList: true, subtree: true });
+  /* ---------- 4. HP: kartu angka bertumpuk (geser kiri/kanan) ---------- */
+  function sempit() { return window.innerWidth <= 700 && !document.body.classList.contains('pres'); }
+  function tampilTumpuk(c) {
+    var kids = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }), n = kids.length, i = +c.dataset.tmI || 0;
+    if (i >= n) i = 0; c.dataset.tmI = i;
+    kids.forEach(function (k, j) { var d = (j - i + n) % n; k.classList.toggle('tm-on', d === 0); k.classList.toggle('tm-n1', d === 1); k.classList.toggle('tm-n2', d === 2); k.setAttribute('aria-hidden', d === 0 ? 'false' : 'true'); });
+    var dt = c.nextElementSibling; if (dt && dt.classList.contains('tm-dots')) Array.prototype.forEach.call(dt.children, function (b, j) { b.classList.toggle('on', j === i); });
+  }
+  function aturTumpuk() {
+    Array.prototype.forEach.call(document.querySelectorAll('main .kpis, main .rgk-t'), function (c) {
+      var dt = c.nextElementSibling && c.nextElementSibling.classList.contains('tm-dots') ? c.nextElementSibling : null;
+      var kids = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; });
+      if (!sempit() || kids.length < 2) { c.classList.remove('tumpuk'); Array.prototype.forEach.call(c.children, function (k) { k.classList.remove('tm-on', 'tm-n1', 'tm-n2'); k.removeAttribute('aria-hidden'); }); if (dt) dt.remove(); return; }
+      if (!c.classList.contains('tumpuk')) {
+        c.classList.add('tumpuk');
+        // kartu pertama yang tampil: yang paling perlu perhatian (status merah, lalu kuning)
+        var pr = -1; kids.some(function (k, j) { if (k.querySelector('.bad, [data-st="bad"], .dot.bad')) { pr = j; return true; } });
+        if (pr < 0) kids.some(function (k, j) { if (k.querySelector('.warn, [data-st="warn"], .dot.warn')) { pr = j; return true; } });
+        c.dataset.tmI = Math.max(0, pr);
+        if (!c.dataset.tmGeser) { c.dataset.tmGeser = 1; var x0 = null, y0 = 0, dx = 0;
+          c.addEventListener('touchstart', function (e) { if (!c.classList.contains('tumpuk')) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; }, { passive: true });
+          c.addEventListener('touchmove', function (e) { if (x0 === null) return; dx = e.touches[0].clientX - x0; var dy = e.touches[0].clientY - y0; if (Math.abs(dy) > Math.abs(dx)) { x0 = null; return; } var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.add('tm-geser'); on.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / 40) + 'deg)'; } }, { passive: true });
+          c.addEventListener('touchend', function () { var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.remove('tm-geser'); on.style.transform = ''; }
+            if (x0 !== null && Math.abs(dx) > 45) { var n = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }).length; c.dataset.tmI = ((+c.dataset.tmI || 0) + (dx < 0 ? 1 : -1) + n) % n; tampilTumpuk(c); c.dataset.tmBaruGeser = Date.now(); }
+            x0 = null; });
+          // ketukan setelah menggeser tidak membuka rincian kartu
+          c.addEventListener('click', function (e) { if (Date.now() - (+c.dataset.tmBaruGeser || 0) < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
+        }
+      }
+      if (!dt || dt.children.length !== kids.length) {
+        if (dt) dt.remove(); dt = document.createElement('div'); dt.className = 'tm-dots'; dt.setAttribute('role', 'tablist');
+        dt.innerHTML = kids.map(function (k, j) { var h = k.querySelector('h3, .rgk-lbl'); return '<button type="button" role="tab" aria-label="Kartu ' + (j + 1) + (h ? ': ' + esc(h.textContent.trim()) : '') + '" data-tm="' + j + '"></button>'; }).join('');
+        dt.addEventListener('click', function (e) { var b = e.target.closest('[data-tm]'); if (b) { c.dataset.tmI = b.getAttribute('data-tm'); tampilTumpuk(c); } });
+        c.parentNode.insertBefore(dt, c.nextSibling);
+      }
+      dt.style.order = getComputedStyle(c).order;
+      tampilTumpuk(c);
+    });
+  }
+  window.addEventListener('resize', function () { clearTimeout(aturTumpuk.t); aturTumpuk.t = setTimeout(aturTumpuk, 150); });
+  var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { ganti(); jalankanHitung(); aturTumpuk(); }, 60); }).observe(document.body, { childList: true, subtree: true });
 })();
