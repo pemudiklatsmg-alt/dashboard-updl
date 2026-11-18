@@ -134,8 +134,8 @@
         c.dataset.tmI = Math.max(0, pr);
         if (!c.dataset.tmGeser) { c.dataset.tmGeser = 1; var x0 = null, y0 = 0, dx = 0;
           c.addEventListener('touchstart', function (e) { if (!c.classList.contains('tumpuk')) return; var tx = e.touches[0].clientX; if (tx < 28 || tx > window.innerWidth - 28) { x0 = null; return; } x0 = tx; y0 = e.touches[0].clientY; dx = 0; }, { passive: true });
-          c.addEventListener('touchmove', function (e) { if (x0 === null) return; dx = e.touches[0].clientX - x0; var dy = e.touches[0].clientY - y0; if (Math.abs(dy) > Math.abs(dx)) { x0 = null; return; } var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.add('tm-geser'); var lim = window.innerWidth * 0.35, ddx = Math.max(-lim, Math.min(lim, dx)); on.style.transform = 'translateX(' + ddx + 'px) rotate(' + (ddx / 50) + 'deg)'; } }, { passive: true });
-          c.addEventListener('touchend', function () { var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.remove('tm-geser'); on.style.transform = ''; }
+          c.addEventListener('touchmove', function (e) { if (x0 === null) return; dx = e.touches[0].clientX - x0; var dy = e.touches[0].clientY - y0; if (Math.abs(dy) > Math.abs(dx)) { x0 = null; return; } var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.add('tm-geser'); var lim = window.innerWidth * 0.35, ddx = Math.max(-lim, Math.min(lim, dx)); on.style.transform = 'translateX(' + ddx + 'px) rotate(' + (ddx / 50) + 'deg)'; var n1 = c.querySelector(':scope > .tm-n1'); if (n1) { var pr = Math.min(1, Math.abs(ddx) / lim); n1.style.transition = 'none'; n1.style.transform = 'translateX(' + (6 * (1 - pr)) + 'px) scaleY(' + (0.93 + 0.07 * pr) + ')'; } } }, { passive: true });
+          c.addEventListener('touchend', function () { var on = c.querySelector(':scope > .tm-on'); if (on) { on.classList.remove('tm-geser'); on.style.transform = ''; } Array.prototype.forEach.call(c.children, function (k) { k.style.transition = ''; if (!k.classList.contains('tm-on')) k.style.transform = ''; });
             if (x0 !== null && Math.abs(dx) > 45) { var n = Array.prototype.filter.call(c.children, function (k) { return !k.hidden; }).length; c.dataset.tmI = ((+c.dataset.tmI || 0) + (dx < 0 ? 1 : -1) + n) % n; tampilTumpuk(c); c.dataset.tmBaruGeser = Date.now(); }
             x0 = null; });
           // ketukan setelah menggeser tidak membuka rincian kartu
@@ -149,6 +149,9 @@
         c.parentNode.insertBefore(dt, c.nextSibling);
       }
       dt.style.order = getComputedStyle(c).order;
+      c.classList.toggle('tm-dua', kids.length === 2);
+      // petunjuk gerak sekali per kunjungan: kartu teratas bergeser ke kiri lalu kembali
+      var kunci = 'tmIntip'; try { if (!sessionStorage.getItem(kunci) && c.getBoundingClientRect().top < window.innerHeight) { sessionStorage.setItem(kunci, 1); c.classList.add('tm-intip'); setTimeout(function () { c.classList.remove('tm-intip'); }, 2000); } } catch (e) { /* abaikan */ }
       tampilTumpuk(c);
     });
   }
