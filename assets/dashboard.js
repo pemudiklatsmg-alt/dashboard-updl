@@ -94,23 +94,23 @@
   }
   /* Lingkaran progres: f = 0..1 (null = tanpa data) */
   function ring(f, c, txt, label) {
-    var R = 24.5, C = 2 * Math.PI * R, v = f === null || f === undefined || !isFinite(f) ? null : Math.max(0, Math.min(1, f));
+    var R = 27, C = 2 * Math.PI * R, v = f === null || f === undefined || !isFinite(f) ? null : Math.max(0, Math.min(1, f));
     return '<svg class="ring" viewBox="0 0 64 64" role="img" aria-label="' + esc(label || txt) + '">' +
-      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="11.5"/>' +
-      (v ? '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(c) + '" stroke-width="11.5" stroke-linecap="round" stroke-dasharray="' + (C * v).toFixed(2) + ' ' + C.toFixed(2) + '" transform="rotate(-90 32 32)"/>' : '') +
-      '<text x="32" y="36" text-anchor="middle" class="ring-t">' + esc(txt) + '</text></svg>';
+      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="7"/>' +
+      (v ? '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(c) + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (C * v).toFixed(2) + ' ' + C.toFixed(2) + '" transform="rotate(-90 32 32)"/>' : '') +
+      '<text x="32" y="' + (String(txt).length >= 4 ? 36.5 : 37) + '" text-anchor="middle" class="ring-t' + (String(txt).length >= 4 ? ' panjang' : '') + '">' + esc(txt) + '</text></svg>';
   }
   /* Donat beberapa segmen: seg = [{n, c, t}] */
   function donut(seg, txt, sub) {
-    var R = 24.5, C = 2 * Math.PI * R, tot = seg.reduce(function (a, x) { return a + x.n; }, 0), off = 0, gap = seg.filter(function (x) { return x.n; }).length > 1 ? 1.6 : 0;
+    var R = 28, C = 2 * Math.PI * R, tot = seg.reduce(function (a, x) { return a + x.n; }, 0), off = 0, gap = seg.filter(function (x) { return x.n; }).length > 1 ? 1.6 : 0;
     var h = '<svg class="ring donut" viewBox="0 0 64 64" role="img" aria-label="' + esc(seg.map(function (x) { return x.t + ' ' + x.n; }).join(', ')) + '">' +
-      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="8"/>';
+      '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="var(--track)" stroke-width="5.5"/>';
     if (tot) seg.forEach(function (x) {
       if (!x.n) return; var len = C * x.n / tot;
-      h += '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(x.c) + '" stroke-width="8" stroke-dasharray="' + Math.max(len - gap, 0.6).toFixed(2) + ' ' + C.toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 32 32)"><title>' + esc(x.t) + ': ' + x.n + '</title></circle>';
+      h += '<circle cx="32" cy="32" r="' + R + '" fill="none" stroke="' + cv(x.c) + '" stroke-width="5.5" stroke-dasharray="' + Math.max(len - gap, 0.6).toFixed(2) + ' ' + C.toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 32 32)"><title>' + esc(x.t) + ': ' + x.n + '</title></circle>';
       off += len;
     });
-    return h + '<text x="32" y="' + (sub ? 34 : 36.5) + '" text-anchor="middle" class="ring-t big">' + esc(txt) + '</text>' + (sub ? '<text x="32" y="43" text-anchor="middle" class="ring-s">' + esc(sub) + '</text>' : '') + '</svg>';
+    return h + '<text x="32" y="' + (sub ? 33.5 : 37) + '" text-anchor="middle" class="ring-t big' + (String(txt).length >= 4 ? ' panjang' : '') + '">' + esc(txt) + '</text>' + (sub ? '<text x="32" y="44.5" text-anchor="middle" class="ring-s">' + esc(sub) + '</text>' : '') + '</svg>';
   }
   /* Setengah lingkaran kecil: f dan tick = 0..1 */
   function semi(f, tick, txt, c, label) {

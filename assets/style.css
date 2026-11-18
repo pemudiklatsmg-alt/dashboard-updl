@@ -2431,3 +2431,8 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 /* tumpukan tidak boleh memunculkan bagian yang sedang disembunyikan (tab lain) */
 html body .tumpuk[hidden], html body [hidden] > .tumpuk { display: none !important; }
 html body .tumpuk[hidden] + .tm-dots { display: none !important; }
+
+/* Angka di dalam lingkaran: cincin lebih tipis, ruang dalam lebih lega, angka tidak mepet tepi */
+.ring-t, .ring-t.big { font-size: 15px; letter-spacing: -.02em; }
+.donut .ring-t.big { font-size: 15px; } .donut .ring-s { font-size: 9.5px; }
+.ring-t.panjang, .donut .ring-t.big.panjang { font-size: 12.5px; }

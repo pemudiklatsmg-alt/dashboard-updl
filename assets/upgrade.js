@@ -129,7 +129,9 @@
       if (!c.classList.contains('tumpuk')) {
         c.classList.add('tumpuk');
         // kartu pertama yang tampil: yang paling perlu perhatian (status merah, lalu kuning)
-        var pr = -1; kids.some(function (k, j) { if (k.querySelector('.bad, [data-st="bad"], .dot.bad')) { pr = j; return true; } });
+        // kartu pertama: kartu sorotan (biru); bila tidak ada, kartu yang paling perlu perhatian (merah, lalu kuning)
+        var pr = -1; kids.some(function (k, j) { if (k.matches('#kpis > .card:nth-child(3)') || k.classList.contains('rgk-sorot')) { pr = j; return true; } });
+        if (pr < 0) kids.some(function (k, j) { if (k.querySelector('.bad, [data-st="bad"], .dot.bad')) { pr = j; return true; } });
         if (pr < 0) kids.some(function (k, j) { if (k.querySelector('.warn, [data-st="warn"], .dot.warn')) { pr = j; return true; } });
         c.dataset.tmI = Math.max(0, pr);
         if (!c.dataset.tmGeser) { c.dataset.tmGeser = 1; var x0 = null, y0 = 0, dx = 0;
