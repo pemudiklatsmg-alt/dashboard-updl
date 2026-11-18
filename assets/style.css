@@ -2426,4 +2426,5 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
     @keyframes tmIntip { 0%, 100% { transform: none; } 40% { transform: translateX(-30px) rotate(-1.2deg); } }
   }
 }
-@media (max-width: 700px) { body:not(.pres) .tumpuk > .tm-on, body:not(.pres) .tumpuk > .tm-n1 { background-color: var(--bg) !important; } }
+/* kartu depan tetap sama warnanya dengan kartu lain; kartu di belakang hanya digambar pada bagian yang mengintip di kanan */
+@media (max-width: 700px) { body:not(.pres) .tumpuk > .tm-n1, body:not(.pres) .tumpuk > .tm-n2 { clip-path: inset(-10px -20px -10px calc(100% - 9px)); } }
