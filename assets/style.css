@@ -2408,3 +2408,5 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 /* HP: tombol cari di menu ☰ (bilah atas tetap: judul kiri, tombol kanan) */
 @media (max-width: 700px) { #top .cari-btn { display: none !important; } }
 @media (min-width: 701px) { #mainMenu .mi-cari { display: none !important; } }
+/* HP: kartu yang digeser tidak boleh melebarkan halaman (Safari sempat memperkecil tampilan) */
+@media (max-width: 700px) { html, body { overflow-x: clip; } main, .sheet { overflow-x: clip; } }
