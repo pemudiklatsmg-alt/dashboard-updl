@@ -2410,3 +2410,5 @@ body.pres [data-bagian="isu"].solo-0b .dev-body > :not(.kx-list):not(.sub-h:has(
 @media (min-width: 701px) { #mainMenu .mi-cari { display: none !important; } }
 /* HP: kartu yang digeser tidak boleh melebarkan halaman (Safari sempat memperkecil tampilan) */
 @media (max-width: 700px) { html, body { overflow-x: clip; } main, .sheet { overflow-x: clip; } }
+/* HP tumpukan: isi kartu di belakang tidak tembus terlihat; hanya tepinya yang mengintip */
+@media (max-width: 700px) { body:not(.pres) .tumpuk > :not(.tm-on) > * { visibility: hidden; } }
