@@ -2453,3 +2453,6 @@ html body .tumpuk[hidden] + .tm-dots { display: none !important; }
   .tm-dots button { width: 8px; height: 8px; }
   .tm-dots button.on { width: 21px; border-radius: 4px; }
 }
+/* ikon garis pengganti simbol teks ☰ ✓ ✕ */
+.ik-g { display: inline-grid; place-items: center; width: 1em; height: 1em; vertical-align: -.14em; }
+.ik-g svg { width: 100%; height: 100%; }

@@ -113,6 +113,31 @@
       }
     });
   }
+  /* ---------- 3b. simbol teks ☰ ✓ ✕ → ikon garis seragam ---------- */
+  var IKG = {
+    '☰': '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    '✓': '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    '✔': '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    '✕': '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  function gantiSimbol() {
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: function (n) {
+      if (!/[☰✓✔✕]/.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+      var p = n.parentNode; if (!p || /^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/.test(p.nodeName) || p.closest('svg, [contenteditable]')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT; } });
+    var L = []; while (w.nextNode()) L.push(w.currentNode);
+    L.forEach(function (n) {
+      var f = document.createDocumentFragment();
+      n.nodeValue.split(/([☰✓✔✕])/).forEach(function (bg) {
+        if (!bg) return;
+        if (IKG[bg]) { var sp = document.createElement('span'); sp.className = 'ik-g'; sp.setAttribute('aria-label', bg === '☰' ? 'menu' : bg === '✕' ? 'tutup' : 'ya');
+          sp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + IKG[bg] + '</svg>'; f.appendChild(sp); }
+        else f.appendChild(document.createTextNode(bg));
+      });
+      n.parentNode.replaceChild(f, n);
+    });
+  }
+
   /* ---------- 4. HP: kartu angka bertumpuk (geser kiri/kanan) ---------- */
   function sempit() { return window.innerWidth <= 700 && !document.body.classList.contains('pres'); }
   function kosong(k) { return /Belum diisi/.test(k.textContent); }
@@ -162,5 +187,5 @@
     });
   }
   window.addEventListener('resize', function () { clearTimeout(aturTumpuk.t); aturTumpuk.t = setTimeout(aturTumpuk, 150); });
-  var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { ganti(); jalankanHitung(); aturTumpuk(); }, 60); }).observe(document.body, { childList: true, subtree: true });
+  var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { ganti(); gantiSimbol(); jalankanHitung(); aturTumpuk(); }, 60); }).observe(document.body, { childList: true, subtree: true });
 })();
