@@ -149,7 +149,7 @@
     kids.forEach(function (k, j) { var d = (j - i + n) % n; k.classList.add('tm-i'); k.classList.toggle('tm-on', d === 0); k.classList.toggle('tm-n1', d === 1); k.classList.toggle('tm-n2', d === 2); k.setAttribute('aria-hidden', d === 0 ? 'false' : 'true'); });
     var dt = c.nextElementSibling; if (dt && dt.classList.contains('tm-dots')) Array.prototype.forEach.call(dt.children, function (b, j) { b.classList.toggle('on', j === i); });
   }
-  function aturTumpuk() {
+  var aturTumpuk = function () {
     Array.prototype.forEach.call(document.querySelectorAll('main .kpis, main .rgk-t, main .minis'), function (c) {
       var dt = c.nextElementSibling && c.nextElementSibling.classList.contains('tm-dots') ? c.nextElementSibling : null;
       var kids = urut(c);
@@ -186,6 +186,42 @@
       tampilTumpuk(c);
     });
   }
+  /* ---------- 4b. HP: carousel geser dengan tepi memudar (menggantikan tumpukan) ---------- */
+  function aturKarosel() {
+    Array.prototype.forEach.call(document.querySelectorAll('main .kpis, main .rgk-t, main .minis'), function (c) {
+      var dt = c.nextElementSibling && c.nextElementSibling.classList.contains('tm-dots') ? c.nextElementSibling : null;
+      var kids = urut(c);
+      if (!sempit() || kids.length < 2) { if (c.classList.contains('karosel')) { c.classList.remove('karosel'); Array.prototype.forEach.call(c.querySelectorAll('.kr-i'), function (k) { k.classList.remove('kr-i'); k.style.order = ''; }); } if (dt) dt.remove(); return; }
+      var pr = -1; kids.some(function (k, j) { if (k.matches('#kpis > .card:nth-child(3)') || k.classList.contains('rgk-sorot')) { pr = j; return true; } });
+      if (pr < 0) kids.some(function (k, j) { if (k.querySelector('.bad, [data-st="bad"], .dot.bad')) { pr = j; return true; } });
+      if (pr > 0) kids = [kids[pr]].concat(kids.slice(0, pr), kids.slice(pr + 1));   // kartu sorotan biru (atau yang paling perlu perhatian) paling depan
+      c._kr = kids;
+      kids.forEach(function (k, j) { k.classList.add('kr-i'); k.style.order = j; });   // "Belum diisi" tetap di urutan terakhir
+      if (!c.classList.contains('karosel')) {
+        c.classList.add('karosel');
+        if (!c.dataset.krSiap) { c.dataset.krSiap = 1;
+          c.addEventListener('scroll', function () { clearTimeout(c._t); c._t = setTimeout(function () { tandaiKr(c); }, 60); }, { passive: true }); }
+        setTimeout(function () { c.scrollLeft = 0; tandaiKr(c); }, 30);
+      }
+      if (!dt || dt.children.length !== kids.length) {
+        if (dt) dt.remove(); dt = document.createElement('div'); dt.className = 'tm-dots';
+        dt.innerHTML = kids.map(function (k, j) { var h = k.querySelector('h3, .rgk-lbl'); return '<button type="button"' + (kosong(k) ? ' class="kosong"' : '') + ' aria-label="Kartu ' + (j + 1) + (h ? ': ' + esc(h.textContent.trim()) : '') + '" data-kr="' + j + '"></button>'; }).join('');
+        dt.addEventListener('click', function (e) { var b = e.target.closest('[data-kr]'); if (!b) return; var tg = (c._kr || urut(c))[+b.getAttribute('data-kr')]; if (tg) c.scrollTo({ left: tg.offsetLeft - c.offsetLeft - 16, behavior: 'smooth' }); });
+        c.parentNode.insertBefore(dt, c.nextSibling);
+      }
+      dt.style.order = getComputedStyle(c).order;
+      tandaiKr(c);
+    });
+  }
+  function tandaiKr(c) {
+    var ks = c._kr || urut(c), dt = c.nextElementSibling; if (!dt || !dt.classList.contains('tm-dots')) return;
+    var tengah = c.scrollLeft + c.clientWidth * 0.35, i = 0;
+    ks.forEach(function (k, j) { if (k.offsetLeft - c.offsetLeft <= tengah) i = j; });
+    if (c.scrollLeft + c.clientWidth >= c.scrollWidth - 4) i = ks.length - 1;
+    Array.prototype.forEach.call(dt.children, function (b, j) { b.classList.toggle('on', j === i); });
+    c.classList.toggle('kr-awal', c.scrollLeft < 8); c.classList.toggle('kr-akhir', c.scrollLeft + c.clientWidth >= c.scrollWidth - 8);
+  }
+  aturTumpuk = aturKarosel;   // contoh: mode carousel
   window.addEventListener('resize', function () { clearTimeout(aturTumpuk.t); aturTumpuk.t = setTimeout(aturTumpuk, 150); });
   var t = 0; new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { ganti(); gantiSimbol(); jalankanHitung(); aturTumpuk(); }, 60); }).observe(document.body, { childList: true, subtree: true });
 })();
