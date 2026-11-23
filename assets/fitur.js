@@ -178,7 +178,35 @@
     sl.forEach(function (u) { var k = u.split('#')[1]; if (k !== undefined) aturSolo(el1(u), k); });
     pasSlide();
     if (sl.indexOf('bulanan') >= 0 && A.renderChart) { A.renderChart(); pasSlide(); }   // grafik menyesuaikan tinggi panel analisis
+    efekSlide(E);
     jadwal();
+  }
+  /* Efek masuk yang sama untuk semua slide: panel & kartu muncul berurutan, batang tumbuh, angka menghitung naik */
+  var EF_ITEM = '.panel, .card, .rgk-tile, .mini, .ind-row, .ml-row, .kep-row, .tl-row, .kri-row, .kx-i, .rk-c, .og-pc, tbody tr';
+  var EF_BAR = '.ind-bar > i, .ml-bar > i, .ml-big > i, .bars .t i, .gx-ht i, .m12 i, .rgk-tren i, .tl-mini i, .kep-b i, .pb i, .prog i';
+  var EF_ANGKA = '.rgk-big, .card .val, .rgk-tile .rgk-mid > b, .cs-big, .ind-pct, .ml-avg, .mini .val';
+  function efekSlide(E) {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    E.forEach(function (sec) {
+      sec.classList.remove('efek'); void sec.offsetWidth;   // mulai ulang animasi tiap kali slide tampil
+      var n = 0;
+      Array.prototype.forEach.call(sec.querySelectorAll(EF_ITEM), function (el) {
+        if (!el.offsetParent || el.closest('.modal')) return;
+        if (el.parentElement && el.parentElement.closest(EF_ITEM) && !el.matches('.ind-row, .ml-row, tbody tr, .og-pc')) return;   // cukup lapisan terluar
+        el.style.setProperty('--ei', Math.min(n++, 18)); el.classList.add('ef-i');
+      });
+      Array.prototype.forEach.call(sec.querySelectorAll(EF_BAR), function (b, i) { b.style.setProperty('--eb', Math.min(i, 24)); b.classList.add('ef-b'); });
+      sec.classList.add('efek');
+      Array.prototype.forEach.call(sec.querySelectorAll(EF_ANGKA), function (el) {
+        if (el.childElementCount) return;
+        var asli = el.getAttribute('data-ef') || el.textContent.trim(); el.setAttribute('data-ef', asli);
+        var m = asli.match(/^([^\d]*)([\d.]+(?:,\d+)?)(.*)$/); if (!m) return;
+        var des = (m[2].split(',')[1] || '').length, v = parseFloat(m[2].replace(/\./g, '').replace(',', '.')); if (!isFinite(v) || !v) return;
+        var t0 = null;
+        (function jalan(ts) { if (!t0) t0 = ts || 0; var p = Math.min(1, ((ts || 0) - t0) / 800), e = 1 - Math.pow(1 - p, 3);
+          el.textContent = p < 1 ? m[1] + D.fmt(v * e, des) + m[3] : asli; if (p < 1) requestAnimationFrame(jalan); })();
+      });
+    });
   }
   function jeda(v) {
     P.jeda = v === undefined ? !P.jeda : v;

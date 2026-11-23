@@ -26,7 +26,7 @@
     var S = A.S, m = S.data.meta || {};
     return '<div class="cp-kop"><span class="pln-logo cp-pln"><img src="assets/pln.png" alt="Logo PLN"></span>' +
       '<div><b>' + esc(m.judul || 'Dashboard Kinerja UPDL Semarang') + '</b><span>' + esc(judul) + '</span></div>' +
-      '<div class="cp-per"><b>' + A.namaBulan(S.bulan) + ' ' + S.tahun + '</b><span>dicetak ' + new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + (m.user ? ' · ' + esc(m.user) : '') + '</span></div></div>';
+      '<div class="cp-per"><b>' + A.namaBulan(S.bulan) + ' ' + S.tahun + '</b><span>' + (window.DashLap ? 'tanggal ' + DashLap.tglPanjang(DashLap.opsi().tgl) : 'dicetak ' + new Date().toLocaleDateString('id-ID')) + (m.user ? ' · ' + esc(m.user) : '') + '</span></div></div>';
   }
   function halaman(judul, isiHtmlAtauEl) {
     var pg = document.createElement('div'); pg.className = 'cp-page';
@@ -126,6 +126,12 @@
       if (bag.length > 1) sec.innerHTML = '<h2 class="cp-judul"><span>' + (i + 1) + '</span>' + (judul ? judul.innerHTML : '') + '</h2>';
       var isi = p.querySelector('.cp-isi'); isi.removeAttribute('style'); sec.appendChild(isi); td.appendChild(sec);
     });
+    // pelengkap laporan: narasi analisis di awal, kolom tanda tangan di akhir
+    if (window.DashLap) {
+      var op = DashLap.opsi(), s1 = td.querySelector('.cp-sec .cp-isi');
+      if (op.narasi && s1) s1.insertAdjacentHTML('afterbegin', DashLap.narasiHtml());
+      if (op.ttd.length) td.insertAdjacentHTML('beforeend', DashLap.ttdHtml());
+    }
     w.appendChild(tb); w.hidden = false;
     return bag.length;
   }
@@ -149,13 +155,14 @@
     A.openModal('<div class="modal-h"><div><div class="desc">A4 tegak · ' + A.namaBulan(A.S.bulan) + ' ' + A.S.tahun + '</div><h3>Cetak / Simpan PDF</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="cp-opts">' + pil('ringkas', 'Ringkas 1 halaman', 'Capaian, tren, 6 angka kunci, perlu perhatian, indikator di bawah target. Cocok untuk pimpinan.', true) +
       pil('lengkap', 'Lengkap per bagian', 'Halaman ringkas + tiap bagian; bagian pendek digabung agar tidak ada ruang kosong. Cocok untuk arsip & rapat.') +
-      pil('ini', 'Halaman yang sedang dibuka', 'Hanya bagian: ' + esc(nama) + '.') + '</div>' +
+      pil('ini', 'Halaman yang sedang dibuka', 'Hanya bagian: ' + esc(nama) + '.') + '</div>' + (window.DashLap ? DashLap.opsiHtml('cp') : '') +
       '<div class="cp-aksi"><button class="btn primary" type="button" id="cpGo">Cetak / Simpan PDF</button></div>' +
       '<p class="note">Di jendela cetak, pilih <b>Simpan sebagai PDF</b> (Safari: tombol PDF di kiri bawah → Simpan sebagai PDF). Agar lebih rapi, matikan pilihan <b>Header dan footer</b> bila tersedia.</p>', 'cetak');
   }
   document.addEventListener('click', function (e) {
     var g = e.target.closest && e.target.closest('#cpGo'); if (!g) return;
     var r = document.querySelector('input[name="cpJenis"]:checked'), j = r ? r.value : 'ringkas';
+    if (window.DashLap) DashLap.baca(g.closest('.modal'));
     var m = document.querySelector('.modal [data-close]'); if (m) m.click();
     setTimeout(function () { cetak(j); }, 200);
   });

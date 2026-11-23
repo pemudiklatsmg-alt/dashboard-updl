@@ -1137,40 +1137,93 @@
     if (!el) return;
     if (!O) { el.innerHTML = '<div class="empty">Data struktur organisasi belum terbaca. Pastikan Apps Script sudah versi terbaru dan tab <b>Data - Pegawai</b> ada di spreadsheet.</div>'; return; }
     $('orgDesc').textContent = 'PLN UPDL Semarang' + (O.periode ? ' · data pegawai periode ' + O.periode : '') + ' · bagan disusun dari kolom Atasan Langsung';
-    var P = (O.pegawai || []).map(function (r) { return { nama: String(r[0] || '').trim(), jab: String(r[1] || '').trim(), atas: String(r[2] || '').trim(), lvl: String(r[3] || '') }; }).filter(function (p) { return p.nama || p.jab; });
+    var P = (O.pegawai || []).map(function (r) { return { nama: String(r[0] || '').trim(), jab: String(r[1] || '').trim(), atas: String(r[2] || '').trim(), lvl: String(r[3] || ''), nip: String(r[4] || '').trim() }; }).filter(function (p) { return p.nama || p.jab; });
     var AD = O.alihDaya || [], nS = P.filter(function (p) { return !/FUNGSIONAL/i.test(p.lvl); }).length;
     var sum = '<div class="og-stats"><div><b class="num">' + P.length + '</b><span>pegawai PLN</span></div><div><b class="num">' + nS + '</b><span>struktural</span></div><div><b class="num">' + (P.length - nS) + '</b><span>fungsional</span></div><div><b class="num">' + AD.length + '</b><span>tenaga alih daya</span></div></div>';
     if (S.orgView === 'ad') { el.innerHTML = sum + orgAlihDaya(AD); return cariOrg(); }
     if (!P.length) { el.innerHTML = sum + '<div class="empty">Tab Data - Pegawai masih kosong.</div>'; return; }
+    el.innerHTML = sum + bagan2(P) ;
+    garisOrg(); setTimeout(garisOrg, 450); muatFoto(); cariOrg();
+  }
+  /* Bagan bertingkat ala struktur organisasi resmi: foto, nama, NIP, jabatan. Garis digambar setelah tata letak jadi. */
+  function bagan2(P) {
     var adaJab = {}; P.forEach(function (p) { adaJab[p.jab.toUpperCase()] = 1; });
-    function urut(x, y) { return x.jab.localeCompare(y.jab, 'id') || x.nama.localeCompare(y.nama, 'id'); }
     var puncak = P.filter(function (p) { return !adaJab[p.atas.toUpperCase()]; });
     var root = puncak.filter(function (p) { return /MANAGER|GENERAL MANAGER|^-?$/i.test(p.jab) || /^-?$/.test(p.atas); })[0] || puncak[0] || P[0];
     var yatim = puncak.filter(function (p) { return p !== root; });
-    function anak(p) { return P.filter(function (q) { return q !== p && (q.atas.toUpperCase() === p.jab.toUpperCase() || (p === root && yatim.indexOf(q) >= 0)); }).sort(urut); }
-    function kartu(p, cls, h) {
-      return '<div class="og-pc' + (cls ? ' ' + cls : '') + '"' + (h ? ' style="--h:var(' + h + ')"' : '') + ' data-q="' + esc((p.nama + ' ' + p.jab).toLowerCase()) + '"><span class="og-av">' + esc(inisial(p.nama)) + '</span><span class="og-t"><span class="og-j">' + esc(judulNama(p.jab)) + '</span><span class="og-n">' + esc(judulNama(p.nama)) + '</span></span></div>';
+    function anak(p) { return P.filter(function (q) { return q !== p && (q.atas.toUpperCase() === p.jab.toUpperCase() || (p === root && yatim.indexOf(q) >= 0)); }); }
+    var urutAsli = function (a, b) { return P.indexOf(a) - P.indexOf(b); };   // urutan mengikuti baris di tab Data - Pegawai
+    var id = 0; P.forEach(function (p) { p.id = 'og' + (id++); });
+    function kartu(p, cls, up, putus) {
+      var foto = S.foto && p.nip && S.foto[p.nip.toUpperCase()];
+      return '<div class="og-pc og2-c' + (cls ? ' ' + cls : '') + '" data-ogid="' + p.id + '"' + (up ? ' data-up="' + up.id + '"' : '') + (putus ? ' data-putus="1"' : '') + ' data-nip="' + esc(p.nip) + '" data-q="' + esc((p.nama + ' ' + p.jab + ' ' + p.nip).toLowerCase()) + '">' +
+        '<span class="og2-f">' + (foto ? '<img src="' + foto + '" alt="">' : '<span class="og2-ini">' + esc(inisial(p.nama)) + '</span>') + '</span>' +
+        '<b class="og2-n">' + esc(judulNama(p.nama)) + '</b>' + (p.nip ? '<span class="og2-nip">NIP ' + esc(p.nip) + '</span>' : '') + '<span class="og2-j">' + esc(judulNama(p.jab)) + '</span></div>';
     }
-    var direct = anak(root), lanes = direct.filter(function (p) { return anak(p).length; }), staf = direct.filter(function (p) { return !anak(p).length; });
-    var sl = staf.slice(0, Math.ceil(staf.length / 2)), sr = staf.slice(Math.ceil(staf.length / 2)), WARNA = ['--og-1', '--og-2', '--og-3'];
-    var h = '<div class="og-apex">' + kartu(root, 'big', '--og-mgr') + '</div>' +
-      (staf.length ? '<div class="og-mid"><div class="og-staf l"><span class="og-lb">Langsung di bawah ' + esc(judulNama(root.jab).replace(/ PLN.*$/i, '')) + '</span>' + sl.map(function (p) { return kartu(p, '', '--og-staf'); }).join('') + '</div><div class="og-ln"></div><div class="og-staf r"><span class="og-lb">&nbsp;</span>' + sr.map(function (p) { return kartu(p, '', '--og-staf'); }).join('') + '</div></div>' : '<div class="og-stem"></div>') +
-      '<div class="og-lanes" style="--n:' + Math.max(1, lanes.length) + '">';
-    var wi = 0;
+    var direct = anak(root).sort(urutAsli), lanes = direct.filter(function (p) { return anak(p).length; }), staf = direct.filter(function (p) { return !anak(p).length; });
+    var sl = staf.slice(0, Math.ceil(staf.length / 2)), sr = staf.slice(Math.ceil(staf.length / 2));
+    var h = '<div class="og2"><div class="og2-in"><div class="og2-head"><div><span class="og2-kk">Struktur Organisasi</span><b>PLN UPDL Semarang</b></div><span>' + esc(S.data.org.periode ? 'Periode ' + S.data.org.periode : '') + '</span></div>' +
+      '<div class="og2-apex">' + kartu(root, 'mgr') + '</div><div class="og2-row">';
+    h += '<div class="og2-staf">' + sl.map(function (p) { return kartu(p, 'tl', root); }).join('') + '</div>';
     lanes.forEach(function (a) {
-      var kids = anak(a), tim = kids.filter(function (k) { return !/FUNGSIONAL/i.test(k.lvl) || anak(k).length; }), fung = kids.filter(function (k) { return tim.indexOf(k) < 0; });
-      var total = 1; (function hitung(p) { anak(p).forEach(function (c) { total++; hitung(c); }); })(a);
-      var hc = /PENYELENGGARAAN|PEMBELAJARAN/i.test(a.jab) ? '--og-kuning' : /PELAYANAN|KEUANGAN/i.test(a.jab) ? '--og-biru' : WARNA[wi++ % WARNA.length];
-      h += '<section class="og-lane" style="--h:var(' + hc + ')">' + kartu(a, 'asman') + '<div class="og-sum">' + total + ' orang · ' + tim.length + ' tim' + (fung.length ? ' · ' + fung.length + ' fungsional' : '') + '</div><div class="og-body">';
-      tim.forEach(function (t) { var m = anak(t); h += '<div class="og-team">' + kartu(t) + (m.length ? '<div class="og-mem">' + m.map(function (x) { return kartu(x); }).join('') + '</div>' : '') + '</div>'; });
-      if (fung.length) h += '<div class="og-lb">Fungsional langsung di bawah Asman</div><div class="og-fung">' + fung.map(function (x) { return kartu(x); }).join('') + '</div>';
-      h += '</div></section>';
+      var kids = anak(a).sort(urutAsli), tim = kids.filter(function (k) { return !/FUNGSIONAL/i.test(k.lvl) || anak(k).length; }), fung = kids.filter(function (k) { return tim.indexOf(k) < 0; });
+      var bidang = judulNama(a.jab.replace(/^ASMAN\s+/i, '')).replace(/^/, 'Bidang ');
+      h += '<section class="og2-lane" style="--k:' + Math.max(tim.length, fung.length, 1) + '"><span class="og2-lb">' + esc(bidang) + '</span>' +
+        '<div class="og2-asman">' + kartu(a, 'asman', root) + '</div>' +
+        (fung.length ? '<div class="og2-fung">' + fung.map(function (f) { return kartu(f, 'fung', a, true); }).join('') + '</div>' : '') +
+        '<div class="og2-tims">' + tim.slice().sort(function (x, y) { return x.nama.localeCompare(y.nama, 'id'); }).map(function (t) {
+          var m = anak(t).sort(urutAsli);
+          return '<div class="og2-tim">' + kartu(t, 'tl', a) + (m.length ? '<div class="og2-mem">' + m.map(function (x) { return kartu(x, 'of', t); }).join('') + '</div>' : '') + '</div>';
+        }).join('') + '</div></section>';
     });
-    h += '</div>';
-    el.innerHTML = sum + '<div class="og-tree">' + h + '</div>' +
-      (yatim.length ? '<div class="warnbox">Atasan langsung tidak ditemukan untuk: ' + yatim.map(function (p) { return esc(judulNama(p.jab)) + ' (atasan tertulis "' + esc(p.atas) + '")'; }).join('; ') + '. Samakan isi kolom Atasan Langsung dengan kolom Jabatan atasannya.</div>' : '');
-    cariOrg();
+    h += '<div class="og2-staf">' + sr.map(function (p) { return kartu(p, 'tl', root); }).join('') + '</div></div>' +
+      '<svg class="og2-svg" aria-hidden="true"></svg></div></div>';
+    return h + (yatim.length ? '<div class="warnbox">Atasan langsung tidak ditemukan untuk: ' + yatim.map(function (p) { return esc(judulNama(p.jab)) + ' (atasan tertulis "' + esc(p.atas) + '")'; }).join('; ') + '. Samakan isi kolom Atasan Langsung dengan kolom Jabatan atasannya.</div>' : '');
   }
+  /* garis siku dari atasan ke bawahan; garis putus-putus untuk fungsional langsung di bawah Asman */
+  function garisOrg() {
+    var w = document.querySelector('#orgBody .og2'); if (!w) return;
+    var inn = w.querySelector('.og2-in'), svg = w.querySelector('.og2-svg');
+    // posisi dihitung dari offset (tidak terpengaruh animasi/zoom jendela), relatif ke .og2-in
+    var pos = function (el) { var x = 0, y = 0, e = el; while (e && e !== inn) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; } return { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight }; };
+    var tl1 = inn.querySelector('.og2-tims .og2-c'), lane = inn.querySelector('.og2-lane');
+    Array.prototype.forEach.call(inn.querySelectorAll('.og2-staf'), function (sf) { sf.style.paddingTop = tl1 && lane && getComputedStyle(svg).display !== 'none' ? Math.max(0, pos(tl1).y - pos(lane).y) + 'px' : ''; });
+    // seluruh bagan diperkecil agar muat selebar jendela (paling kecil 55%, sisanya bisa digulir)
+    inn.style.zoom = ''; var muat = w.clientWidth - 2, lebar = inn.scrollWidth;
+    if (getComputedStyle(svg).display !== 'none' && lebar > muat) inn.style.zoom = Math.max(0.55, muat / lebar).toFixed(3);
+    if (getComputedStyle(svg).display === 'none') return;
+    var sw = inn.scrollWidth, sh = inn.scrollHeight;
+    svg.setAttribute('width', sw); svg.setAttribute('height', sh); svg.setAttribute('viewBox', '0 0 ' + sw + ' ' + sh);
+    var kotak = function (el) { var p = pos(el); return { x: p.x + p.w / 2, t: p.y, b: p.y + p.h }; };
+    var kel = {};
+    Array.prototype.forEach.call(inn.querySelectorAll('[data-up]'), function (c) { var k = c.getAttribute('data-up') + (c.hasAttribute('data-putus') ? 'p' : ''); (kel[k] = kel[k] || []).push(c); });
+    var d1 = '', d2 = '';
+    Object.keys(kel).forEach(function (k) {
+      var up = inn.querySelector('[data-ogid="' + k.replace(/p$/, '') + '"]'); if (!up) return;
+      var U = kotak(up), C = kel[k].map(kotak), putus = /p$/.test(k), d = '', xs = C.map(function (c) { return c.x; });
+      var tAtas = Math.min.apply(null, C.map(function (c) { return c.t; }));
+      var ym = up.classList.contains('mgr') ? U.b + 21 : putus ? U.b + (tAtas - U.b) / 2 : tAtas - 17;
+      if (!putus) d += 'M' + U.x + ' ' + U.b + 'V' + ym;
+      d += 'M' + Math.min.apply(null, putus ? xs : xs.concat(U.x)) + ' ' + ym + 'H' + Math.max.apply(null, putus ? xs : xs.concat(U.x));
+      C.forEach(function (c) { d += 'M' + c.x + ' ' + ym + 'V' + c.t; });
+      if (putus) d2 += d; else d1 += d;
+    });
+    svg.innerHTML = '<path d="' + d1 + '" class="og2-g"/><path d="' + d2 + '" class="og2-g putus"/>';
+  }
+  /* foto pegawai: diambil sekali setelah login lewat Apps Script (aksi "foto"), disimpan selama sesi */
+  function muatFoto() {
+    if (S.foto || S.fotoMuat) return;
+    S.fotoMuat = true; var s0 = D.sesi();
+    D.api({ aksi: 'foto', token: s0 ? s0.token : '' }).then(function (d) {
+      S.foto = d.foto || {};
+      Array.prototype.forEach.call(document.querySelectorAll('#orgBody .og2-c[data-nip]'), function (c) {
+        var f = S.foto[String(c.getAttribute('data-nip')).toUpperCase()]; if (!f) return;
+        c.querySelector('.og2-f').innerHTML = '<img src="' + f + '" alt="">';
+      });
+      garisOrg();
+    }).catch(function () { S.foto = {}; });
+  }
+  window.addEventListener('resize', function () { if (document.querySelector('#orgBody .og2')) { clearTimeout(garisOrg.t); garisOrg.t = setTimeout(garisOrg, 120); } });
   function orgAlihDaya(AD) {
     if (!AD.length) return '<div class="empty">Tab Data - Alih Daya masih kosong.</div>';
     var KN = { CS: 'Cleaning Service', ADMIN: 'Administrasi', SATPAM: 'Keamanan (Satpam)', TEKNISI: 'Teknisi', DRIVER: 'Pengemudi', OPDIK: 'Operator Pendidikan' };
@@ -1688,13 +1741,16 @@
           '<div class="tg-when"><span class="tg-pic-c">' + esc(x.pic) + '</span>' + (x.akhirTeks !== '—' ? '<span>' + esc(x.akhirTeks) + '</span>' : '') + (x.batas !== '—' ? '<small>' + esc(x.batas) + '</small>' : '') + '</div>' +
           '<div class="tg-st"><span class="pill ' + (x.st === 'idle' ? '' : x.st) + '">' + esc(x.status) + '</span>' + (x.act ? '<button type="button" class="btn sm" data-act="' + x.act + '">Lihat</button>' : '') + '</div></div>';
       }).join('') : '<div class="empty">Tidak ada tugas pada saringan ini.</div>') + '</div>' +
-      '<p class="note tg-cara">PIC tiap tugas dan batas waktu bisa diubah di halaman <button type="button" class="lnk" data-vt="pengaturan">Pengaturan</button>.</p></div>';
+      '<div class="tg-leg" aria-label="Arti warna"><b>Arti warna</b><span data-st="bad"><i></i>Merah: terlambat, data usang, atau lewat tenggat</span><span data-st="warn"><i></i>Kuning: segera jatuh tempo atau sedang proses</span><span data-st="good"><i></i>Hijau: beres atau selesai</span><span data-st="idle"><i></i>Abu-abu: belum tercatat atau belum dimulai</span><span data-st="hold"><i></i>Ungu: ditunda (Hold)</span><span data-st="batal"><i></i>Abu-abu coret: dibatalkan</span></div>' +
+      '<p class="note tg-cara">Tugas di atas disusun otomatis dari isi data. PIC tiap tugas dan batas waktu bisa diubah di halaman <button type="button" class="lnk" data-vt="pengaturan">Pengaturan</button>.</p></div>' +
+      '<div class="panel" id="tgLain"></div>';
+    if (window.DashTugasLain) window.DashTugasLain.render();
   }
   function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
 
   /* ---------- navigasi samping (laptop) ---------- */
   var NAV = [['ringkasan', 'Ringkasan', 'rumah', 'Gambaran bulan ini'], ['kinerja', 'Kinerja Unit', 'target', 'Konman, indikator, kepatuhan'], ['pembelajaran', 'Rekap Pembelajaran', 'toga', 'Kelas, peserta, HOP'],
-    ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, sertifikat'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
+    ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, ROTI, Sertifikat'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
   function renderSidenav() {
     var el = $('sidenav'); if (!el) return;
     el.hidden = false; document.body.classList.add('ada-side');
@@ -1766,9 +1822,8 @@
     var perluTL = TLc['Selesai'] + TLc['Proses'] + TLc['Belum Dimulai'], tuntas = perluTL ? TLc['Selesai'] / perluTL : null;
     T.push({ vt: 'kinerja', l: 'Perbaikan berkelanjutan', v: tuntas === null ? '–' : D.fmt(tuntas * 100, 0) + '<small>% tuntas</small>', c: tuntas === null ? 'idle' : TLc['Belum Dimulai'] >= 5 ? 'bad' : TLc['Belum Dimulai'] || TLc['Proses'] ? 'warn' : 'good',
       s: tuntas === null ? 'belum ada data' : D.fmt(TLc['Belum Dimulai'], 0) + ' belum dimulai · ' + D.fmt(TLc['Proses'], 0) + ' proses' });
-    var kriM = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'bad'; }).length, kriK = kriRows().map(kriAkhir).filter(function (a) { return a && a.st === 'warn'; }).length;
-    var G = fra() && fra().ringkas, resT = G ? (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0) : 0;
-    T.push({ vt: 'risiko', l: 'Risiko', v: kriM + '<small> KRI merah</small>', c: kriM || (G && G.kejadian) ? 'bad' : kriK || resT ? 'warn' : 'good', s: [kriK ? kriK + ' KRI kuning' : '', G ? resT + ' risiko fraud tinggi' : ''].filter(Boolean).join(' · ') || 'semua terkendali' });
+    var In = ev('instruktur'), si = skala5(In ? In.nilai : null, p.targetInstruktur);
+    T.push({ vt: 'pembelajaran', l: 'Penilaian instruktur', v: In ? D.fmt(In.nilai, 2) + '<small> / 5</small>' : '–', c: si.c, s: In ? si.t + ' · ' + D.fmt(In.instruktur.length, 0) + ' instruktur' : 'belum ada data' });
     var bln = []; for (var m = 1; m <= S.bulan; m++) bln.push(m);
     var tr = [
       bln.map(function (m) { var b = D.BULAN[m - 1]; if (!konmanAda(b)) return null; var L2 = K().items.filter(function (it) { return !it.isGroup && !it.pengurang && D.hasData(it, b); }); return L2.length ? L2.filter(function (it) { var v = D.capaianItem(it, b); return v !== null && v >= 0.9999; }).length / L2.length : null; }),
@@ -1776,9 +1831,9 @@
       bln.map(function (m) { return hop(S.tahun, m).nilai; }),
       bln.map(function (m) { var x = ev('kepuasan', S.tahun, m); return x ? x.nilai : null; }),
       null,
-      bln.map(function (m) { var n = 0, ada = false; kriRows().forEach(function (k) { var v = k.bulan[m - 1]; if (v === null || v === undefined || v === '') return; ada = true; var st2 = kriStatus(k, v); if (st2 === 'bad' || st2 === 'warn') n++; }); return ada ? -n : null; })
+      bln.map(function (m) { var x = ev('instruktur', S.tahun, m); return x ? x.nilai : null; })
     ];
-    var IK_T = ['target', 'kelas', 'jam', 'senyum', 'ulang', 'waspada'];
+    var IK_T = ['target', 'kelas', 'jam', 'senyum', 'ulang', 'orang'];
     var tgtHop = bln.map(function (m) { var b = D.BULAN[m - 1]; return itH && konmanAda(b) ? D.num(itH.target[b].v) : null; });
     S.rgkInfo = [
       { judul: 'Indikator Konman mencapai target', ket: 'Jumlah indikator Kontrak Manajemen yang capaiannya ≥ 100% di tiap bulan.', satuan: 'indikator', des: 0,
@@ -1788,8 +1843,7 @@
       { judul: 'Hari Orang Pelatihan', ket: 'Rata-rata hari pelatihan per pegawai, kumulatif sejak Januari. Garis putus-putus = target Konman bulan itu.', satuan: '', des: 2, v: tr[2], target: tgtHop, ke: ['ringkasan', '#kpis [data-act=hop]'], keNama: 'Hari Orang Pelatihan (tab Pembelajaran)' },
       { judul: 'Kepuasan peserta (EL1)', ket: 'Rata-rata nilai kepuasan peserta skala 1–5, kumulatif sejak Januari.', satuan: '/ 5', des: 2, v: tr[3], target: p.targetL1 ? bln.map(function () { return p.targetL1; }) : null, ke: ['ringkasan', '#kpis [data-act=kepuasan]'], keNama: 'Kepuasan Peserta (tab Pembelajaran)' },
       { judul: 'Perbaikan berkelanjutan', ke: ['kepatuhan', '#tlBody'], keNama: 'Perbaikan Berkelanjutan' },
-      { judul: 'KRI kuning & merah per bulan', ket: 'Jumlah Key Risk Indicator yang berstatus kuning atau merah di tiap bulan. Makin rendah makin baik.', satuan: 'KRI', des: 0, turunBaik: true,
-        v: tr[5] ? tr[5].map(function (x) { return x === null ? null : -x; }) : [], ke: ['kri', '#kriPanel'], keNama: 'Key Risk Indicator' }
+      { judul: 'Penilaian instruktur (EL1)', ket: 'Rata-rata nilai penilaian instruktur skala 1–5, kumulatif sejak Januari.', satuan: '/ 5', des: 2, v: tr[5], target: p.targetInstruktur ? bln.map(function () { return p.targetInstruktur; }) : null, ke: ['ringkasan', '#kpis [data-act=instruktur]'], keNama: 'Penilaian Instruktur (tab Pembelajaran)' }
     ];
     var tiles = '<div class="rgk-t">' + T.map(function (x, i) {
       var sp = tr[i] ? spark(tr[i], x.c) : (i === 4 && perluTL ? '<span class="tl-mini" aria-hidden="true"><i class="good" style="flex:' + TLc['Selesai'] + '"></i><i class="warn" style="flex:' + TLc['Proses'] + '"></i><i class="bad" style="flex:' + TLc['Belum Dimulai'] + '"></i></span>' : '');

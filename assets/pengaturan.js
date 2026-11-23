@@ -10,7 +10,7 @@
     { id: 'target', n: 'Target & perhitungan', d: 'Target evaluasi, aturan HOP', ik: 'target' },
     { id: 'tugas', n: 'Tugas Tim EPMK', d: 'PIC tiap tugas, batas waktu', ik: 'daftar' },
     { id: 'pengingat', n: 'Pengingat email', d: 'Penerima & jadwal', ik: 'lonceng' },
-    { id: 'akun', n: 'Akun', d: 'Admin, Lihat, akun per orang', ik: 'orang' },
+    { id: 'akun', n: 'Akun', d: 'Admin & Lihat', ik: 'orang' },
     { id: 'sumber', n: 'Lanjutan', d: 'Sumber data, hanya bila perlu', ik: 'lapis' }
   ];
   // t: teks | angka | ya | pilih | id ; k = kelompok
@@ -174,13 +174,18 @@
     return t + '</div>';
   }
   function tPengingat() {
-    var on = P.data.pengingat;
+    var on = P.data.pengingat, L = P.data.logEmail || [];
     return '<h3 class="at-h">Pengingat email bulanan</h3>' +
       '<div class="at-status"><span class="pill ' + (on ? 'good' : '') + '">' + (on ? 'Aktif' : 'Tidak aktif') + '</span><span class="desc">' + (on ? 'Email dikirim otomatis tiap bulan.' : 'Belum ada jadwal pengiriman.') + '</span></div>' +
       bidang('EMAIL_PENGINGAT', F.EMAIL_PENGINGAT) + bidang('TANGGAL_PENGINGAT', F.TANGGAL_PENGINGAT) +
       '<div class="at-aksi"><button type="button" class="btn primary" data-at="ingat-aktif">' + (on ? 'Perbarui jadwal' : 'Aktifkan pengingat') + '</button>' +
-      '<button type="button" class="btn" data-at="ingat-coba">Kirim email percobaan</button>' + (on ? '<button type="button" class="btn" data-at="ingat-mati">Matikan</button>' : '') + '</div>' +
-      '<p class="desc at-p">Perubahan penerima atau tanggal disimpan dulu otomatis sebelum jadwal diperbarui.</p>';
+      '<button type="button" class="btn" data-at="ingat-kirim">Kirim email sekarang</button>' + (on ? '<button type="button" class="btn" data-at="ingat-mati">Matikan</button>' : '') + '</div>' +
+      '<p class="desc at-p"><b>Kirim email sekarang</b> mengirim pengingat ke semua penerima saat ini juga, berisi isian bulan lalu yang belum lengkap. Perubahan penerima atau tanggal disimpan dulu otomatis.</p>' +
+      (P.hasilEmail ? '<div class="at-hasil" data-st="' + (/terkirim/i.test(P.hasilEmail) ? 'good' : 'bad') + '">' + esc(P.hasilEmail) + '</div>' : '') +
+      '<h3 class="at-h">Riwayat pengiriman</h3>' + (L.length ? '<div class="at-log">' + L.map(function (x) {
+        return '<div class="at-log-r"><span class="pill ' + (/^Terkirim/.test(x.hasil) ? 'good' : 'bad') + '">' + esc(/^Terkirim/.test(x.hasil) ? 'Terkirim' : 'Gagal') + '</span><div><b>' + esc(new Date(x.t).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + ' · ' + esc(x.cara) + '</b><small>' + esc(x.ke) + (/^Terkirim/.test(x.hasil) ? '' : ' · ' + esc(x.hasil)) + '</small></div></div>';
+      }).join('') + '</div>' : '<div class="empty">Belum ada catatan pengiriman. Catatan mulai tersimpan setelah Apps Script versi terbaru dipasang.</div>') +
+      '<p class="desc at-p">Email belum masuk? Periksa folder Spam atau Promosi. Email kantor (@pln.co.id) kadang ditahan filter keamanan; coba tambahkan alamat Gmail sebagai pembanding.</p>';
   }
   function tSumber() {
     var v = nilai(), ren = Object.keys(v).filter(function (k) { return /^RENDIKLAT_\d{4}$/.test(k); }).sort();
@@ -209,21 +214,9 @@
           '<div class="at-aksi"><button class="btn primary" type="submit">Simpan akun ' + (kode === 'admin' ? 'Admin' : 'Lihat') + '</button></div>' +
           (kode === 'admin' ? '<p class="desc">Setelah disimpan, Anda akan keluar dan perlu masuk lagi dengan data baru.</p>' : '<p class="desc">Semua yang sedang login dengan akun Lihat bersama akan perlu masuk lagi.</p>') + '</form>' : '') + '</div>';
     };
-    var tb = (a.tambahan || []);
-    return '<h3 class="at-h">Akun bersama</h3>' +
+    return '<h3 class="at-h">Akun dashboard</h3><p class="desc at-p">Dashboard memakai dua akun: Admin dan Lihat.</p>' +
       form('admin', 'Akun Admin', a.admin, 'Melihat semua, mengisi data, export, pengaturan') +
-      form('lihat', 'Akun Lihat bersama', a.lihat, 'Hanya melihat dashboard') +
-      '<div class="at-h2"><h3 class="at-h">Akun Lihat per orang</h3><button type="button" class="btn sm" data-at="buka" data-k="tambah">' + (buka === 'tambah' ? 'Tutup' : '+ Tambah akun') + '</button></div>' +
-      '<p class="desc at-p">Opsional: akun Lihat untuk tiap orang, bisa dinonaktifkan sendiri-sendiri tanpa mengganti password akun bersama.</p>' +
-      (buka === 'tambah' ? '<form class="at-form" data-akun="tambah" autocomplete="off"><label>Username<input name="user" autocomplete="off" autocapitalize="off" spellcheck="false" required></label><label>Nama pemilik<input name="nama" autocomplete="off"></label>' +
-        '<label>Password<input name="pw" type="password" autocomplete="new-password" required placeholder="minimal 8 karakter"></label><label>Ulangi password<input name="pw2" type="password" autocomplete="new-password" required></label>' +
-        '<div class="at-aksi"><button class="btn primary" type="submit">Tambah akun Lihat</button></div></form>' : '') +
-      (tb.length ? '<div class="at-tb">' + tb.map(function (x) {
-        var k = 'sandi:' + x.user;
-        return '<div class="at-tb-r"><div><b>' + esc(x.user) + '</b><small>' + esc(x.nama || '–') + '</small></div><span class="pill ' + (x.aktif ? 'good' : '') + '">' + (x.aktif ? 'Aktif' : 'Nonaktif') + '</span>' +
-          '<div class="at-aksi"><button type="button" class="btn sm" data-at="buka" data-k="' + esc(k) + '">' + (x.aktif ? 'Ganti password' : 'Aktifkan') + '</button>' + (x.aktif ? '<button type="button" class="btn sm" data-at="nonaktif" data-u="' + esc(x.user) + '">Nonaktifkan</button>' : '') + '</div>' +
-          (buka === k ? '<form class="at-form" data-akun="sandi" data-u="' + esc(x.user) + '" autocomplete="off"><label>Password baru<input name="pw" type="password" autocomplete="new-password" required placeholder="minimal 8 karakter"></label><label>Ulangi<input name="pw2" type="password" autocomplete="new-password" required></label><div class="at-aksi"><button class="btn primary" type="submit">Simpan</button></div></form>' : '') + '</div>';
-      }).join('') + '</div>' : '<div class="empty">Belum ada akun Lihat per orang.</div>') +
+      form('lihat', 'Akun Lihat', a.lihat, 'Hanya melihat dashboard') +
       '<p class="desc at-p">Password tidak pernah disimpan dalam bentuk asli dan tidak bisa dilihat lagi, hanya bisa diganti. Riwayat masuk ada di tab Log Login.</p>';
   }
 
@@ -335,8 +328,8 @@
     } else if (/^ingat-/.test(a)) {
       var op = a.slice(6), lanjut = Object.keys(P.ubah).some(function (x) { return F[x] && F[x].k === 'pengingat'; }) ? simpan() : Promise.resolve();
       b.disabled = true; b.textContent = 'Memproses…';
-      lanjut.then(function () { return api({ aksi: 'pengingat', op: op }); }).then(function (d) { P.data.pengingat = d.pengingat; render(); A.toast(d.pesan, 7000); })
-        .catch(function (er) { render(); A.toast(er.message, 6000); });
+      lanjut.then(function () { return api({ aksi: 'pengingat', op: op }); }).then(function (d) { P.data.pengingat = d.pengingat; if (d.logEmail) P.data.logEmail = d.logEmail; if (op === 'kirim') P.hasilEmail = d.pesan; render(); A.toast(d.pesan, 7000); })
+        .catch(function (er) { if (op === 'kirim') P.hasilEmail = 'Gagal: ' + er.message; render(); A.toast(er.message, 6000); });
     }
   });
   document.addEventListener('click', function (e) {

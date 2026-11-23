@@ -16,6 +16,7 @@
     ['organisasi', 'Struktur Organisasi', 'Pegawai PLN per jabatan dan tenaga alih daya', 0],
     ['kelas', 'Lampiran: Daftar Kelas', 'Semua kelas Selesai (ratusan baris)', 0]
   ];
+  if (window.DashLap && !$('expLap')) { var fl = document.createElement('div'); fl.className = 'field'; fl.id = 'expLap'; $('expName').parentNode.parentNode.insertBefore(fl, $('expName').parentNode); }
   $('expChk').innerHTML = PILIHAN.map(function (p) { return '<label><input type="checkbox" value="' + p[0] + '"' + (p[3] ? ' checked' : '') + '><span>' + esc(p[1]) + '<small>' + esc(p[2]) + '</small></span></label>'; }).join('');
 
   /* ---------- buka / tutup ---------- */
@@ -24,6 +25,7 @@
     if (!A() || !A().S.data) { A() && A().toast('Data dashboard belum termuat.'); return; }
     if (!A().admin()) { A().toast('Export hanya untuk akun Admin.'); return; }
     $('expName').textContent = namaFile(); $('expErr').hidden = true;
+    if ($('expLap')) $('expLap').innerHTML = DashLap.opsiHtml('ex');
     $('inputModal').hidden = true;
     var baru = $('exportModal').hidden; asalEx = G ? G.catat() : null;
     $('exportModal').hidden = false; $('expGo').focus({ preventScroll: true });
@@ -54,6 +56,7 @@
     var dipilih = Array.prototype.filter.call($('expChk').querySelectorAll('input'), function (i) { return i.checked; }).map(function (i) { return i.value; });
     if (!dipilih.length) { $('expErr').hidden = false; $('expErr').textContent = 'Pilih minimal satu isi laporan.'; return; }
     var b = this; b.disabled = true; b.textContent = 'Menyiapkan…'; $('expErr').hidden = true;
+    if (window.DashLap) DashLap.baca($('expLap'));
     buatBuku(dipilih).then(function (buf) {
       var blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = namaFile();
@@ -68,10 +71,40 @@
     return muatLib().then(function (EX) {
       var wb = new EX.Workbook(); wb.creator = 'Dashboard Kinerja UPDL Semarang'; wb.created = new Date();
       dipilih.forEach(function (k) { SHEET[k](wb); });
+      if (window.DashLap) pelengkap(wb);
       return wb.xlsx.writeBuffer();
     });
   }
   window.DashExport = { buatBuku: buatBuku };
+  /* Narasi analisis di bawah judul sheet pertama, kolom tanda tangan di akhir sheet pertama */
+  function pelengkap(wb) {
+    var op = DashLap.opsi(), ws = wb.worksheets[0]; if (!ws) return;
+    var n = ws._n || ws.columnCount || 6;
+    if (op.narasi) {   // di akhir sheet agar gambar & tabel di atasnya tidak bergeser
+      var P = DashLap.narasi(), rN = ws.rowCount + 2;
+      ws.mergeCells(rN, 1, rN, n); var c0 = ws.getCell(rN, 1); c0.value = 'ANALISIS SINGKAT';
+      c0.font = { name: FONT, size: 10, bold: true, color: { argb: C.maroon } };
+      for (var q = 1; q <= n; q++) { ws.getCell(rN, q).fill = isi(C.soft); ws.getCell(rN, q).border = KOTAK; }
+      P.forEach(function (t, i) {
+        var r = rN + 1 + i; ws.mergeCells(r, 1, r, n);
+        var c = ws.getCell(r, 1); c.value = t; c.font = { name: FONT, size: 10, color: { argb: C.ink } }; c.alignment = { wrapText: true, vertical: 'top' };
+        var lebarTotal = 0; for (var j = 1; j <= n; j++) lebarTotal += ws.getColumn(j).width || 10;
+        ws.getRow(r).height = Math.max(28, Math.ceil(t.length / (lebarTotal * 1.1)) * 14 + 6);
+      });
+    }
+    if (op.ttd.length) {
+      var L = op.ttd.map(DashLap.penandatangan), r0 = ws.rowCount + 2, lebar = Math.max(1, Math.floor(n / L.length));
+      ws.getCell(r0, 1).value = 'Semarang, ' + DashLap.tglPanjang(op.tgl); ws.getCell(r0, 1).font = { name: FONT, size: 10 };
+      L.forEach(function (p, i) {
+        var c1 = 1 + i * lebar, c2 = i === L.length - 1 ? n : c1 + lebar - 1;
+        [[r0 + 1, p.peran + ','], [r0 + 2, p.jab], [r0 + 6, p.nama || '(nama)'], [r0 + 7, p.nip ? 'NIP ' + p.nip : '']].forEach(function (x, j) {
+          if (c2 > c1) ws.mergeCells(x[0], c1, x[0], c2);
+          var c = ws.getCell(x[0], c1); c.value = x[1]; c.alignment = { horizontal: 'center' };
+          c.font = { name: FONT, size: 10, bold: j === 1 || j === 2, underline: j === 2, color: { argb: C.ink } };
+        });
+      });
+    }
+  }
 
   /* ====================================================================== */
   /*  GAYA                                                                   */
@@ -91,8 +124,8 @@
   function status(p) { return p === null || p === undefined || !isFinite(p) ? 'Belum ada data' : p >= 0.9999 ? 'Tercapai' : p >= 0.95 ? 'Hampir tercapai' : 'Di bawah target'; }
   function per() { var S = A().S; return { y: S.tahun, m: S.bulan, Bn: D.BULAN[S.bulan - 1], label: A().namaBulan(S.bulan) + ' ' + S.tahun }; }
   function subjudul() {
-    var p = per(), t = new Date();
-    return 'Periode ' + p.label + ' (kumulatif Januari s.d. ' + A().namaBulan(p.m) + ') · diunduh ' + t.toLocaleDateString('id-ID') + ' ' + t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' · sumber: Konman, Rendiklat, MLI Probis, Profil Risiko, Data Dashboard';
+    var p = per(), t = new Date(), tg = window.DashLap ? DashLap.tglPanjang(DashLap.opsi().tgl) : '';
+    return 'Periode ' + p.label + ' (kumulatif Januari s.d. ' + A().namaBulan(p.m) + ') · ' + (tg ? 'tanggal laporan ' + tg + ' · ' : '') + 'diunduh ' + t.toLocaleDateString('id-ID') + ' ' + t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' · sumber: Konman, Rendiklat, MLI Probis, Profil Risiko, Data Dashboard';
   }
   function lembar(wb, nama, lebar, opsi) {
     opsi = opsi || {};
