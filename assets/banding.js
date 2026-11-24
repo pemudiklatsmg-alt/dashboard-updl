@@ -20,6 +20,11 @@
     if (adaR) { var r = denganTahun(y, function () { return D.hitungRendiklat(a.kelas(), y, m, a.set()); }), h = denganTahun(y, function () { return a.hop(y, m); });
       if (r) { o.kelas = r.kelas; o.peserta = r.peserta; o.sumber.push('Rendiklat ' + y); } if (h && h.nilai !== null) o.hop = h.nilai; }
     var x = M && M[m];
+    if (x && x.skor !== null && x.skor !== undefined) { o.skor = x.skor; o.sumber = o.sumber.filter(function (t) { return t !== 'Konman ' + y; }); o.sumber.push('skor resmi (tab ' + TAB + ')'); }
+    if (o.hop === null && adaK) {   // HOP tahun lalu dari realisasi indikator Tingkat Pelaksanaan Pembelajaran di Konman tahun itu
+      var itH = S.cache.konman[y].items.filter(function (it) { return /Tingkat Pelaksanaan Pembelajaran/i.test(it.namaAsli || it.nama); })[0], Bm = D.BULAN[m - 1];
+      if (itH && /HOP/i.test(itH.satuan || '') && D.hasData(itH, Bm)) { o.hop = D.num(itH.real[Bm].v); if (o.sumber.indexOf('Konman ' + y) < 0) o.sumber.push('HOP dari Konman ' + y); }
+    }
     if (x) { ['skor', 'kelas', 'peserta', 'hop'].forEach(function (k) { if (o[k] === null && x[k] !== null && x[k] !== undefined) { o[k] = x[k]; if (o.sumber.indexOf('isian manual') < 0) o.sumber.push('isian manual'); } }); }
     return o;
   }
@@ -49,7 +54,7 @@
       el.innerHTML = kepala + '<div class="empty">Data ' + y0 + ' belum ada. Tambahkan tab <b>Konman ' + y0 + '</b> (format sama dengan Konman ' + y1 + '), atau isi angka per bulan di tab <b>' + TAB + '</b>: kolom Tahun, Bulan, Skor Konman, Kelas Selesai, Peserta, HOP. ' + a.sheetLink('Buka Google Sheets', TAB) + '</div>';
       return;
     }
-    var baris = [['Skor Kontrak Manajemen', n0.skor, n1.skor, 2, false], ['Kelas selesai', n0.kelas, n1.kelas, 0, true], ['Peserta', n0.peserta, n1.peserta, 0, true], ['Hari Orang Pelatihan (HOP)', n0.hop, n1.hop, 3, true]];
+    var baris = [['Skor Kontrak Manajemen', n0.skor, n1.skor, 2, false], ['Kelas selesai', n0.kelas, n1.kelas, 0, true], ['Peserta', n0.peserta, n1.peserta, 0, true], ['Hari Orang Pelatihan (HOP)', n0.hop, n1.hop, 3, true]].filter(function (b) { return b[1] !== null; });   // baris tanpa data tahun lalu tidak ditampilkan
     var s0 = [], s1 = [];
     for (var i = 1; i <= 12; i++) { s0.push(nilai(y0, i, M).skor); s1.push(i <= 12 ? nilai(y1, i, null).skor : null); }
     var ind = '';
