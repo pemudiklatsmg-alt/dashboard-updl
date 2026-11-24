@@ -39,7 +39,7 @@
       isi += soal(q, i++);
     });
     if (kel !== '') isi += '</div>';
-    A().openModal(kepala('Sekitar 2 menit · jawaban dipakai untuk mengukur dan meningkatkan manfaat dashboard') +
+    A().openModal(kepala('Anonim · sekitar 2 menit · nama akun tidak disimpan') +
       '<div class="sv-form">' + isi + '</div><div class="sv-foot"><span class="desc" id="svInfo">Tanda * wajib diisi.</span><button type="button" class="btn primary" data-sv="kirim">Kirim jawaban</button></div>', 'wide sv-modal');
   }
   function buka() {
@@ -89,7 +89,7 @@
       baris.forEach(function (b) { if (!b.h) return; if (b.q.kelompok !== kel) { kel = b.q.kelompok; isi += '<h4 class="sv-h">' + esc(kel) + '</h4>'; } isi += b.h; });
       A().openModal(kepala('Pertanyaan diatur di tab Survei Pertanyaan, jawaban di tab Survei Jawaban') +
         '<div class="sv-kpi"><div><b>' + D.fmt(n, 0) + '</b><span>responden</span></div><div><b>' + (rata === null ? '–' : D.fmt(rata, 2)) + '<small> / 5</small></b><span>indeks kepuasan (rata-rata semua skala)</span></div><div><b>' + (setuju === null ? '–' : D.pct(setuju, 0)) + '</b><span>jawaban setuju atau sangat setuju (4–5)</span></div><div><b>' + (d.terakhir ? new Date(d.terakhir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '–') + '</b><span>jawaban terakhir</span></div></div>' +
-        (n ? isi : '<div class="empty">Belum ada jawaban. Bagikan ajakan mengisi survei ke pengguna akun Lihat.</div>') +
+        (n ? isi : '<div class="empty">Belum ada jawaban. Ajakan mengisi survei tampil otomatis untuk akun Admin dan Lihat yang belum mengisi.</div>') +
         '<div class="note">Ubah atau tambah pertanyaan di ' + A().sheetLink('Google Sheets', 'Survei Pertanyaan') + ': satu baris per pertanyaan, kolom Jenis diisi skala, pilihan, atau teks; kolom Pilihan dipisah titik koma; Aktif = Tidak untuk menyembunyikan. Pertanyaan baru langsung tampil di formulir.</div>', 'wide sv-modal');
     }).catch(galat);
   }
@@ -124,6 +124,6 @@
     if (!e.target.matches || !e.target.matches('[data-sv-teks]')) return;
     var q = e.target.closest('[data-sv-q]'); st.jawab[q.getAttribute('data-sv-q')] = e.target.value;
   });
-  document.addEventListener('dash:periode', function () { if (A() && !A().admin()) setTimeout(ajak, 4000); });
+  document.addEventListener('dash:periode', function () { if (A() && A().S && A().S.data) setTimeout(ajak, 4000); });
   window.DashSurvei = { buka: buka, hasil: hasil };
 })();

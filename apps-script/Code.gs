@@ -2039,8 +2039,8 @@ function bacaRiskRegister_(cfg) {
 /* ======================================================================== */
 var SURVEI_KOLOM = ['No', 'Kelompok', 'Pertanyaan', 'Jenis', 'Pilihan', 'Wajib', 'Aktif'];
 var SURVEI_AWAL = [
-  ['P1', 'Profil responden', 'Bidang / unit kerja', 'pilihan', 'Penyelenggaraan Pembelajaran; Pelayanan, Keuangan dan Umum; Manajemen UPDL; Unit/bidang lain', 'Ya', 'Ya'],
-  ['P2', 'Profil responden', 'Peran Anda terhadap dashboard', 'pilihan', 'Manajemen / pengambil keputusan; Pengelola atau pengisi data; Pengguna (melihat informasi)', 'Ya', 'Ya'],
+  ['P1', 'Profil responden', 'Bidang / unit kerja', 'pilihan', 'JAR; PKU; K3LKAM; PBJ; MNGT; Others', 'Ya', 'Ya'],
+  ['P2', 'Profil responden', 'Peran Anda terhadap dashboard', 'pilihan', 'Manajemen / Pengambil Keputusan; Pengelola; Kolaborator Data; Viewer; Others', 'Ya', 'Ya'],
   ['P3', 'Profil responden', 'Seberapa sering Anda membuka dashboard?', 'pilihan', 'Hampir setiap hari; Beberapa kali seminggu; Beberapa kali sebulan; Jarang', 'Ya', 'Ya'],
   ['M1', 'Dashboard memudahkan saya memantau…', 'Kontrak Manajemen (skor dan indikator kinerja)', 'skala', '', 'Tidak', 'Ya'],
   ['M2', 'Dashboard memudahkan saya memantau…', 'Rekap Pembelajaran (kelas, peserta, HOP, realisasi per kategori)', 'skala', '', 'Tidak', 'Ya'],
@@ -2059,8 +2059,7 @@ var SURVEI_AWAL = [
   ['T1', 'Masukan', 'Fitur yang paling bermanfaat bagi Anda', 'teks', '', 'Tidak', 'Ya'],
   ['T2', 'Masukan', 'Saran perbaikan atau fitur yang Anda butuhkan', 'teks', '', 'Tidak', 'Ya'],
   ['T3', 'Masukan', 'Testimoni singkat tentang dashboard', 'teks', '', 'Tidak', 'Ya'],
-  ['T4', 'Masukan', 'Bolehkah testimoni Anda dikutip beserta nama/jabatan?', 'pilihan', 'Ya, boleh; Ya, tanpa nama; Tidak', 'Tidak', 'Ya'],
-  ['T5', 'Masukan', 'Nama dan jabatan (opsional)', 'teks', '', 'Tidak', 'Ya']
+  ['T4', 'Masukan', 'Bolehkah testimoni Anda dikutip (tanpa nama) di laporan dan bahan presentasi?', 'pilihan', 'Ya; Tidak', 'Tidak', 'Ya']
 ];
 function tabSurvei_(nama, kepala, isi) {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(nama);
@@ -2088,22 +2087,22 @@ function bacaTanyaSurvei_() {
 function simpanSurvei_(req, sesi) {
   var tanya = bacaTanyaSurvei_(), j = req.jawaban || {}, kurang = tanya.filter(function (q) { return q.wajib && !String(j[q.no] == null ? '' : j[q.no]).trim(); });
   if (kurang.length) throw new Error('Pertanyaan wajib belum dijawab: ' + kurang.map(function (q) { return q.teks; }).slice(0, 3).join('; '));
-  var sh = tabSurvei_(TAB.SURVEI_JAWAB, ['Waktu', 'ID Respon', 'Akun', 'Peran akun', 'No', 'Kelompok', 'Pertanyaan', 'Jawaban'], null);
+  var sh = tabSurvei_(TAB.SURVEI_JAWAB, ['Waktu', 'ID Respon', 'Jenis akun', 'No', 'Kelompok', 'Pertanyaan', 'Jawaban'], null);   // anonim: nama akun tidak disimpan
   var t = new Date(), id = Utilities.formatDate(t, 'Asia/Jakarta', 'yyMMddHHmmss') + '-' + Utilities.getUuid().slice(0, 4);
   var rows = tanya.filter(function (q) { return String(j[q.no] == null ? '' : j[q.no]).trim() !== ''; })
-    .map(function (q) { return [t, id, sesi.user, sesi.peran, q.no, q.kelompok, q.teks, String(j[q.no]).slice(0, 1000)]; });
+    .map(function (q) { return [t, id, sesi.peran === 'admin' ? 'Admin' : 'Lihat', q.no, q.kelompok, q.teks, String(j[q.no]).slice(0, 1000)]; });
   if (!rows.length) throw new Error('Belum ada jawaban.');
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
   return { ok: true, id: id, pesan: 'Terima kasih, jawaban Anda tersimpan.' };
 }
 function hasilSurvei_() {
   var tanya = bacaTanyaSurvei_(), ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.SURVEI_JAWAB);
-  var v = sh && sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 8).getValues() : [];
+  var v = sh && sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues() : [];
   var resp = {}, per = {};
   v.forEach(function (r) {
     var id = String(r[1]); resp[id] = resp[id] || { waktu: r[0] instanceof Date ? r[0].getTime() : null, jawab: {} };
-    resp[id].jawab[String(r[4])] = String(r[7]);
-    var k = String(r[4]); (per[k] = per[k] || []).push(String(r[7]));
+    resp[id].jawab[String(r[3])] = String(r[6]);
+    var k = String(r[3]); (per[k] = per[k] || []).push(String(r[6]));
   });
   var daftar = Object.keys(resp).map(function (k) { return resp[k]; });
   return { ok: true, tanya: tanya, responden: daftar.length, jawaban: per, respon: daftar.slice(-300),
