@@ -50,7 +50,7 @@
     var a = A(), S = a.S, y1 = S.tahun, y0 = y1 - 1, m = S.bulan, M = manual(y0), bl = a.namaBulan(m);
     var n0 = nilai(y0, m, M), n1 = nilai(y1, m, null);
     var ada = n0.skor !== null || n0.kelas !== null || n0.hop !== null;
-    var kepala = '<div class="panel-h"><div><h2>Banding Tahun Lalu</h2><div class="desc">' + esc(bl) + ' ' + y1 + ' dibanding ' + esc(bl) + ' ' + y0 + '. Kelas, peserta, dan HOP dihitung kumulatif s.d. bulan terpilih.</div></div><span class="follow" title="Mengikuti Tahun dan Bulan di bagian atas"><span class="per"></span></span></div>';
+    var kepala = '<div class="panel-h"><div><h2>Banding Tahun Lalu</h2><div class="desc">' + esc(bl) + ' ' + y1 + ' dibanding ' + esc(bl) + ' ' + y0 + '. Kelas, peserta, dan HOP dihitung kumulatif s.d. bulan terpilih.</div></div><span class="follow" title="Mengikuti Tahun dan Bulan di bagian atas"><span class="per">' + esc(bl + ' ' + y1) + '</span></span></div>';
     if (!ada) {
       el.innerHTML = kepala + '<div class="empty">Data ' + y0 + ' belum ada. Tambahkan tab <b>Konman ' + y0 + '</b> (format sama dengan Konman ' + y1 + '), atau isi angka per bulan di tab <b>' + TAB + '</b>: kolom Tahun, Bulan, Skor Konman, Kelas Selesai, Peserta, HOP. ' + a.sheetLink('Buka Google Sheets', TAB) + '</div>';
       return;

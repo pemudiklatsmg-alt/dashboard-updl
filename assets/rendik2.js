@@ -77,7 +77,7 @@
   /* grafik kolom berkelompok / bertumpuk 12 bulan */
   function kolom12(seri, opsi) {
     opsi = opsi || {};
-    var W = 600, H = opsi.h || 170, pl = 28, pr = 6, pt = 13, pb = 21, iw = W - pl - pr, ih = H - pt - pb, bw = iw / 12;
+    var W = 600, H = opsi.h || 170, pl = 34, pr = 6, pt = 13, pb = 21, iw = W - pl - pr, ih = H - pt - pb, bw = iw / 12;
     var maks = 0;
     for (var i = 0; i < 12; i++) { if (opsi.tumpuk) { var t = 0; seri.forEach(function (s) { t += s.v[i] || 0; }); maks = Math.max(maks, t); } else seri.forEach(function (s) { maks = Math.max(maks, s.v[i] || 0); }); }
     if (!maks) maks = 1;
@@ -207,7 +207,7 @@
     var top = ber.slice().sort(function (a, b) { return b.biaya - a.biaya; }).slice(0, 8);
     el.innerHTML = kepala('Realisasi Biaya', 'Biaya kelas yang selesai s.d. ' + esc(bl) + ' dari kolom RAB, Realisasi Honor Instruktur, Realisasi Akomodasi, dan Total di sheet kategori.') + chips(L) +
       '<div class="rd-tiles">' + tiles + '</div>' +
-      (ber.length ? '<div class="rd-2"><div class="rd-c"><div class="sub-h">Biaya per bulan</div>' + kolom12([{ n: 'Honor instruktur', v: bH, c: 'var(--bar)' }, { n: 'Akomodasi', v: bA, c: 'var(--fung)' }], { tumpuk: true, sampai: m, fmt: function (v) { return v >= 1e6 ? D.fmt(v / 1e6, 0) + 'jt' : D.fmt(v, 0); }, label: 'Biaya per bulan' }) + '</div>' +
+      (ber.length ? '<div class="rd-2"><div class="rd-c"><div class="sub-h">Biaya per bulan</div>' + kolom12([{ n: 'Honor instruktur', v: bH, c: 'var(--bar)' }, { n: 'Akomodasi', v: bA, c: 'var(--fung)' }], { tumpuk: true, sampai: m, fmt: function (v, rinci) { return rinci ? rp(v, true) : v >= 1e9 ? D.fmt(v / 1e9, 1) + 'M' : v >= 1e6 ? D.fmt(v / 1e6, 0) + 'jt' : D.fmt(v, 0); }, label: 'Biaya per bulan' }) + '</div>' +
         '<div class="rd-c"><div class="sub-h">Per kategori <span class="desc">· garis tipis = RAB</span></div>' + batang(perK, function (v) { return rp(v, true); }) + '</div></div>' +
         '<div class="sub-h rd-sh">Diklat dengan biaya terbesar</div><div class="tbl-wrap"><table class="tbl rd-bt2"><thead><tr><th>Judul</th><th class="r hp-x">Peserta</th><th class="r hp-x">Honor</th><th class="r hp-x">Akomodasi</th><th class="r">Total</th><th class="r hp-x">Per peserta</th></tr></thead><tbody>' +
         top.map(function (r) { return '<tr data-rk-id="' + esc(r.id) + '" class="click"><td><i class="rd-dot k' + noKat(r.kat) + '"></i>' + esc(r.judul) + '<div class="desc">' + esc(nmKat(r.kat)) + ' · ' + rentang(r.rM, r.rS) + '</div></td><td class="r num hp-x">' + (r.real !== null ? D.fmt(r.real, 0) : '–') + '</td><td class="r num hp-x">' + rp(r.honor) + '</td><td class="r num hp-x">' + rp(r.akom) + '</td><td class="r num"><b>' + rp(r.biaya) + '</b></td><td class="r num hp-x">' + (r.real ? rp(r.biaya / r.real) : '–') + '</td></tr>'; }).join('') +
