@@ -15,17 +15,17 @@
   /* gaya dokumen: dipakai di pratinjau dan saat dicetak ke PDF */
   var CSS = [
     '.lb-doc{font:10pt/1.45 Arial,Helvetica,sans-serif;color:#18233F;counter-reset:pg}',
-    '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:18mm 20mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
-    '.lb-pg.landscape{width:297mm;min-height:210mm;padding:14mm 16mm}',
-    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{width:calc(100% + 40mm);max-width:none;margin:-18mm -20mm 16px}',
-    '.lb-doc h2{position:relative;font-size:12.5pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:6px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
-    '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:42px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
-    '.lb-doc h3{font-size:11.5pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
+    '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:21mm 21mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
+    '.lb-pg.landscape{width:297mm;min-height:210mm;padding:13mm 21mm}',
+    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{width:calc(100% + 42mm);max-width:none;margin:-21mm -21mm 21px}',
+    '.lb-doc h2{position:relative;font-size:13pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:8px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
+    '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:34px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
+    '.lb-doc h3{font-size:11pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
     '.lb-doc ol,.lb-doc ul{margin:0 0 8px;padding-left:21px;text-align:justify}',
-    '.lb-t{width:100%;border-collapse:collapse;margin:5px 0 13px;page-break-inside:auto}.lb-t th{background:var(--lb-ac);color:#fff;font-weight:700;text-align:left;padding:5px 6px;font-size:9pt}',
-    '.lb-t td{border:1px solid #D8DBE4;padding:5px 6px;vertical-align:middle}.lb-t tr{page-break-inside:avoid}.lb-t .c{text-align:center}.lb-kecil{font-size:8.5pt}.lb-rr{font-size:8pt}.lb-kartu td{font-size:10pt;text-align:center}',
+    '.lb-t{width:100%;border-collapse:collapse;margin:5px 0 13px;page-break-inside:auto}.lb-t th{background:var(--lb-ac);color:#fff;font-weight:700;text-align:left;padding:5px 8px;font-size:9pt}',
+    '.lb-t td{border:1px solid #D8DBE4;padding:5px 8px;vertical-align:middle}.lb-t tr{page-break-inside:avoid}.lb-t .c{text-align:center}.lb-kecil{font-size:8.5pt}.lb-rr{font-size:8pt}.lb-kartu td{font-size:10pt;text-align:center}',
     '.lb-peta{width:auto;margin:0 auto 8px}.lb-peta td{width:21mm;height:8mm;padding:2px 4px;text-align:center;font-size:10.5pt}.lb-peta td:first-child{width:24mm;text-align:right}',
-    '.lb-chip{display:inline-block;padding:1px 6px;border-radius:8px;font-weight:700;font-size:7.5pt;white-space:nowrap}',
+    '.lb-chip{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:700;font-size:7.5pt;white-space:nowrap}',
     '.lb-chart{display:block;width:100%;height:auto;margin:5px 0}.lb-cap{font-size:8.5pt;color:#5A6380;margin:0 0 8px}',
     '.lb-ind{page-break-inside:avoid;border-top:1px solid #E3E6EE;padding-top:8px;margin-top:8px}',
     '.lb-ttd{width:100%;border-collapse:collapse;margin-top:21px;page-break-inside:avoid}.lb-ttd td{width:50%;vertical-align:top;padding:0 8px;border:0}.lb-ttd p{margin:0 0 3px}.lb-ruang{height:55px}.lb-tengah{width:50%;margin:21px auto 0}',
@@ -451,9 +451,9 @@
           siram();
         }
         var sections = Array.prototype.map.call(root.querySelectorAll(':scope > .lb-pg'), function (pg) {
-          var land = pg.classList.contains('landscape'), mg = land ? 900 : 1134, lebar = (land ? 16838 : 11906) - 2 * mg, isi = [];
+          var land = pg.classList.contains('landscape'), mg = 1191, lebar = (land ? 16838 : 11906) - 2 * mg, isi = [];
           blok(pg, isi, lebar, {});
-          return { properties: { page: { size: { width: 11906, height: 16838, orientation: land ? X.PageOrientation.LANDSCAPE : X.PageOrientation.PORTRAIT }, margin: { top: 1000, bottom: 1000, left: mg, right: mg } } },
+          return { properties: { page: { size: { width: 11906, height: 16838, orientation: land ? X.PageOrientation.LANDSCAPE : X.PageOrientation.PORTRAIT }, margin: { top: land ? 737 : 1191, bottom: land ? 737 : 1191, left: mg, right: mg } } },
             footers: { default: new X.Footer({ children: [new X.Paragraph({ alignment: X.AlignmentType.RIGHT, children: [new X.TextRun({ text: 'Laporan ' + T.nama + ' · ' + per().nama + ' · UPDL Semarang', size: 16, color: '7C8399', font: FONT })] })] }) },
             children: isi };
         });
