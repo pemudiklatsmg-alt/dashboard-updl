@@ -75,24 +75,30 @@
   function kosong(el, judul) { el.innerHTML = kepala(judul, 'Rincian per kategori dari file Rendiklat ' + A().S.tahun + '.') + '<div class="empty">Belum ada rincian Rendiklat per kategori untuk tahun ini. Data dibaca dari sheet LEADERSHIP, IKP KKJ, PIL, PENUGASAN, PINJAMSEWA, dan ACADEMY setelah Apps Script versi terbaru dipasang.</div>'; }
 
   /* grafik kolom berkelompok / bertumpuk 12 bulan */
+  /* lebar kolom grafik (px) agar SVG digambar 1:1, tulisan tidak menyusut */
+  function lebarKolom(el, frac, gap) {
+    var cs = window.getComputedStyle(el), w = (el.clientWidth || 1100) - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    if (window.innerWidth <= 1000) return Math.max(300, w);
+    return Math.max(300, (w - gap) * frac);
+  }
   function kolom12(seri, opsi) {
     opsi = opsi || {};
-    var W = 600, H = opsi.h || 170, pl = 34, pr = 6, pt = 13, pb = 21, iw = W - pl - pr, ih = H - pt - pb, bw = iw / 12;
+    var W = Math.round(opsi.w || 600), H = opsi.h || 170, pl = 38, pr = 6, pt = 13, pb = 24, iw = W - pl - pr, ih = H - pt - pb, bw = iw / 12;
     var maks = 0;
     for (var i = 0; i < 12; i++) { if (opsi.tumpuk) { var t = 0; seri.forEach(function (s) { t += s.v[i] || 0; }); maks = Math.max(maks, t); } else seri.forEach(function (s) { maks = Math.max(maks, s.v[i] || 0); }); }
     if (!maks) maks = 1;
     var langkah = Math.pow(10, Math.floor(Math.log10(maks))), atas = Math.ceil(maks / langkah) * langkah; if (atas / langkah > 6) langkah *= 2; atas = Math.ceil(maks / langkah) * langkah;
     var Y = function (v) { return pt + ih - ih * v / atas; }, g = '';
-    for (var v = 0; v <= atas + 1e-9; v += langkah) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="var(--line)" stroke-width="1"' + (v ? ' stroke-dasharray="2 4"' : '') + '/><text x="' + (pl - 5) + '" y="' + (Y(v) + 3).toFixed(1) + '" font-size="10" text-anchor="end" fill="var(--ink-3)">' + (opsi.fmt ? opsi.fmt(v) : D.fmt(v, 0)) + '</text>';
+    for (var v = 0; v <= atas + 1e-9; v += langkah) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="var(--line)" stroke-width="1"' + (v ? ' stroke-dasharray="2 4"' : '') + '/><text x="' + (pl - 5) + '" y="' + (Y(v) + 3).toFixed(1) + '" font-size="11" text-anchor="end" fill="var(--ink-3)">' + (opsi.fmt ? opsi.fmt(v) : D.fmt(v, 0)) + '</text>';
     for (i = 0; i < 12; i++) {
       var x0 = pl + bw * i, redup = opsi.sampai && i + 1 > opsi.sampai;
-      g += '<text x="' + (x0 + bw / 2).toFixed(1) + '" y="' + (H - 5) + '" font-size="10" text-anchor="middle" fill="' + (opsi.sampai === i + 1 ? 'var(--ink)' : 'var(--ink-3)') + '"' + (opsi.sampai === i + 1 ? ' font-weight="700"' : '') + '>' + BL3[i] + '</text>';
+      g += '<text x="' + (x0 + bw / 2).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" text-anchor="middle" fill="' + (opsi.sampai === i + 1 ? 'var(--ink)' : 'var(--ink-3)') + '"' + (opsi.sampai === i + 1 ? ' font-weight="700"' : '') + '>' + BL3[i] + '</text>';
       if (opsi.tumpuk) {
-        var y = pt + ih, w = Math.min(21, bw - 8), tt = [];
+        var y = pt + ih, w = Math.min(28, bw - 10), tt = [];
         seri.forEach(function (s) { var n = s.v[i] || 0; if (!n) return; var hh = ih * n / atas; g += '<rect x="' + (x0 + (bw - w) / 2).toFixed(1) + '" y="' + (y - hh).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + Math.max(0, hh - 1).toFixed(1) + '" fill="' + s.c + '"' + (redup ? ' opacity=".35"' : '') + '/>'; y -= hh; tt.push(s.n + ' ' + n); });
         if (tt.length) g += '<rect x="' + x0.toFixed(1) + '" y="' + pt + '" width="' + bw.toFixed(1) + '" height="' + ih + '" fill="transparent"><title>' + BL3[i] + ': ' + esc(tt.join(' · ')) + '</title></rect>';
       } else {
-        var n2 = seri.length, gw = Math.min(13, (bw - 8) / n2 - 2);
+        var n2 = seri.length, gw = Math.min(16, (bw - 10) / n2 - 2);
         seri.forEach(function (s, j) {
           var val = s.v[i] || 0, hh = ih * val / atas, x = x0 + (bw - (gw + 2) * n2) / 2 + j * (gw + 2);
           if (val) g += '<rect x="' + x.toFixed(1) + '" y="' + (pt + ih - hh).toFixed(1) + '" width="' + gw.toFixed(1) + '" height="' + hh.toFixed(1) + '" rx="2" fill="' + s.c + '"' + (redup ? ' opacity=".35"' : '') + '><title>' + BL3[i] + ' · ' + esc(s.n) + ': ' + (opsi.fmt ? opsi.fmt(val, true) : D.fmt(val, 0)) + '</title></rect>';
@@ -154,21 +160,45 @@
       '<tr class="rd-tot click" data-rk-kat=""><td>Gabungan</td><td class="r num">' + D.fmt(tot.renc, 0) + '</td><td class="r num"><b>' + D.fmt(tot.laks, 0) + '</b></td><td class="r num">' + (tot.renc ? D.pct(tot.laks / tot.renc, 0) : '–') + '</td><td class="r num hp-x">' + D.fmt(tot.jalan + tot.jadwal + tot.belum, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(tot.tunda, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(tot.batal, 0) + '</td><td class="r num">' + D.fmt(tot.peserta, 0) + '</td></tr></tbody></table></div>';
     el.innerHTML = kepala('Realisasi per Kategori', 'Rencana dihitung dari tanggal rencana (P.Tgl), realisasi dari kelas berstatus Selesai (R.Tgl), kumulatif s.d. ' + esc(bl) + '. Bila P.Tgl kosong, jadwal memakai tanggal realisasi.') + chips(L) +
       '<div class="rd-tiles">' + tiles + '</div>' +
-      '<div class="rd-2"><div class="rd-c"><div class="sub-h">Kelas per bulan · ' + esc(st.kat ? nmKat(st.kat) : 'gabungan') + '</div>' + kolom12([{ n: 'Rencana', v: rencB, c: 'var(--bar-dim)' }, { n: 'Terlaksana', v: realB, c: 'var(--bar)' }], { sampai: m, label: 'Kelas rencana dan terlaksana per bulan' }) + '</div>' +
+      '<div class="rd-2"><div class="rd-c"><div class="sub-h">Kelas per bulan · ' + esc(st.kat ? nmKat(st.kat) : 'gabungan') + '</div>' + kolom12([{ n: 'Rencana', v: rencB, c: 'var(--bar-dim)' }, { n: 'Terlaksana', v: realB, c: 'var(--bar)' }], { sampai: m, w: lebarKolom(el, .425, 21), h: 250, label: 'Kelas rencana dan terlaksana per bulan' }) + '</div>' +
       '<div class="rd-c"><div class="sub-h">Per kategori s.d. ' + esc(bl) + '</div>' + t + '</div></div>' +
       '<div class="rd-act"><button type="button" class="btn" data-rk="daftar">Daftar kelas ' + esc(st.kat ? nmKat(st.kat) : 'semua kategori') + '</button></div>';
   }
 
   /* ---------- Part 2b: kalender rencana / realisasi ---------- */
+  function ringkasKat(isi) {
+    if (!isi.length) return '';
+    var c = {}; isi.forEach(function (r) { c[r.kat] = (c[r.kat] || 0) + 1; });
+    return '<div class="rd-kc">' + Object.keys(c).sort(function (a, b) { return noKat(a) - noKat(b); }).map(function (k) {
+      return '<span class="k' + noKat(k) + '" title="' + esc(nmKat(k)) + ': ' + c[k] + ' kelas"><i class="rd-dot k' + noKat(k) + '"></i>' + c[k] + '</span>';
+    }).join('') + '</div>';
+  }
+  function rentangHari(h, m) {
+    var d = Object.keys(h).map(Number).sort(function (a, b) { return a - b; }), out = [], i = 0;
+    while (i < d.length) { var j = i; while (j + 1 < d.length && d[j + 1] === d[j] + 1) j++; out.push(i === j ? String(d[i]) : d[i] + '–' + d[j]); i = j + 1; }
+    return out.join(', ') + ' ' + BL3[m - 1];
+  }
+  function daftarJudul(grup, urut, m) {
+    if (!urut.length) return '';
+    var L = urut.map(function (k) { return grup[k]; }).sort(function (a, b) { return Math.min.apply(null, Object.keys(a.hari).map(Number)) - Math.min.apply(null, Object.keys(b.hari).map(Number)) || a.judul.localeCompare(b.judul); });
+    return '<div class="sub-h rd-sh">Judul pembelajaran bulan ini <span class="desc">· ' + L.length + ' judul, ' + L.reduce(function (t, g) { return t + g.rows.length; }, 0) + ' kelas</span></div>' +
+      '<div class="tbl-wrap rd-gulir"><table class="tbl rd-jt"><thead><tr><th>Judul</th><th class="hp-x">Kategori</th><th class="r">Kelas</th><th>Tanggal</th></tr></thead><tbody>' +
+      L.map(function (g) { return '<tr class="click" data-rk-grup="' + esc(g.kat + '|' + g.judul.toUpperCase()) + '"><td><i class="rd-dot k' + noKat(g.kat) + '"></i>' + esc(g.judul) + '</td><td class="hp-x">' + esc(nmKat(g.kat)) + '</td><td class="r num"><b>' + g.rows.length + '</b></td><td class="num">' + rentangHari(g.hari, m) + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+  }
   function renderKal(L) {
     var el = document.getElementById('rkKal'); if (!el) return;
     if (!L) return kosong(el, 'Kalender Pembelajaran');
     var S = A().S; if (st.kb === null || st.ky !== S.tahun) { st.kb = S.bulan; st.ky = S.tahun; }
     var y = S.tahun, m = st.kb, F = pilihKat(L), ren = st.mode === 'rencana';
-    var awal = new Date(y, m - 1, 1), akh = new Date(y, m, 0), hari = {}, n = 0;
+    var awal = new Date(y, m - 1, 1), akh = new Date(y, m, 0), hari = {}, n = 0, grup = {}, urutG = [];
     F.forEach(function (r) {
       var a = ren ? r.pM : r.rM, b = ren ? r.pS : r.rS; if (!a) return; if (!ren && r.st === 'Dibatalkan') return; if (!b || b < a) b = a;
       if (b < awal || a > akh) return; n++;
+      var kunci = r.kat + '|' + String(r.judul || '').trim().toUpperCase();
+      if (!grup[kunci]) { grup[kunci] = { kat: r.kat, judul: String(r.judul || '').trim(), rows: [], hari: {} }; urutG.push(kunci); }
+      grup[kunci].rows.push(r);
+      for (var dg = new Date(a < awal ? awal : a); dg <= (b > akh ? akh : b); dg.setDate(dg.getDate() + 1)) grup[kunci].hari[dg.getDate()] = 1;
       var panjang = selisihHari(a, b) > 13;   // kelas panjang (mis. coaching berbulan-bulan) hanya ditandai di hari mulai
       var d0 = panjang ? a : (a < awal ? awal : a), d1 = panjang ? a : (b > akh ? akh : b);
       for (var d = new Date(d0); d <= d1; d.setDate(d.getDate() + 1)) { if (d < awal || d > akh) continue; var k = d.getDate(); (hari[k] = hari[k] || []).push(r); }
@@ -179,14 +209,15 @@
       var isi = hari[dd] || [], tgl = new Date(y, m - 1, dd), libur = tgl.getDay() === 0 || tgl.getDay() === 6;
       var kini = tgl.toDateString() === hariIni.toDateString();
       sel += '<div class="rd-d' + (libur ? ' libur' : '') + (kini ? ' kini' : '') + (isi.length ? ' ada click" role="button" tabindex="0" data-rk-hari="' + dd + '" aria-label="' + dd + ' ' + BL3[m - 1] + ': ' + isi.length + ' kelas"' : '"') + '><div class="rd-dn"><span>' + dd + '</span>' + (isi.length ? '<b>' + isi.length + '</b>' : '') + '</div>' +
-        isi.slice(0, 3).map(function (r) { return '<div class="rd-ev k' + noKat(r.kat) + '" title="' + esc(r.judul) + '">' + esc(r.judul) + '</div>'; }).join('') + (isi.length > 3 ? '<div class="rd-more">+' + (isi.length - 3) + ' lainnya</div>' : '') + '</div>';
+        ringkasKat(isi) + '</div>';
     }
     var leg = KAT.filter(function (k) { return F.some(function (r) { return r.kat === k[0]; }); }).map(function (k) { return '<span><i class="rd-dot k' + noKat(k[0]) + '"></i>' + esc(k[1]) + '</span>'; }).join('');
-    el.innerHTML = kepala('Kalender Pembelajaran', (ren ? 'Jadwal rencana (P.Tgl)' : 'Jadwal realisasi (R.Tgl), tanpa kelas batal') + ' · ' + D.fmt(n, 0) + ' kelas di ' + esc(A().namaBulan(m)) + ' ' + y + '. Kelas lebih dari dua minggu hanya ditandai di hari mulai.',
+    el.innerHTML = kepala('Kalender Pembelajaran', (ren ? 'Jadwal rencana (P.Tgl)' : 'Jadwal realisasi (R.Tgl), tanpa kelas batal') + ' · ' + D.fmt(n, 0) + ' kelas di ' + esc(A().namaBulan(m)) + ' ' + y + '. Angka di tiap tanggal = jumlah kelas per kategori; klik tanggal atau judul untuk rinciannya.',
       '<div class="rd-kn"><div class="seg" role="group" aria-label="Jenis jadwal"><button type="button" data-rk-mode="rencana" aria-pressed="' + ren + '">Rencana</button><button type="button" data-rk-mode="realisasi" aria-pressed="' + !ren + '">Realisasi</button></div>' +
       '<div class="rd-nav"><button type="button" class="btn" data-rk-bln="-1" aria-label="Bulan sebelumnya"' + (m <= 1 ? ' disabled' : '') + '>‹</button><b>' + BL3[m - 1] + ' ' + y + '</b><button type="button" class="btn" data-rk-bln="1" aria-label="Bulan berikutnya"' + (m >= 12 ? ' disabled' : '') + '>›</button></div></div>') +
-      chips(L) + '<div class="rd-cal"><div class="rd-hh">' + HARI.map(function (h) { return '<div>' + h + '</div>'; }).join('') + '</div><div class="rd-grid">' + sel + '</div></div><div class="legend">' + leg + '</div>';
-    el._hari = hari;
+      chips(L) + '<div class="rd-cal"><div class="rd-hh">' + HARI.map(function (h) { return '<div>' + h + '</div>'; }).join('') + '</div><div class="rd-grid">' + sel + '</div></div><div class="legend">' + leg + '</div>' +
+      daftarJudul(grup, urutG, m);
+    el._hari = hari; el._grup = grup; el._urutG = urutG;
   }
 
   /* ---------- Part 2c: realisasi biaya per diklat ---------- */
@@ -204,14 +235,14 @@
     var perK = KAT.map(function (k) { var x = ber.filter(function (r) { return r.kat === k[0]; }), v = 0, rb = 0; x.forEach(function (r) { v += r.biaya; rb += r.rab || 0; }); return { l: k[1], v: v, ref: rb || 0, refL: 'RAB ' + rp(rb), s: ' · ' + x.length + ' kelas', dot: 'k' + noKat(k[0]), act: 'data-rk-kat="' + k[0] + '"' }; }).filter(function (x) { return x.v || x.ref; });
     var bH = [], bA = [];
     for (var i = 1; i <= 12; i++) { var hh = 0, aa = 0; pilihKat(L).forEach(function (r) { var d = r.rS || r.rM; if (r.st === 'Selesai' && diTahun(d, y) && d.getMonth() + 1 === i) { hh += r.honor || (r.biaya && !r.akom ? r.biaya : 0); aa += r.akom || 0; } }); bH.push(hh); bA.push(aa); }
-    var top = ber.slice().sort(function (a, b) { return b.biaya - a.biaya; }).slice(0, 8);
+    var top = ber.slice().sort(function (a, b) { return b.biaya - a.biaya; });
     el.innerHTML = kepala('Realisasi Biaya', 'Biaya kelas yang selesai s.d. ' + esc(bl) + ' dari kolom RAB, Realisasi Honor Instruktur, Realisasi Akomodasi, dan Total di sheet kategori.') + chips(L) +
       '<div class="rd-tiles">' + tiles + '</div>' +
-      (ber.length ? '<div class="rd-2"><div class="rd-c"><div class="sub-h">Biaya per bulan</div>' + kolom12([{ n: 'Honor instruktur', v: bH, c: 'var(--bar)' }, { n: 'Akomodasi', v: bA, c: 'var(--fung)' }], { tumpuk: true, sampai: m, fmt: function (v, rinci) { return rinci ? rp(v, true) : v >= 1e9 ? D.fmt(v / 1e9, 1) + 'M' : v >= 1e6 ? D.fmt(v / 1e6, 0) + 'jt' : D.fmt(v, 0); }, label: 'Biaya per bulan' }) + '</div>' +
+      (ber.length ? '<div class="rd-2"><div class="rd-c"><div class="sub-h">Biaya per bulan</div>' + kolom12([{ n: 'Honor instruktur', v: bH, c: 'var(--bar)' }, { n: 'Akomodasi', v: bA, c: 'var(--fung)' }], { tumpuk: true, sampai: m, w: lebarKolom(el, .5, 21), h: 220, fmt: function (v, rinci) { return rinci ? rp(v, true) : v >= 1e9 ? D.fmt(v / 1e9, 1) + 'M' : v >= 1e6 ? D.fmt(v / 1e6, 0) + 'jt' : D.fmt(v, 0); }, label: 'Biaya per bulan' }) + '</div>' +
         '<div class="rd-c"><div class="sub-h">Per kategori <span class="desc">· garis tipis = RAB</span></div>' + batang(perK, function (v) { return rp(v, true); }) + '</div></div>' +
-        '<div class="sub-h rd-sh">Diklat dengan biaya terbesar</div><div class="tbl-wrap"><table class="tbl rd-bt2"><thead><tr><th>Judul</th><th class="r hp-x">Peserta</th><th class="r hp-x">Honor</th><th class="r hp-x">Akomodasi</th><th class="r">Total</th><th class="r hp-x">Per peserta</th></tr></thead><tbody>' +
+        '<div class="sub-h rd-sh">Diklat dengan biaya terbesar <span class="desc">· ' + D.fmt(top.length, 0) + ' kelas, geser untuk melihat semua</span></div><div class="tbl-wrap rd-gulir"><table class="tbl rd-bt2"><thead><tr><th>Judul</th><th class="r hp-x">Peserta</th><th class="r hp-x">Honor</th><th class="r hp-x">Akomodasi</th><th class="r">Total</th><th class="r hp-x">Per peserta</th></tr></thead><tbody>' +
         top.map(function (r) { return '<tr data-rk-id="' + esc(r.id) + '" class="click"><td><i class="rd-dot k' + noKat(r.kat) + '"></i>' + esc(r.judul) + '<div class="desc">' + esc(nmKat(r.kat)) + ' · ' + rentang(r.rM, r.rS) + '</div></td><td class="r num hp-x">' + (r.real !== null ? D.fmt(r.real, 0) : '–') + '</td><td class="r num hp-x">' + rp(r.honor) + '</td><td class="r num hp-x">' + rp(r.akom) + '</td><td class="r num"><b>' + rp(r.biaya) + '</b></td><td class="r num hp-x">' + (r.real ? rp(r.biaya / r.real) : '–') + '</td></tr>'; }).join('') +
-        '</tbody></table></div><div class="rd-act"><button type="button" class="btn" data-rk="biaya">Semua kelas berbiaya (' + D.fmt(ber.length, 0) + ')</button>' + (F.length - ber.length ? '<button type="button" class="btn" data-rk="tanpabiaya">Kelas selesai tanpa biaya (' + D.fmt(F.length - ber.length, 0) + ')</button>' : '') + '</div>'
+        '</tbody></table></div><div class="rd-act">' + (F.length - ber.length ? '<button type="button" class="btn" data-rk="tanpabiaya">Kelas selesai tanpa biaya (' + D.fmt(F.length - ber.length, 0) + ')</button>' : '') + '</div>'
         : '<div class="empty">Belum ada kelas selesai yang kolom biayanya terisi.</div>');
   }
 
@@ -259,7 +290,7 @@
     el.innerHTML = kepala('Kualitas Delivery', 'Rencana (P.Tgl Mulai) dibanding realisasi (R.Tgl Mulai) untuk kelas yang direncanakan Januari s.d. ' + esc(bl) + ' ' + y + '. Hanya kelas yang tanggal rencananya (P.Tgl) terisi: ' + D.fmt(Q.renc, 0) + ' dari ' + D.fmt(Q.semua, 0) + ' kelas.') + chips(L) +
       '<div class="rd-tiles t5">' + tiles + '</div>' +
       '<div class="rd-2"><div class="rd-c"><div class="sub-h">Pergeseran jadwal mulai</div>' + hist + '</div>' +
-      '<div class="rd-c"><div class="sub-h">Ketepatan per bulan rencana</div>' + kolom12([{ n: 'Tepat', v: sT, c: 'var(--good)' }, { n: 'Maju', v: sM, c: 'var(--k1)' }, { n: 'Mundur', v: sU, c: 'var(--warn)' }, { n: 'Batal/tunda', v: sB, c: 'var(--bad)' }], { tumpuk: true, sampai: m, label: 'Ketepatan jadwal per bulan' }) + '</div></div>' +
+      '<div class="rd-c"><div class="sub-h">Ketepatan per bulan rencana</div>' + kolom12([{ n: 'Tepat', v: sT, c: 'var(--good)' }, { n: 'Maju', v: sM, c: 'var(--k1)' }, { n: 'Mundur', v: sU, c: 'var(--warn)' }, { n: 'Batal/tunda', v: sB, c: 'var(--bad)' }], { tumpuk: true, sampai: m, w: lebarKolom(el, .5, 34), h: 200, label: 'Ketepatan jadwal per bulan' }) + '</div></div>' +
       '<div class="sub-h rd-sh">Per kategori</div>' + tabel +
       '<div class="rd-act">' + (Q.lewat.length ? '<button type="button" class="btn" data-rk="lewat">Lewat jadwal, belum terlaksana (' + Q.lewat.length + ')</button>' : '') + (geserBesar.length ? '<button type="button" class="btn" data-rk="geser">Pergeseran terbesar</button>' : '') + (Q.tanpaReal ? '<button type="button" class="btn" data-rk="tanpareal">Selesai tanpa realisasi peserta (' + Q.tanpaReal + ')</button>' : '') + '</div>';
     el._q = Q; el._geser = geserBesar;
@@ -273,14 +304,20 @@
   }
 
   document.addEventListener('click', function (e) {
-    var t = e.target.closest && e.target.closest('[data-rk-kat],[data-rk-mode],[data-rk-bln],[data-rk-hari],[data-rk],[data-rk-id],[data-rk-bin]');
+    var t = e.target.closest && e.target.closest('[data-rk-kat],[data-rk-mode],[data-rk-bln],[data-rk-hari],[data-rk-grup],[data-rk],[data-rk-id],[data-rk-bin]');
     if (!t || !t.closest('#rkKat,#rkKal,#rkBiaya,#rkMutu,#modalC')) return;
     var L = semua(); if (!L) return;
     var S = A().S, y = S.tahun, m = S.bulan, F = pilihKat(L), nmK = st.kat ? nmKat(st.kat) : 'Semua kategori';
-    if (t.hasAttribute('data-rk-kat')) { st.kat = t.getAttribute('data-rk-kat'); return render(); }
+    if (t.hasAttribute('data-rk-kat')) {
+      var pnl = t.closest('.rd-panel'), y0 = pnl ? pnl.getBoundingClientRect().top : null;
+      st.kat = t.getAttribute('data-rk-kat'); render();
+      if (pnl && y0 !== null) window.scrollBy(0, pnl.getBoundingClientRect().top - y0);
+      return;
+    }
     if (t.hasAttribute('data-rk-mode')) { st.mode = t.getAttribute('data-rk-mode'); return renderKal(L); }
     if (t.hasAttribute('data-rk-bln')) { st.kb = Math.max(1, Math.min(12, st.kb + Number(t.getAttribute('data-rk-bln')))); return renderKal(L); }
-    if (t.hasAttribute('data-rk-hari')) { var dd = +t.getAttribute('data-rk-hari'); return modalDaftar(dd + ' ' + A().namaBulan(st.kb) + ' ' + y, (st.mode === 'rencana' ? 'Jadwal rencana' : 'Jadwal realisasi') + ' · ' + nmK, (document.getElementById('rkKal')._hari || {})[dd] || []); }
+    if (t.hasAttribute('data-rk-grup')) { var kal = document.getElementById('rkKal'), gp = (kal._grup || {})[t.getAttribute('data-rk-grup')]; if (gp) return modalDaftar(gp.judul, nmKat(gp.kat) + ' · ' + (st.mode === 'rencana' ? 'jadwal rencana' : 'jadwal realisasi') + ' ' + A().namaBulan(st.kb), gp.rows); return; }
+    if (t.hasAttribute('data-rk-hari')) { var dd = +t.getAttribute('data-rk-hari'); return modalDaftar(dd + ' ' + A().namaBulan(st.kb) + ' ' + y, (st.mode === 'rencana' ? 'Jadwal rencana' : 'Jadwal realisasi') + ' · ' + nmK, ((document.getElementById('rkKal')._hari || {})[dd] || []).slice().sort(function (p, q) { return String(p.judul).localeCompare(String(q.judul)); })); }
     if (t.hasAttribute('data-rk-bin')) { var b = BIN[+t.getAttribute('data-rk-bin')]; return modalDaftar(b[0], 'Kualitas delivery · ' + nmK, (document.getElementById('rkMutu')._geser || []).concat(F.filter(function (r) { return r.geser === 0 && direncanakan(r, y, m) && (r.st === 'Selesai' || r.st === 'Berlangsung'); })).filter(function (r) { return r.geser >= b[1] && r.geser <= b[2]; })); }
     if (t.hasAttribute('data-rk-id') && !t.closest('#modalC')) { var id = t.getAttribute('data-rk-id'), r = L.filter(function (x) { return x.id === id; }); return modalDaftar(r[0] ? r[0].judul : id, 'Rincian kelas', r); }
     var a = t.getAttribute('data-rk');

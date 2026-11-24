@@ -6,6 +6,7 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '2.8', t: '25 Nov 2026', l: ['Kalender Pembelajaran lebih ringkas: jumlah kelas per kategori di tiap tanggal, plus daftar judul pembelajaran yang dikelompokkan', 'Grafik Rekap Pembelajaran lebih besar dan mudah dibaca; daftar biaya diklat bisa digulir', 'Tugas "Tindak lanjuti indikator Konman di bawah 95%" kini punya tombol Lihat'], p: ['Layar tidak lagi bergeser saat mengganti kategori pembelajaran'] },
     { v: '2.7', t: '24 Nov 2026', b: ['Laporan bulanan Kontrak Manajemen & Pemantauan Risiko: sunting lalu unduh Word, PDF, atau PPT (Trajectory & Performance Dialog)', 'Banding Tahun Lalu (Konman 2025), riwayat perubahan lengkap, dan survei kepuasan pengguna anonim (☰ → Survei kepuasan)', 'Rekap Pembelajaran per kategori (LDP, IKP KKJ, PIL, Penugasan, dll.): realisasi vs rencana, kalender rencana/realisasi, realisasi biaya, dan kualitas delivery (tepat/maju/mundur jadwal)'],
       l: ['Kinerja Unit kini berisi Indikator & Kepatuhan; Perbaikan Berkelanjutan pindah ke Evaluasi', 'Tanda tangan laporan mengikuti jumlah penanda tangan (kanan; kiri–kanan; ditambah tengah bawah)', 'Narasi laporan rata kiri-kanan dan daftar tindak lanjut bernomor'],
       p: ['Foto pegawai cocok lewat NIP atau sebagian nama, dan tidak lagi tampil kosong bila gambar gagal dimuat'] },
