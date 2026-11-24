@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261124b">
+<link rel="stylesheet" href="assets/style.css?v=20261124c">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -79,6 +79,7 @@
     <button class="mi adm" role="menuitem" type="button" data-vt="pengaturan" id="aturBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Pengaturan</button>
     <button class="mi adm" role="menuitem" type="button" id="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export Excel</button>
     <button class="mi adm" role="menuitem" type="button" id="logBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Ringkasan login<span class="mhint">30 hari</span></button>
+    <button class="mi adm" role="menuitem" type="button" id="rwBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Riwayat perubahan</button>
     <a class="mi adm" role="menuitem" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/></svg>Buka Google Sheets<span class="mhint">↗</span></a>
     <div class="msep"></div>
     <button class="mi out" role="menuitem" type="button" id="logoutBtn" title="Keluar dan hapus data dari browser ini"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Keluar</button>
@@ -252,22 +253,24 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261124b"></script>
-<script src="assets/common.js?v=20261124b"></script>
-<script src="assets/genie.js?v=20261124b"></script>
-<script src="assets/dashboard.js?v=20261124b"></script>
-<script src="assets/input.js?v=20261124b"></script>
-<script src="assets/laporan.js?v=20261124b"></script>
-<script src="assets/export.js?v=20261124b"></script>
-<script src="assets/fitur.js?v=20261124b"></script>
-<script src="assets/cetak.js?v=20261124b"></script>
-<script src="assets/pengaturan.js?v=20261124b"></script>
-<script src="assets/grafik.js?v=20261124b"></script>
-<script src="assets/versi.js?v=20261124b"></script>
-  <script src="assets/navbawah.js?v=20261124b"></script>
-<script src="assets/tugaslain.js?v=20261124b"></script>
-<script src="assets/lapbulan.js?v=20261124b"></script>
-<script src="assets/upgrade.js?v=20261124b"></script>
+<script src="config.js?v=20261124c"></script>
+<script src="assets/common.js?v=20261124c"></script>
+<script src="assets/genie.js?v=20261124c"></script>
+<script src="assets/dashboard.js?v=20261124c"></script>
+<script src="assets/input.js?v=20261124c"></script>
+<script src="assets/laporan.js?v=20261124c"></script>
+<script src="assets/export.js?v=20261124c"></script>
+<script src="assets/fitur.js?v=20261124c"></script>
+<script src="assets/cetak.js?v=20261124c"></script>
+<script src="assets/pengaturan.js?v=20261124c"></script>
+<script src="assets/grafik.js?v=20261124c"></script>
+<script src="assets/versi.js?v=20261124c"></script>
+  <script src="assets/navbawah.js?v=20261124c"></script>
+<script src="assets/tugaslain.js?v=20261124c"></script>
+<script src="assets/lapbulan.js?v=20261124c"></script>
+<script src="assets/pptbulan.js?v=20261124c"></script>
+<script src="assets/riwayat.js?v=20261124c"></script>
+<script src="assets/upgrade.js?v=20261124c"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -348,6 +351,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261124b"></script>
+<script src="assets/panduan.js?v=20261124c"></script>
 </body>
 </html>

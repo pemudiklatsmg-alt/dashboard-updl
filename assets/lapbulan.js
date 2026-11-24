@@ -15,17 +15,17 @@
   /* gaya dokumen: dipakai di pratinjau dan saat dicetak ke PDF */
   var CSS = [
     '.lb-doc{font:10pt/1.45 Arial,Helvetica,sans-serif;color:#18233F;counter-reset:pg}',
-    '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:18mm 20mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
-    '.lb-pg.landscape{width:297mm;min-height:210mm;padding:14mm 16mm}',
-    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{width:calc(100% + 40mm);max-width:none;margin:-18mm -20mm 16px}',
-    '.lb-doc h2{position:relative;font-size:12.5pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:6px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
-    '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:42px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
-    '.lb-doc h3{font-size:11.5pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
+    '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:21mm 21mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
+    '.lb-pg.landscape{width:297mm;min-height:210mm;padding:13mm 21mm}',
+    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{width:calc(100% + 42mm);max-width:none;margin:-21mm -21mm 21px}',
+    '.lb-doc h2{position:relative;font-size:13pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:8px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
+    '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:34px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
+    '.lb-doc h3{font-size:11pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
     '.lb-doc ol,.lb-doc ul{margin:0 0 8px;padding-left:21px;text-align:justify}',
-    '.lb-t{width:100%;border-collapse:collapse;margin:5px 0 13px;page-break-inside:auto}.lb-t th{background:var(--lb-ac);color:#fff;font-weight:700;text-align:left;padding:5px 6px;font-size:9pt}',
-    '.lb-t td{border:1px solid #D8DBE4;padding:5px 6px;vertical-align:middle}.lb-t tr{page-break-inside:avoid}.lb-t .c{text-align:center}.lb-kecil{font-size:8.5pt}.lb-rr{font-size:8pt}.lb-kartu td{font-size:10pt;text-align:center}',
+    '.lb-t{width:100%;border-collapse:collapse;margin:5px 0 13px;page-break-inside:auto}.lb-t th{background:var(--lb-ac);color:#fff;font-weight:700;text-align:left;padding:5px 8px;font-size:9pt}',
+    '.lb-t td{border:1px solid #D8DBE4;padding:5px 8px;vertical-align:middle}.lb-t tr{page-break-inside:avoid}.lb-t .c{text-align:center}.lb-kecil{font-size:8.5pt}.lb-rr{font-size:8pt}.lb-kartu td{font-size:10pt;text-align:center}',
     '.lb-peta{width:auto;margin:0 auto 8px}.lb-peta td{width:21mm;height:8mm;padding:2px 4px;text-align:center;font-size:10.5pt}.lb-peta td:first-child{width:24mm;text-align:right}',
-    '.lb-chip{display:inline-block;padding:1px 6px;border-radius:8px;font-weight:700;font-size:7.5pt;white-space:nowrap}',
+    '.lb-chip{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:700;font-size:7.5pt;white-space:nowrap}',
     '.lb-chart{display:block;width:100%;height:auto;margin:5px 0}.lb-cap{font-size:8.5pt;color:#5A6380;margin:0 0 8px}',
     '.lb-ind{page-break-inside:avoid;border-top:1px solid #E3E6EE;padding-top:8px;margin-top:8px}',
     '.lb-ttd{width:100%;border-collapse:collapse;margin-top:21px;page-break-inside:avoid}.lb-ttd td{width:50%;vertical-align:top;padding:0 8px;border:0}.lb-ttd p{margin:0 0 3px}.lb-ruang{height:55px}.lb-tengah{width:50%;margin:21px auto 0}',
@@ -174,12 +174,12 @@
       var ana = x.v === null ? 'Realisasi ' + p.bl + ' belum diisi.' : 'Realisasi ' + p.bl + ' ' + (it.real[Bn].d || '–') + ' terhadap target ' + (it.target[Bn].d || '–') + ' (capaian ' + D.pct(x.v, 1) + ', ' + st[0].toLowerCase() + ')' +
         (vPrev !== null ? ', ' + (Math.abs(x.v - vPrev) < 0.0005 ? 'sama dengan' : x.v > vPrev ? 'naik dari' : 'turun dari') + ' ' + D.pct(vPrev, 1) + ' pada bulan sebelumnya' : '') + '.';
       var ms = K.months.slice(0, idxNow + 1);
-      h += '<div class="lb-ind"><h3>' + esc(a.labelNo(it)) + '. ' + esc(it.nama) + '</h3>' +
+      h += '<div class="lb-ind" data-baris="' + it.baris + '"><h3>' + esc(a.labelNo(it)) + '. ' + esc(it.nama) + '</h3>' +
         tabel([th('PIC', 16), th('Satuan', 16), th('Target Smt II', 16), th('Target ' + esc(p.bl), 16), th('Realisasi', 16), th('Status', 20)],
           ['<tr>' + td(esc(it.pic || '–')) + td(esc(it.satuan || '–')) + td(esc(it.target2 || '–')) + td(esc(it.target[Bn] ? it.target[Bn].d : '–')) + td(esc(D.hasData(it, Bn) ? it.real[Bn].d : '–')) + td(st[0] + (x.v === null ? '' : ' · ' + D.pct(x.v, 1)), { bg: st[1], fg: st[2] }) + '</tr>'], 'lb-kecil') +
         (ms.length > 1 ? grafikIndikator(it, ms, T) : '') +
-        '<p data-align="just"><b>Analisa:</b> ' + esc(ana) + ' ' + (it.ket && it.ket[Bn] ? esc(it.ket[Bn]) : kuning('jelaskan penyebab capaian bulan ini')) + '</p>' +
-        '<p data-align="just"><b>Action step:</b> ' + kuning(x.v !== null && x.v >= 0.9999 ? 'langkah mempertahankan capaian' : 'langkah perbaikan, PIC, dan tenggat') + '</p></div>';
+        '<p data-align="just" class="lb-ana"><b>Analisa:</b> ' + esc(ana) + ' ' + (it.ket && it.ket[Bn] ? esc(it.ket[Bn]) : kuning('jelaskan penyebab capaian bulan ini')) + '</p>' +
+        '<p data-align="just" class="lb-as"><b>Action step:</b> ' + kuning(x.v !== null && x.v >= 0.9999 ? 'langkah mempertahankan capaian' : 'langkah perbaikan, PIC, dan tenggat') + '</p></div>';
     });
     h += '</section>';
     // 5. kepatuhan + penutup
@@ -314,7 +314,7 @@
     w.innerHTML = '<div class="lb-bar"><div class="seg" role="group" aria-label="Jenis laporan"><button type="button" data-lbj="konman" aria-pressed="' + (L.jenis === 'konman') + '">Kontrak Manajemen</button><button type="button" data-lbj="risiko" aria-pressed="' + (L.jenis === 'risiko') + '">Manajemen Risiko</button></div>' +
       '<div class="lb-info"><b>' + esc(p.nama) + '</b> · Klik teks untuk menyunting. Bagian <mark>kuning</mark> perlu diisi; latar kuning hilang setelah diisi.</div>' +
       '<div class="lb-ttdpil">Tanda tangan: ' + cek('tl', 'TL EPMK') + cek('asman', 'Asman') + cek('mgr', 'Manajer') + '</div>' +
-      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button><button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
+      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button>' + (L.jenis === 'konman' ? '<button type="button" class="btn" data-lba="traj" title="PowerPoint Monthly Trajectory per indikator">PPT Trajectory</button><button type="button" class="btn" data-lba="pd" title="PowerPoint Performance Dialog">PPT Performance Dialog</button>' : '') + '<button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
       '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac3:#' + T.ac3 + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
   }
   function klik(e) {
@@ -324,6 +324,7 @@
     if (x === 'tutup') { $('lbWrap').hidden = true; document.body.classList.remove('lb-buka'); }
     if (x === 'ulang') susun();
     if (x === 'pdf') cetakPdf();
+    if ((x === 'traj' || x === 'pd') && window.DashPpt) { b.disabled = true; var t1 = b.textContent; b.textContent = 'Menyiapkan…'; window.DashPpt.unduh(x, $('lbWrap').querySelector('.lb-doc')).catch(function (er) { A().toast('PPT gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t1; }); }
     if (x === 'word') { b.disabled = true; var t0 = b.textContent; b.textContent = 'Menyiapkan…'; unduhWord().catch(function (er) { A().toast('Word gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t0; }); }
   }
   function namaFile(ext) { var p = per(); return 'Laporan ' + TEMA[L.jenis].nama + ' ' + p.nama + ' - UPDL Semarang.' + ext; }
@@ -450,9 +451,9 @@
           siram();
         }
         var sections = Array.prototype.map.call(root.querySelectorAll(':scope > .lb-pg'), function (pg) {
-          var land = pg.classList.contains('landscape'), mg = land ? 900 : 1134, lebar = (land ? 16838 : 11906) - 2 * mg, isi = [];
+          var land = pg.classList.contains('landscape'), mg = 1191, lebar = (land ? 16838 : 11906) - 2 * mg, isi = [];
           blok(pg, isi, lebar, {});
-          return { properties: { page: { size: { width: 11906, height: 16838, orientation: land ? X.PageOrientation.LANDSCAPE : X.PageOrientation.PORTRAIT }, margin: { top: 1000, bottom: 1000, left: mg, right: mg } } },
+          return { properties: { page: { size: { width: 11906, height: 16838, orientation: land ? X.PageOrientation.LANDSCAPE : X.PageOrientation.PORTRAIT }, margin: { top: land ? 737 : 1191, bottom: land ? 737 : 1191, left: mg, right: mg } } },
             footers: { default: new X.Footer({ children: [new X.Paragraph({ alignment: X.AlignmentType.RIGHT, children: [new X.TextRun({ text: 'Laporan ' + T.nama + ' · ' + per().nama + ' · UPDL Semarang', size: 16, color: '7C8399', font: FONT })] })] }) },
             children: isi };
         });

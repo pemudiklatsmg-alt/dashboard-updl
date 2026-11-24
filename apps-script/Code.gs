@@ -33,6 +33,7 @@ var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'A
 
 var TAB = {
   PENGATURAN: 'Pengaturan',
+  LOGUBAH: 'Log Perubahan',
   PEGAWAI: 'Jumlah Pegawai',
   L3: 'Rekap L3 Perilaku',
   L4: 'Rekap L4 Kinerja',
@@ -497,7 +498,7 @@ function doPost(e) {
     if (req.aksi === 'tugasLain') {
       if (sesi.peran !== 'admin') throw new Error('Tugas lain hanya untuk akun Admin.');
       var lk = LockService.getScriptLock(); lk.waitLock(20000);
-      try { return json_(simpanTugasLain_(req, sesi.user)); } finally { lk.releaseLock(); }
+      try { var tl = simpanTugasLain_(req, sesi.user); var dt = req.data || {}; catatUbah_(sesi.user, 'dashboard', TAB.TUGASLAIN, req.op === 'status' ? 'Ubah status' : dt.id ? 'Ubah tugas' : 'Tambah tugas', [dt.uraian, dt.jenis, dt.pic, dt.status ? 'status: ' + dt.status : '', dt.id ? 'ID ' + dt.id : ''].filter(Boolean).join(' · ')); return json_(tl); } finally { lk.releaseLock(); }
     }
     if (req.aksi === 'log') {
       if (sesi.peran !== 'admin') throw new Error('Ringkasan login hanya untuk akun Admin.');
@@ -505,13 +506,19 @@ function doPost(e) {
     }
     if (/^(pengaturan|simpanPengaturan|akun|pengingat|cekKoneksi|segarkan)$/.test(req.aksi)) {
       if (sesi.peran !== 'admin') throw new Error('Pengaturan hanya untuk akun Admin.');
-      return json_(aksiPengaturan_(req, sesi));
+      var hp = aksiPengaturan_(req, sesi);
+      if (/^(simpanPengaturan|akun)$/.test(req.aksi)) catatUbah_(sesi.user, 'dashboard', req.aksi === 'akun' ? 'Akun' : TAB.PENGATURAN, req.aksi === 'akun' ? 'Kelola akun' : 'Pengaturan', ringkasData_(req.data, true));
+      return json_(hp);
+    }
+    if (req.aksi === 'riwayat') {
+      if (sesi.peran !== 'admin') throw new Error('Riwayat perubahan hanya untuk akun Admin.');
+      return json_(bacaRiwayat_(req));
     }
     if (req.aksi === 'simpan') {
       if (sesi.peran !== 'admin') throw new Error('Akun Lihat tidak bisa mengisi data. Masuk dengan akun Admin.');
       var lock = LockService.getScriptLock();
       lock.waitLock(20000);
-      try { var hasil = simpan_(String(req.jenis || ''), req.data || {}, sesi.user); SpreadsheetApp.flush(); if (hasil && hasil.tab) tandaiUbah_(hasil.tab); return json_(hasil); }
+      try { var hasil = simpan_(String(req.jenis || ''), req.data || {}, sesi.user); SpreadsheetApp.flush(); if (hasil && hasil.tab) { tandaiUbah_(hasil.tab); catatUbah_(sesi.user, 'dashboard', hasil.tab, String(req.jenis || ''), hasil.pesan ? String(hasil.pesan) + (ringkasData_(req.data) ? ' · ' + ringkasData_(req.data) : '') : ringkasData_(req.data)); } return json_(hasil); }
       finally { lock.releaseLock(); }
     }
     throw new Error('Aksi tidak dikenal.');
@@ -1344,7 +1351,47 @@ function sekCache_(key, fp, fn, detik) {
 }
 /* Pemicu sederhana: catat tab yang disunting supaya cache bagian itu dihitung ulang */
 function onEdit(e) {
+  try {
+    var nm = e.range.getSheet().getName();
+    if (nm !== TAB.LOGUBAH && nm !== TAB.LOG) {
+      var sel = e.range.getNumRows() * e.range.getNumColumns(), urai;
+      if (sel === 1) { var lama = e.oldValue === undefined ? '' : String(e.oldValue), baru = e.value === undefined ? String(e.range.getDisplayValue()) : String(e.value); urai = (lama ? '"' + lama.slice(0, 120) + '" → ' : 'diisi: ') + (baru ? '"' + baru.slice(0, 120) + '"' : '(dikosongkan)'); }
+      else urai = sel + ' sel diubah (tempel/hapus/isi berurutan)';
+      var kol = '';
+      try { if (e.range.getRow() > 1) kol = String(e.range.getSheet().getRange(1, e.range.getColumn()).getDisplayValue() || '').slice(0, 40); } catch (x) { /* abaikan */ }
+      catatUbah_(e.user && e.user.getEmail ? e.user.getEmail() : '', 'manual', nm, e.range.getA1Notation() + (kol ? ' (' + kol + ')' : ''), urai);
+    }
+  } catch (x) { /* abaikan */ }
   try { var n = e.range.getSheet().getName(), o = {}; o['ubah_' + n] = String(Date.now()); o['ubahvia_' + n] = 'manual'; PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ }
+}
+/* Riwayat perubahan lengkap: setiap simpan lewat dashboard dan setiap edit manual di spreadsheet dicatat ke tab "Log Perubahan".
+   Isi sandi tidak pernah dicatat. Disimpan maksimal ~6000 baris terbaru. */
+function catatUbah_(akun, lewat, tab, bagian, uraian) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.LOGUBAH);
+    if (!sh) {
+      sh = ss.insertSheet(TAB.LOGUBAH, ss.getSheets().length);
+      sh.getRange(1, 1, 1, 6).setValues([['Waktu', 'Akun', 'Lewat', 'Tab', 'Bagian', 'Uraian']]).setFontWeight('bold').setBackground('#18233F').setFontColor('#FFFFFF');
+      sh.setFrozenRows(1); sh.setColumnWidths(1, 5, 150); sh.setColumnWidth(6, 520); sh.setTabColor('#8A93A6');
+      sh.getRange('A:A').setNumberFormat('dd/MM/yyyy HH:mm:ss');
+    }
+    var bersih = function (t, n) { return String(t === undefined || t === null ? '' : t).replace(/\s+/g, ' ').trim().slice(0, n); };
+    sh.appendRow([new Date(), bersih(akun, 60) || '(tidak diketahui)', lewat, bersih(tab, 60), bersih(bagian, 80), bersih(uraian, 500)]);
+    var n = sh.getLastRow(); if (n > 6500) sh.deleteRows(2, n - 6000);
+  } catch (e) { /* abaikan */ }
+}
+function ringkasData_(d, tanpaNilai) {
+  if (!d || typeof d !== 'object') return '';
+  var k = Object.keys(d).filter(function (x) { return !/pass|sandi|token|hash|salt/i.test(x); });
+  if (tanpaNilai) return k.length ? 'kolom: ' + k.slice(0, 12).join(', ') : '';
+  return k.slice(0, 8).map(function (x) { var v = d[x]; if (v && typeof v === 'object') v = Array.isArray(v) ? v.length + ' baris' : '…'; return x + ': ' + String(v === undefined || v === null ? '' : v).replace(/\s+/g, ' ').slice(0, 60); }).join(' · ');
+}
+function bacaRiwayat_(req) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.LOGUBAH);
+  if (!sh || sh.getLastRow() < 2) return { ok: true, rows: [], total: 0 };
+  var n = sh.getLastRow() - 1, ambil = Math.min(n, 3000), v = sh.getRange(sh.getLastRow() - ambil + 1, 1, ambil, 6).getValues();
+  var rows = v.reverse().map(function (r) { return { t: r[0] instanceof Date ? r[0].getTime() : r[0], a: String(r[1]), l: String(r[2]), tab: String(r[3]), b: String(r[4]), u: String(r[5]) }; });
+  return { ok: true, rows: rows, total: n };
 }
 function tandaiUbah_(nama) { try { var o = {}; o['ubah_' + nama] = String(Date.now()); o['ubahvia_' + nama] = 'dashboard'; PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ } }
 /* Menu: hapus semua cache lalu hitung ulang (dipakai setelah menempel data besar) */
