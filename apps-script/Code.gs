@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 8;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
+var VERSI = 9;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -258,6 +258,14 @@ function buildData_() {
     }
   });
 
+  // Rendiklat rinci per kategori (Part 2 & 3): tanggal rencana/realisasi, status, peserta, biaya
+  out.rendiklatRinci = {};
+  Object.keys(cfg).filter(function (k) { return /^RENDIKLAT_\d{4}$/.test(k); }).forEach(function (k) {
+    var th = k.slice(-4);
+    try { out.rendiklatRinci[th] = luar('renr_' + th + '_' + cfg[k], function () { return bacaRendiklatRinci_(cfg[k], cfg.RENDIKLAT_KATEGORI); }); }
+    catch (e) { out.warnings.push('Rincian Rendiklat ' + th + ' per kategori tidak bisa dibaca: ' + e.message); }
+  });
+
   // MLI Probis sheet SMG -> skor per key element
   try { out.maturity = luar('mli', function () { return bacaMaturity_(cfg); }); }
   catch (e) { out.warnings.push('MLI Probis tidak bisa dibaca: ' + e.message); out.maturity = []; }
@@ -336,6 +344,52 @@ function bacaRendiklat_(id, tab) {
     .map(function (r) { return idx.map(function (i, n) { var x = r[i] == null ? '' : r[i];
       if (n === 4 || n === 5) return serialKeIso_(x);
       return typeof x === 'string' ? x.trim() : x; }); });
+}
+
+/* Rincian Rendiklat per kategori: satu sheet per kategori (LEADERSHIP, IKP KKJ, PIL, PENUGASAN, PINJAMSEWA, ACADEMY).
+   Baris judul dicari otomatis (baris yang memuat "ID REN" dan "nm_judul"); kolom dicari berdasarkan judulnya. */
+var KOLOM_RINCI = [['id', 'ID REN'], ['jenis', 'jns_minta diklat'], ['judul', 'nm_judul'], ['metode', 'Metode Kelas'],
+  ['pM', 'P.Tgl Mulai'], ['pS', 'P.Tgl Selesai'], ['rM', 'R.Tgl Mulai'], ['rS', 'R.Tgl Selesai'], ['jp', 'JP'],
+  ['renc', 'Rencana Peserta'], ['real', 'Realisasi Peserta'], ['batal', 'Batal / Tunda'], ['status', 'Status Pelaksanaan'],
+  ['rab', /^RAB HONOR/i], ['honor', /^REALISASI HONOR/i], ['akom', /^REALISASI AKOMODASI/i], ['total', /^TOTAL$/i], ['ruang', 'Ruang Diklat'], ['anggaran', 'sumber anggaran']];
+function tglBebas_(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  if (typeof v === 'number') return v > 20000 && v < 80000 ? serialKeIso_(v) : '';
+  var s = String(v).trim().split(/\s+/)[0], m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[0] : '';
+}
+function rupiah_(v) {
+  if (typeof v === 'number') return v;
+  var s = String(v || '').replace(/rp|\s/gi, ''); if (!s || !/\d/.test(s)) return '';
+  var t = Math.max(s.lastIndexOf(','), s.lastIndexOf('.'));
+  if (t >= 0 && s.length - t - 1 === 2) s = s.slice(0, t).replace(/[.,]/g, '') + '.' + s.slice(t + 1); else s = s.replace(/[.,]/g, '');
+  var n = Number(s); return isNaN(n) ? '' : n;
+}
+function bacaRendiklatRinci_(id, daftar) {
+  if (!id) throw new Error('ID file belum diisi');
+  var kat = String(daftar || 'LEADERSHIP,IKP KKJ,PIL,PENUGASAN,PINJAMSEWA,ACADEMY').split(',').map(function (x) { return x.trim(); }).filter(String);
+  var rows = [], galat = [];
+  kat.forEach(function (nm) {
+    var v; try { v = sheetsApi_(id, "'" + nm + "'!A1:AZ"); } catch (e) { galat.push(nm + ' (' + e.message + ')'); return; }
+    var hRow = -1;
+    for (var i = 0; i < Math.min(v.length, 12); i++) { var h = (v[i] || []).map(function (x) { return String(x).trim(); }); if (h.indexOf('ID REN') >= 0 && h.indexOf('nm_judul') >= 0) { hRow = i; break; } }
+    if (hRow < 0) { galat.push(nm + ' (baris judul tidak ditemukan)'); return; }
+    var head = v[hRow].map(function (x) { return String(x).trim(); });
+    var idx = KOLOM_RINCI.map(function (c) { for (var j = 0; j < head.length; j++) if (c[1] instanceof RegExp ? c[1].test(head[j]) : head[j] === c[1]) return j; return -1; });
+    v.slice(hRow + 1).forEach(function (r) {
+      var judul = String(r[idx[2]] == null ? '' : r[idx[2]]).trim(); if (!judul || /^\d+(\.\d+)?$/.test(judul)) return;   // lewati baris nomor kolom
+      rows.push([nm].concat(KOLOM_RINCI.map(function (c, n) {
+        var x = idx[n] < 0 || r[idx[n]] == null ? '' : r[idx[n]];
+        if (/^[pr][MS]$/.test(c[0])) return tglBebas_(x);
+        if (/^(rab|honor|akom|total)$/.test(c[0])) return rupiah_(x);
+        if (/^(jp|renc|real)$/.test(c[0])) { var n2 = Number(String(x).replace(',', '.')); return x === '' || isNaN(n2) ? '' : n2; }
+        return typeof x === 'string' ? x.trim().slice(0, 160) : x;
+      })));
+    });
+  });
+  if (!rows.length && galat.length) throw new Error(galat.join('; '));
+  return { kolom: ['kat'].concat(KOLOM_RINCI.map(function (c) { return c[0]; })), rows: rows, galat: galat };
 }
 
 /* Cadangan RENDIKLAT: hasil baca terakhir yang berhasil disimpan di tab tersembunyi

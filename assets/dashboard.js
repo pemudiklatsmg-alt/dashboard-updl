@@ -1784,7 +1784,7 @@
   }
 
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
-  var VT = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik', 'perbaikan'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik', 'rendik-kat', 'rendik-kal', 'rendik-biaya', 'rendik-mutu'], evaluasi: ['evaluasi', 'eval-grafik', 'perbaikan'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* abaikan */ }
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
@@ -1937,7 +1937,7 @@
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
     [['Navigasi', renderSidenav], ['Ringkasan', renderRingkasan], ['Tugas', function () { if (S.vt === 'tugas') renderTugas(); }], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Banding tahun lalu', function () { if (window.DashBanding) window.DashBanding.render(); }], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg], ['Grafik tren', function () { if (window.DashApp.renderGrafik) window.DashApp.renderGrafik(); }]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Banding tahun lalu', function () { if (window.DashBanding) window.DashBanding.render(); }], ['Rendiklat rinci', function () { if (window.DashRendik) window.DashRendik.render(); }], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg], ['Grafik tren', function () { if (window.DashApp.renderGrafik) window.DashApp.renderGrafik(); }]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);
