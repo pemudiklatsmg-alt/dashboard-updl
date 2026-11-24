@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 7;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
+var VERSI = 8;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
