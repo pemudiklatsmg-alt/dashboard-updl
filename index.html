@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261124h">
+<link rel="stylesheet" href="assets/style.css?v=20261124i">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -65,6 +65,7 @@
     <div class="acct"><span class="av" id="avatar" aria-hidden="true">U</span><div class="acct-t"><b id="who"></b><span id="srcBadge" class="badge snap">Memuat data…</span><small id="srcInfo"></small></div></div>
     <div class="msep"></div>
     <button class="mi" role="menuitem" type="button" data-act="org"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="1.5" width="5" height="3.5" rx="1"/><rect x="1" y="11" width="5" height="3.5" rx="1"/><rect x="10" y="11" width="5" height="3.5" rx="1"/><path d="M8 5v3M3.5 11V8h9v3"/></svg>Struktur Organisasi</button>
+    <button class="mi" role="menuitem" type="button" id="svBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M8.5 13l2.5 2.5L16 10.5"/></svg>Survei kepuasan</button>
     <button class="mi" role="menuitem" type="button" id="guideBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.3-2.7 4"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>Panduan</button>
     <div class="mtheme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Tampilan</span>
       <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap"><button type="button" data-th="light" aria-pressed="false">Terang</button><button type="button" data-th="dark" aria-pressed="false">Gelap</button></span></div>
@@ -258,26 +259,27 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261124h"></script>
-<script src="assets/common.js?v=20261124h"></script>
-<script src="assets/genie.js?v=20261124h"></script>
-<script src="assets/dashboard.js?v=20261124h"></script>
-<script src="assets/input.js?v=20261124h"></script>
-<script src="assets/laporan.js?v=20261124h"></script>
-<script src="assets/export.js?v=20261124h"></script>
-<script src="assets/fitur.js?v=20261124h"></script>
-<script src="assets/cetak.js?v=20261124h"></script>
-<script src="assets/pengaturan.js?v=20261124h"></script>
-<script src="assets/grafik.js?v=20261124h"></script>
-<script src="assets/versi.js?v=20261124h"></script>
-  <script src="assets/navbawah.js?v=20261124h"></script>
-<script src="assets/tugaslain.js?v=20261124h"></script>
-<script src="assets/lapbulan.js?v=20261124h"></script>
-<script src="assets/pptbulan.js?v=20261124h"></script>
-<script src="assets/riwayat.js?v=20261124h"></script>
-<script src="assets/banding.js?v=20261124h"></script>
-<script src="assets/rendik2.js?v=20261124h"></script>
-<script src="assets/upgrade.js?v=20261124h"></script>
+<script src="config.js?v=20261124i"></script>
+<script src="assets/common.js?v=20261124i"></script>
+<script src="assets/genie.js?v=20261124i"></script>
+<script src="assets/dashboard.js?v=20261124i"></script>
+<script src="assets/input.js?v=20261124i"></script>
+<script src="assets/laporan.js?v=20261124i"></script>
+<script src="assets/export.js?v=20261124i"></script>
+<script src="assets/fitur.js?v=20261124i"></script>
+<script src="assets/cetak.js?v=20261124i"></script>
+<script src="assets/pengaturan.js?v=20261124i"></script>
+<script src="assets/grafik.js?v=20261124i"></script>
+<script src="assets/versi.js?v=20261124i"></script>
+  <script src="assets/navbawah.js?v=20261124i"></script>
+<script src="assets/tugaslain.js?v=20261124i"></script>
+<script src="assets/lapbulan.js?v=20261124i"></script>
+<script src="assets/pptbulan.js?v=20261124i"></script>
+<script src="assets/riwayat.js?v=20261124i"></script>
+<script src="assets/banding.js?v=20261124i"></script>
+<script src="assets/rendik2.js?v=20261124i"></script>
+<script src="assets/survei.js?v=20261124i"></script>
+<script src="assets/upgrade.js?v=20261124i"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -358,6 +360,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261124h"></script>
+<script src="assets/panduan.js?v=20261124i"></script>
 </body>
 </html>

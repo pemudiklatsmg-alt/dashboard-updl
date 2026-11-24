@@ -2720,3 +2720,50 @@ body.lb-buka{overflow:hidden}
   .rd-bt2 tbody tr:nth-child(n+6){display:none}
   .rd-bar{grid-template-columns:minmax(0,8.5em) minmax(0,1fr) auto;font-size:12px}.rd-bv{min-width:6em}
 }
+
+/* ===== Survei kepuasan ===== */
+.sv-modal .modal-h{flex-wrap:wrap;gap:13px}
+.sv-seg{margin-left:auto}
+.sv-form{display:flex;flex-direction:column;gap:21px}
+.sv-grp{display:flex;flex-direction:column;gap:13px}
+.sv-grp h4,.sv-h{margin:0;font-size:15px;color:var(--ink)}
+.sv-grp>.desc{margin-top:-8px}
+.sv-q{display:flex;flex-direction:column;gap:8px;padding:13px;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet)}
+.sv-q.kurang{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad-bg)}
+.sv-t{font-weight:600;line-height:1.4;display:flex;gap:8px}
+.sv-n{flex:none;width:21px;height:21px;border-radius:50%;background:var(--idle-bg);color:var(--ink-2);font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.sv-w{color:var(--bad)}
+.sv-sk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:8px}
+.sv-sk button{border:1px solid var(--line);background:var(--sheet);border-radius:8px;padding:8px 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-2);font:inherit}
+.sv-sk button b{font-size:16px;color:var(--ink)}
+.sv-sk button span{font-size:11px;line-height:1.2;text-align:center}
+.sv-sk button[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.sv-sk button[aria-checked="true"] b{color:#fff}
+.sv-sk .sv-na{justify-content:center;padding:8px 13px}
+.sv-pl{display:flex;flex-wrap:wrap;gap:8px}
+.sv-pl .chip{font-size:13px;padding:5px 13px}
+.sv-q textarea{width:100%;min-height:55px;border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;background:var(--sheet);color:var(--ink);resize:vertical}
+.sv-foot{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap;margin-top:21px;position:sticky;bottom:0;padding:13px 0 0;background:linear-gradient(transparent,var(--sheet) 34%)}
+.sv-ok{text-align:center;padding:34px 13px}.sv-ok h4{font-size:21px;margin:8px 0}
+.sv-ok-i{width:55px;height:55px;border-radius:50%;background:var(--good-bg);color:var(--good);font-size:26px;display:inline-flex;align-items:center;justify-content:center}
+.sv-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:21px}
+.sv-kpi div{border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:3px}
+.sv-kpi b{font-family:var(--f-display);font-size:24px;font-variant-numeric:tabular-nums}.sv-kpi b small{font-size:13px;color:var(--ink-3)}
+.sv-kpi span{font-size:12px;color:var(--ink-2)}
+.sv-h{margin:21px 0 8px!important}
+.sv-r{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:13px;align-items:center;padding:5px 0;font-size:13px}
+.sv-rl{line-height:1.35}
+.sv-rb{height:8px;background:var(--track);border-radius:4px;overflow:hidden}.sv-rb span{display:block;height:100%;background:var(--bar);border-radius:4px}
+.sv-rv{white-space:nowrap;font-variant-numeric:tabular-nums}.sv-rv small{color:var(--ink-3)}
+.sv-p{display:flex;flex-direction:column;gap:5px;padding:5px 0;font-size:13px}
+.sv-tx{padding:5px 0}.sv-tx summary{cursor:pointer;font-weight:600;font-size:13px}.sv-tx ul{margin:8px 0;padding-left:21px;font-size:13px}.sv-tx li{margin-bottom:5px}
+.sv-ajak{position:fixed;right:21px;bottom:21px;z-index:60;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.18);padding:13px;display:flex;gap:13px;align-items:center;max-width:min(420px,calc(100vw - 34px))}
+.sv-ajak>div:first-child{display:flex;flex-direction:column;gap:2px;font-size:13px}.sv-ajak span{color:var(--ink-2)}
+.sv-ab{display:flex;gap:8px;flex:none}
+@media (max-width:700px){
+  .sv-sk{grid-template-columns:repeat(5,minmax(0,1fr))}.sv-sk .sv-na{grid-column:1/-1}
+  .sv-sk button span{display:none}.sv-sk button[data-sv-v="1"] span,.sv-sk button[data-sv-v="5"] span{display:block;font-size:10px}
+  .sv-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sv-r{grid-template-columns:1fr auto}.sv-rb{grid-column:1/-1;grid-row:2}
+  .sv-ajak{left:16px;right:16px;bottom:89px;flex-direction:column;align-items:stretch}
+}
