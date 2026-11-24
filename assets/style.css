@@ -2630,3 +2630,12 @@ body.lb-buka{overflow:hidden}
 .rw-t td{vertical-align:top}.rw-t .rw-u{max-width:420px;word-break:break-word}
 .rw-hari td{background:var(--soft,#F4F5F8);font-weight:600;font-size:13px;color:var(--muted,#5A6380)}
 .rw-lagi{display:flex;justify-content:center;margin-top:13px}
+
+/* ---------- Banding tahun lalu ---------- */
+.bd-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:34px;align-items:start}
+.bd-t td,.bd-t th{white-space:nowrap}
+.bd-d{font-weight:600;font-variant-numeric:tabular-nums}.bd-d.good{color:var(--good)}.bd-d.bad{color:var(--bad)}.bd-d.idle{color:var(--ink-2)}
+.bd-g{width:100%;height:auto;display:block}
+.bd-ind{margin-top:13px}.bd-ind summary{cursor:pointer;font-weight:600;padding:8px 0}
+@media (max-width:1000px){.bd-wrap{grid-template-columns:1fr}}
+@media (max-width:600px){.bd-chart{display:none}.bd-t td:first-child{white-space:normal}}

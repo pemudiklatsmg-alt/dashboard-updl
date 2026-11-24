@@ -34,6 +34,7 @@ var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'A
 var TAB = {
   PENGATURAN: 'Pengaturan',
   LOGUBAH: 'Log Perubahan',
+  PEMBANDING: 'Pembanding Tahun Lalu',
   PEGAWAI: 'Jumlah Pegawai',
   L3: 'Rekap L3 Perilaku',
   L4: 'Rekap L4 Kinerja',
@@ -208,6 +209,8 @@ function buildData_() {
     o.rows = v; return o;
   });
   out.tindaklanjut = TL.rows; out.warnings = out.warnings.concat(TL.warnings || []);
+  // Pembanding tahun lalu (isi manual, opsional): Tahun | Bulan | Skor Konman | Kelas Selesai | Peserta | HOP
+  try { var shP = ss.getSheetByName(TAB.PEMBANDING); out.pembanding = shP && shP.getLastRow() > 1 ? clean_(shP.getRange(1, 1, shP.getLastRow(), Math.min(shP.getLastColumn(), 12)).getValues()) : []; } catch (e) { out.pembanding = []; }
   out.meta.tabPerbaikan = TAB.TINDAKLANJUT;
   out.meta.sumberEval = { kepuasan: cfg.EL1_ID ? 'file DOC 1 di Drive (EL1_ID)' : TAB.KEPUASAN, cc: cfg.EL2_ID ? 'file DOC 2 di Drive (EL2_ID)' : TAB.CC };
   out.meta.links.el1 = cfg.EL1_ID ? 'https://docs.google.com/spreadsheets/d/' + String(cfg.EL1_ID).trim() + '/edit' : '';
