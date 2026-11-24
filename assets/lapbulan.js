@@ -17,7 +17,7 @@
     '.lb-doc{font:10pt/1.45 Arial,Helvetica,sans-serif;color:#18233F;counter-reset:pg}',
     '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:18mm 20mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
     '.lb-pg.landscape{width:297mm;min-height:210mm;padding:14mm 16mm}',
-    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{margin-top:-5mm}',
+    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{width:calc(100% + 40mm);max-width:none;margin:-18mm -20mm 16px}',
     '.lb-doc h2{position:relative;font-size:12.5pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:6px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
     '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:42px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
     '.lb-doc h3{font-size:11.5pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
@@ -80,7 +80,7 @@
   }
   /* banner ilustrasi bergaya materi PLN (langit biru, sapuan diagonal, aksen kuning, menara transmisi) */
   function banner(jenis, judul, sub) {
-    var R = jenis === 'risiko', T = TEMA[jenis], W = 680, H = 156;
+    var R = jenis === 'risiko', T = TEMA[jenis], W = 794, H = 172, F = 'Inter, \'Segoe UI\', Arial, sans-serif';
     var bg = R ? ['#EAF4FB', '#F7DCE2'] : ['#E4F4FC', '#A7DCF3'], p1 = '#' + T.ac, p2 = '#' + T.ac3;
     var ikonJudul = R ? '<path d="M43 41l13 5v9c0 8-6 13-13 15-7-2-13-7-13-15v-9z" fill="none" stroke="' + p1 + '" stroke-width="2.6" stroke-linejoin="round"/><path d="M43 49v8" stroke="' + p1 + '" stroke-width="2.8" stroke-linecap="round"/><circle cx="43" cy="62" r="1.7" fill="' + p1 + '"/>'
       : '<rect x="33" y="41" width="20" height="27" rx="3" fill="none" stroke="' + p1 + '" stroke-width="2.6"/><rect x="38" y="38" width="10" height="6" rx="2" fill="' + p1 + '"/><path d="M37 55l4 4 7-8" fill="none" stroke="' + p1 + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -100,22 +100,23 @@
         [46, 58, 70].map(function (y) { return '<path d="M506 ' + y + 'l3 3 5-6" fill="none" stroke="#1F8A4C" stroke-width="2.2" stroke-linecap="round"/><line x1="518" y1="' + (y + 1) + '" x2="532" y2="' + (y + 1) + '" stroke="#B9C3D6" stroke-width="2.4" stroke-linecap="round"/>'; }).join('') +
         [[552, 18], [565, 28], [578, 40]].map(function (b) { return '<rect x="' + b[0] + '" y="' + (84 - b[1]) + '" width="10" height="' + b[1] + '" rx="2" fill="' + p2 + '"/>'; }).join('') +
         '<path d="M550 58l14-9 12 4 16-14" fill="none" stroke="#F5C400" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M586 38l7 0 0 7" fill="none" stroke="#F5C400" stroke-width="3" stroke-linecap="round"/>';
-    return '<svg class="lb-chart lb-banner" contenteditable="false" xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" font-family="Arial, Helvetica, sans-serif">' +
+    return '<svg class="lb-chart lb-banner" contenteditable="false" xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" font-family="' + F + '">' +
       '<defs><linearGradient id="bgL' + jenis + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + bg[0] + '"/><stop offset="1" stop-color="' + bg[1] + '"/></linearGradient>' +
-      '<linearGradient id="pl' + jenis + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + p1 + '"/><stop offset="1" stop-color="' + p2 + '"/></linearGradient>' +
-      '<clipPath id="kp' + jenis + '"><rect width="' + W + '" height="' + H + '" rx="13"/></clipPath></defs><g clip-path="url(#kp' + jenis + ')">' +
+      '<linearGradient id="pl' + jenis + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + p1 + '"/><stop offset="1" stop-color="' + p2 + '"/></linearGradient></defs>' +
       '<rect width="' + W + '" height="' + H + '" fill="url(#bgL' + jenis + ')"/>' +
-      '<path d="M330 0h120L330 156H210z" fill="#fff" opacity=".45"/><path d="M420 0h34L334 156h-34z" fill="#1FA2C8" opacity=".16"/><path d="M640 0h40v40z" fill="#fff" opacity=".5"/>' +
-      gedung + '<path d="M430 140c40-6 80-6 250 0v16H430z" fill="#5FB0DA" opacity=".35"/>' +
+      '<path d="M380 0h140L380 ' + H + 'H240z" fill="#fff" opacity=".42"/><path d="M490 0h36L386 ' + H + 'h-36z" fill="#1FA2C8" opacity=".14"/><path d="M744 0h50v50z" fill="#fff" opacity=".5"/>' +
+      '<path d="M640 0h34l-13 13h-34zM680 0h16l-13 13h-16z" fill="#F5C400"/>' +
+      '<g transform="translate(64,8)">' +
+      gedung + '<path d="M430 140c40-6 80-6 300 0v24H430z" fill="#5FB0DA" opacity=".35"/>' +
       '<path d="M598 62C560 80 500 84 430 80M598 82C560 98 500 100 430 98" fill="none" stroke="#0F4C81" stroke-width=".8" opacity=".5"/>' + menara(642, 0.92) + menara(462, 0.55) +
-      '<rect x="488" y="22" width="114" height="84" rx="13" fill="#fff" opacity=".88"/>' + kartu +
-      '<path d="M560 0h30l-12 12h-30zM596 0h14l-12 12h-14z" fill="#F5C400"/><path d="M0 150h300l-6 6H0z" fill="#F5C400"/><path d="M300 150h380v6H294z" fill="' + p2 + '" opacity=".7"/>' +
-      '<path d="M650 118l9 9-9 9M662 118l9 9-9 9" fill="none" stroke="' + p2 + '" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<text x="18" y="20" font-size="9.5" font-weight="700" letter-spacing="1.1" fill="' + p1 + '">PT PLN (PERSERO) · UPDL SEMARANG</text>' +
-      '<rect x="14" y="32" width="410" height="54" rx="12" fill="url(#pl' + jenis + ')"/><rect x="22" y="38" width="42" height="42" rx="9" fill="#fff"/>' + ikonJudul +
-      '<text x="76" y="67" font-size="23" font-weight="700" fill="#fff">' + esc(judul) + '</text>' +
-      '<rect x="14" y="96" width="' + Math.max(240, 62 + sub.length * 6.6) + '" height="30" rx="15" fill="#fff" opacity=".92"/><rect x="24" y="103" width="16" height="15" rx="3" fill="none" stroke="' + p1 + '" stroke-width="1.8"/><line x1="24" y1="108" x2="40" y2="108" stroke="' + p1 + '" stroke-width="1.8"/>' +
-      '<text x="48" y="116" font-size="12.5" font-weight="700" fill="' + p1 + '">' + esc(sub) + '</text></g></svg>';
+      '<rect x="488" y="22" width="114" height="84" rx="13" fill="#fff" opacity=".9"/>' + kartu +
+      '<path d="M660 112l9 9-9 9M672 112l9 9-9 9" fill="none" stroke="' + p2 + '" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<text x="12" y="20" font-size="9.5" font-weight="600" letter-spacing="1.6" fill="' + p1 + '">PT PLN (PERSERO) · UPDL SEMARANG</text>' +
+      '<rect x="8" y="32" width="414" height="56" rx="14" fill="url(#pl' + jenis + ')"/><rect x="16" y="39" width="42" height="42" rx="10" fill="#fff"/><g transform="translate(-6,1)">' + ikonJudul + '</g>' +
+      '<text x="72" y="68" font-size="24" font-weight="700" letter-spacing="-0.4" fill="#fff">' + esc(judul) + '</text>' +
+      '<rect x="8" y="98" width="' + Math.max(240, 58 + sub.length * 6.9) + '" height="30" rx="15" fill="#fff" opacity=".94"/><rect x="19" y="105" width="15" height="14" rx="3" fill="none" stroke="' + p1 + '" stroke-width="1.7"/><line x1="19" y1="110" x2="34" y2="110" stroke="' + p1 + '" stroke-width="1.7"/>' +
+      '<text x="42" y="118" font-size="12.5" font-weight="600" fill="' + p1 + '">' + esc(sub) + '</text></g>' +
+      '<path d="M0 ' + (H - 6) + 'h360l-6 6H0z" fill="#F5C400"/><path d="M360 ' + (H - 6) + 'h' + (W - 360) + 'v6H354z" fill="' + p2 + '" opacity=".75"/></svg>';
   }
 
   /* ======================= LAPORAN KONTRAK MANAJEMEN ======================= */
@@ -333,8 +334,9 @@
     var doc = $('lbWrap').querySelector('.lb-doc').cloneNode(true); doc.removeAttribute('contenteditable');
     var f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
     var d = f.contentWindow.document;
-    d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><title>' + esc(namaFile('pdf').replace(/\.pdf$/, '')) + '</title><style>' + cssLaporan() + '</style></head><body class="lb-cetak">' + doc.outerHTML + '</body></html>'); d.close();
-    setTimeout(function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { A().toast('Dialog cetak tidak bisa dibuka: ' + e.message); } setTimeout(function () { f.remove(); }, 60000); }, 400);
+    d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><title>' + esc(namaFile('pdf').replace(/\.pdf$/, '')) + '</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap"><style>' + cssLaporan() + '</style></head><body class="lb-cetak">' + doc.outerHTML + '</body></html>'); d.close();
+    var siap = d.fonts && d.fonts.ready ? Promise.race([d.fonts.ready, new Promise(function (r) { setTimeout(r, 2500); })]) : Promise.resolve();
+    siap.then(function () { return new Promise(function (r) { setTimeout(r, 300); }); }).then(function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { A().toast('Dialog cetak tidak bisa dibuka: ' + e.message); } setTimeout(function () { f.remove(); }, 60000); });
     A().toast('Pilih "Simpan sebagai PDF" di dialog cetak, ukuran kertas A4.', 6000);
   }
 
@@ -343,7 +345,25 @@
     if (window.docx) return Promise.resolve(window.docx);
     return new Promise(function (ok, gagal) { var s = document.createElement('script'); s.src = 'assets/vendor/docx-9.8.1.iife.js'; s.onload = function () { ok(window.docx); }; s.onerror = function () { gagal(new Error('pustaka Word tidak termuat')); }; document.head.appendChild(s); });
   }
+  /* Inter disematkan ke SVG banner agar hasil PNG (Word) tetap rapi meski Inter tidak terpasang di komputer */
+  var fontP = null;
+  function fontInter() {
+    if (fontP) return fontP;
+    var b64 = function (ab) { var u = new Uint8Array(ab), t = ''; for (var i = 0; i < u.length; i += 8192) t += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return btoa(t); };
+    fontP = fetch('https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap').then(function (r) { return r.text(); }).then(function (css) {
+      var blok = css.split('@font-face').filter(function (x) { return /U\+0000-00FF/.test(x); });
+      return Promise.all(blok.map(function (x) {
+        var url = (x.match(/url\(([^)]+)\)/) || [])[1], w = (x.match(/font-weight:\s*(\d+)/) || [])[1];
+        return url ? fetch(url).then(function (r) { return r.arrayBuffer(); }).then(function (ab) { return '@font-face{font-family:Inter;font-weight:' + w + ';src:url(data:font/woff2;base64,' + b64(ab) + ') format("woff2")}'; }) : '';
+      }));
+    }).then(function (L) { return L.join(''); }).catch(function () { return ''; });
+    return fontP;
+  }
   function svgKePng(svg) {
+    if (svg.classList.contains('lb-banner') && !svg.__font) return fontInter().then(function (css) { var c = svg.cloneNode(true); c.__font = 1; if (css) { var st = document.createElementNS('http://www.w3.org/2000/svg', 'style'); st.textContent = css; c.insertBefore(st, c.firstChild); } c.classList.add('lb-banner'); return svgKePng2(c); });
+    return svgKePng2(svg);
+  }
+  function svgKePng2(svg) {
     return new Promise(function (ok) {
       var W = +svg.getAttribute('width') || 640, H = +svg.getAttribute('height') || 200, img = new Image(), sk = svg.classList.contains('lb-banner') ? 3 : 2;
       img.onload = function () { var c = document.createElement('canvas'); c.width = W * sk; c.height = H * sk; var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
@@ -417,8 +437,10 @@
             var tg = n.tagName.toUpperCase();
             if (/^(B|STRONG|I|EM|U|SPAN|SMALL|MARK|A|BR)$/.test(tg)) { inline.push(n); return; }
             siram();
+            if (tg === 'SVG' && n.classList.contains('lb-banner')) { var ib = PNG.get(n); if (ib) out.push(new X.Paragraph({ spacing: { after: 0 }, children: [new X.ImageRun({ type: 'png', data: ib.data, transformation: { width: 794, height: Math.round(794 * ib.h / ib.w) },
+              floating: { horizontalPosition: { relative: X.HorizontalPositionRelativeFrom.PAGE, offset: 0 }, verticalPosition: { relative: X.VerticalPositionRelativeFrom.PAGE, offset: 0 }, wrap: { type: X.TextWrappingType.TOP_AND_BOTTOM }, allowOverlap: true, lockAnchor: true } })] })); return; }
             if (tg === 'SVG') { var im = PNG.get(n); if (im) { var sk = Math.min(1, (lebar / 15) / im.w); out.push(new X.Paragraph({ alignment: X.AlignmentType.CENTER, spacing: { after: 80 }, children: [new X.ImageRun({ type: 'png', data: im.data, transformation: { width: Math.round(im.w * sk), height: Math.round(im.h * sk) } })] })); } return; }
-            if (tg === 'H2') { out.push(new X.Paragraph({ heading: X.HeadingLevel.HEADING_1, keepNext: true, shading: { fill: T.ac, type: X.ShadingType.CLEAR, color: 'auto' }, indent: { left: 120, right: 120 }, border: { right: { style: X.BorderStyle.SINGLE, size: 48, color: T.ac2, space: 6 } }, children: runs(n, { c: 'FFFFFF', b: true }) })); return; }
+            if (tg === 'H2') { out.push(new X.Paragraph({ heading: X.HeadingLevel.HEADING_1, keepNext: true, shading: { fill: T.ac, type: X.ShadingType.CLEAR, color: 'auto' }, indent: { left: 120, right: 120 }, border: { right: { style: X.BorderStyle.SINGLE, size: 48, color: T.ac2, space: 6 } }, spacing: { before: 280, after: 120, line: 300 }, children: [new X.TextRun({ text: '  ', font: 'Arial' })].concat(runs(n, { c: 'FFFFFF', b: true, sz: 26 })) })); return; }
             if (tg === 'H1' || tg === 'H3') { out.push(new X.Paragraph({ heading: X.HeadingLevel.HEADING_2, keepNext: true, children: runs(n, {}) })); return; }
             if (tg === 'P') { if (n.classList.contains('lb-ruang')) { out.push(new X.Paragraph({ keepNext: true, spacing: { before: 700 }, children: [] })); return; } out.push(para(n, f, Object.assign(f.tengah ? { alignment: X.AlignmentType.CENTER } : {}, n.classList.contains('lb-cap') ? { keepNext: true } : {}))); return; }
             if (tg === 'OL' || tg === 'UL') { var inst = ++nOl; Array.prototype.forEach.call(n.children, function (li) { out.push(new X.Paragraph({ children: runs(li, f), numbering: { reference: tg === 'OL' ? 'ol' : 'ul', level: 0, instance: inst }, spacing: { after: 60 }, alignment: X.AlignmentType.JUSTIFIED })); }); return; }
