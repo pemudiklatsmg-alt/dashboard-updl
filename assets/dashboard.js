@@ -1716,7 +1716,7 @@
     tindak('PERBAIKAN_TL', 'Koordinasikan perbaikan berkelanjutan yang belum dimulai', tb, 'Masukan peserta yang perlu tindakan; pantau ke PIC unit terkait.', 'Perbaikan Berkelanjutan', 'tl', tb >= 5 ? 'bad' : 'warn');
     tindak('PERBAIKAN_ISI', 'Lengkapi PIC & Status perbaikan berkelanjutan', kos, 'Jalankan menu Perbaikan Berkelanjutan → Isi PIC & Status otomatis, lalu periksa.', 'Perbaikan Berkelanjutan', 'tl');
     var Bn = B(), bawah = konmanAda(Bn) ? leaves.filter(function (it) { var v = D.hasData(it, Bn) ? D.capaianItem(it, Bn) : null; return v !== null && v !== undefined && v < 0.95; }).length : 0;
-    tindak('INDIKATOR', 'Tindak lanjuti indikator Konman di bawah 95%', bawah, 'Siapkan rencana perbaikan untuk indikator ' + namaBulan(S.bulan) + '.', 'Konman ' + y, null, 'bad');
+    tindak('INDIKATOR', 'Tindak lanjuti indikator Konman di bawah 95%', bawah, 'Siapkan rencana perbaikan untuk indikator ' + namaBulan(S.bulan) + '.', 'Konman ' + y, 'capaian', 'bad');
     if (S.data.inovasi) { var lw = inoRows().filter(function (x) { return x.w[1] === 'bad'; }).length; tindak('INOVASI', 'Perbarui progres inovasi yang lewat target', lw, 'Isi tahap / tanggal realisasi terbaru.', 'Data - Inovasi', 'ino', 'warn'); }
     // 4. tab isian manual tanpa tanggal: pakai waktu ubah terakhir (tercatat sejak dashboard v6)
     function manual(kode, judul, tab, bts) {
