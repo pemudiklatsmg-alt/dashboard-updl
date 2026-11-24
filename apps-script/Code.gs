@@ -50,7 +50,8 @@ var TAB = {
   KSA: 'Data - KSA EL2',
   CC: 'Data - C&C EL2',
   SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
-  LOG: 'Log Login', AKUN: 'Akun Lihat', TUGASLAIN: 'Tugas Lain'
+  LOG: 'Log Login', AKUN: 'Akun Lihat', TUGASLAIN: 'Tugas Lain',
+  SURVEI_TANYA: 'Survei Pertanyaan', SURVEI_JAWAB: 'Survei Jawaban'
 };
 var TAB_LAMA_ = { TINDAKLANJUT: 'Tindak Lanjut Evaluasi' };
 /* Pakai nama tab lama bila tab dengan nama baru belum ada (masa peralihan) */
@@ -566,6 +567,15 @@ function doPost(e) {
       var hp = aksiPengaturan_(req, sesi);
       if (/^(simpanPengaturan|akun)$/.test(req.aksi)) catatUbah_(sesi.user, 'dashboard', req.aksi === 'akun' ? 'Akun' : TAB.PENGATURAN, req.aksi === 'akun' ? 'Kelola akun' : 'Pengaturan', ringkasData_(req.data, true));
       return json_(hp);
+    }
+    if (req.aksi === 'survei') return json_({ ok: true, tanya: bacaTanyaSurvei_(), peran: sesi.peran });
+    if (req.aksi === 'surveiKirim') {
+      var lks = LockService.getScriptLock(); lks.waitLock(20000);
+      try { return json_(simpanSurvei_(req, sesi)); } finally { lks.releaseLock(); }
+    }
+    if (req.aksi === 'surveiHasil') {
+      if (sesi.peran !== 'admin') throw new Error('Hasil survei hanya untuk akun Admin.');
+      return json_(hasilSurvei_());
     }
     if (req.aksi === 'riwayat') {
       if (sesi.peran !== 'admin') throw new Error('Riwayat perubahan hanya untuk akun Admin.');
@@ -2017,4 +2027,85 @@ function bacaRiskRegister_(cfg) {
     }
   }
   return { rows: rows, pantau: pantau, judulPantau: judul };
+}
+
+
+/* ======================================================================== */
+/*  SURVEI KEPUASAN PENGGUNA                                                 */
+/*  Pertanyaan diatur di tab "Survei Pertanyaan" (boleh diubah/ditambah).    */
+/*  Kolom: No | Kelompok | Pertanyaan | Jenis (skala/pilihan/teks) |         */
+/*         Pilihan (pisahkan dengan ;) | Wajib (Ya/Tidak) | Aktif (Ya/Tidak) */
+/*  Jawaban disimpan satu baris per pertanyaan di tab "Survei Jawaban".      */
+/* ======================================================================== */
+var SURVEI_KOLOM = ['No', 'Kelompok', 'Pertanyaan', 'Jenis', 'Pilihan', 'Wajib', 'Aktif'];
+var SURVEI_AWAL = [
+  ['P1', 'Profil responden', 'Bidang / unit kerja', 'pilihan', 'Penyelenggaraan Pembelajaran; Pelayanan, Keuangan dan Umum; Manajemen UPDL; Unit/bidang lain', 'Ya', 'Ya'],
+  ['P2', 'Profil responden', 'Peran Anda terhadap dashboard', 'pilihan', 'Manajemen / pengambil keputusan; Pengelola atau pengisi data; Pengguna (melihat informasi)', 'Ya', 'Ya'],
+  ['P3', 'Profil responden', 'Seberapa sering Anda membuka dashboard?', 'pilihan', 'Hampir setiap hari; Beberapa kali seminggu; Beberapa kali sebulan; Jarang', 'Ya', 'Ya'],
+  ['M1', 'Dashboard memudahkan saya memantau…', 'Kontrak Manajemen (skor dan indikator kinerja)', 'skala', '', 'Tidak', 'Ya'],
+  ['M2', 'Dashboard memudahkan saya memantau…', 'Rekap Pembelajaran (kelas, peserta, HOP, realisasi per kategori)', 'skala', '', 'Tidak', 'Ya'],
+  ['M3', 'Dashboard memudahkan saya memantau…', 'Evaluasi Pembelajaran (Level 1–4, ROTI, sertifikat)', 'skala', '', 'Tidak', 'Ya'],
+  ['M4', 'Dashboard memudahkan saya memantau…', 'Maturity Level proses bisnis', 'skala', '', 'Tidak', 'Ya'],
+  ['M5', 'Dashboard memudahkan saya memantau…', 'Risiko & Mutu (profil risiko, KRI, FRA)', 'skala', '', 'Tidak', 'Ya'],
+  ['M6', 'Dashboard memudahkan saya memantau…', 'SDM & Inovasi (IDP, inovasi, struktur organisasi)', 'skala', '', 'Tidak', 'Ya'],
+  ['M7', 'Dashboard memudahkan saya memantau…', 'Tugas tim dan tindak lanjut', 'skala', '', 'Tidak', 'Ya'],
+  ['U1', 'Penilaian umum', 'Data di dashboard akurat dan mutakhir', 'skala', '', 'Ya', 'Ya'],
+  ['U2', 'Penilaian umum', 'Dashboard menghemat waktu saya menyiapkan laporan atau bahan rapat', 'skala', '', 'Ya', 'Ya'],
+  ['U3', 'Penilaian umum', 'Dashboard membantu saya menindaklanjuti indikator merah atau temuan lebih cepat', 'skala', '', 'Ya', 'Ya'],
+  ['U4', 'Penilaian umum', 'Tampilan dashboard mudah dipahami dan digunakan, termasuk di HP', 'skala', '', 'Ya', 'Ya'],
+  ['U5', 'Penilaian umum', 'Dashboard membuat informasi kinerja lebih transparan antarbidang', 'skala', '', 'Ya', 'Ya'],
+  ['U6', 'Penilaian umum', 'Secara keseluruhan, saya puas dengan dashboard ini', 'skala', '', 'Ya', 'Ya'],
+  ['U7', 'Penilaian umum', 'Perkiraan waktu kerja yang Anda hemat per bulan berkat dashboard', 'pilihan', 'Kurang dari 1 jam; 1–4 jam; 4–8 jam; Lebih dari 8 jam', 'Ya', 'Ya'],
+  ['T1', 'Masukan', 'Fitur yang paling bermanfaat bagi Anda', 'teks', '', 'Tidak', 'Ya'],
+  ['T2', 'Masukan', 'Saran perbaikan atau fitur yang Anda butuhkan', 'teks', '', 'Tidak', 'Ya'],
+  ['T3', 'Masukan', 'Testimoni singkat tentang dashboard', 'teks', '', 'Tidak', 'Ya'],
+  ['T4', 'Masukan', 'Bolehkah testimoni Anda dikutip beserta nama/jabatan?', 'pilihan', 'Ya, boleh; Ya, tanpa nama; Tidak', 'Tidak', 'Ya'],
+  ['T5', 'Masukan', 'Nama dan jabatan (opsional)', 'teks', '', 'Tidak', 'Ya']
+];
+function tabSurvei_(nama, kepala, isi) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(nama);
+  if (!sh) {
+    sh = ss.insertSheet(nama, ss.getSheets().length);
+    sh.getRange(1, 1, 1, kepala.length).setValues([kepala]).setFontWeight('bold').setBackground('#0b3b6f').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+    if (isi && isi.length) sh.getRange(2, 1, isi.length, kepala.length).setValues(isi);
+  }
+  return sh;
+}
+function bacaTanyaSurvei_() {
+  var sh = tabSurvei_(TAB.SURVEI_TANYA, SURVEI_KOLOM, SURVEI_AWAL);
+  var v = sh.getDataRange().getValues(), h = v[0].map(function (x) { return String(x).trim().toLowerCase(); });
+  var c = function (n) { return h.indexOf(n.toLowerCase()); };
+  var ya = function (x, bawaan) { x = String(x || '').trim().toLowerCase(); return x ? !/^(tidak|no|n|0|false)$/.test(x) : bawaan; };
+  return v.slice(1).map(function (r, i) {
+    var jenis = String(r[c('Jenis')] || 'skala').trim().toLowerCase();
+    return { no: String(r[c('No')] || ('Q' + (i + 1))).trim(), kelompok: String(r[c('Kelompok')] || '').trim(), teks: String(r[c('Pertanyaan')] || '').trim(),
+      jenis: /pilih/.test(jenis) ? 'pilihan' : /teks|text|isian/.test(jenis) ? 'teks' : 'skala',
+      pilihan: String(r[c('Pilihan')] || '').split(';').map(function (x) { return x.trim(); }).filter(String),
+      wajib: ya(r[c('Wajib')], false), aktif: ya(r[c('Aktif')], true) };
+  }).filter(function (q) { return q.teks && q.aktif; });
+}
+function simpanSurvei_(req, sesi) {
+  var tanya = bacaTanyaSurvei_(), j = req.jawaban || {}, kurang = tanya.filter(function (q) { return q.wajib && !String(j[q.no] == null ? '' : j[q.no]).trim(); });
+  if (kurang.length) throw new Error('Pertanyaan wajib belum dijawab: ' + kurang.map(function (q) { return q.teks; }).slice(0, 3).join('; '));
+  var sh = tabSurvei_(TAB.SURVEI_JAWAB, ['Waktu', 'ID Respon', 'Akun', 'Peran akun', 'No', 'Kelompok', 'Pertanyaan', 'Jawaban'], null);
+  var t = new Date(), id = Utilities.formatDate(t, 'Asia/Jakarta', 'yyMMddHHmmss') + '-' + Utilities.getUuid().slice(0, 4);
+  var rows = tanya.filter(function (q) { return String(j[q.no] == null ? '' : j[q.no]).trim() !== ''; })
+    .map(function (q) { return [t, id, sesi.user, sesi.peran, q.no, q.kelompok, q.teks, String(j[q.no]).slice(0, 1000)]; });
+  if (!rows.length) throw new Error('Belum ada jawaban.');
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  return { ok: true, id: id, pesan: 'Terima kasih, jawaban Anda tersimpan.' };
+}
+function hasilSurvei_() {
+  var tanya = bacaTanyaSurvei_(), ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.SURVEI_JAWAB);
+  var v = sh && sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 8).getValues() : [];
+  var resp = {}, per = {};
+  v.forEach(function (r) {
+    var id = String(r[1]); resp[id] = resp[id] || { waktu: r[0] instanceof Date ? r[0].getTime() : null, jawab: {} };
+    resp[id].jawab[String(r[4])] = String(r[7]);
+    var k = String(r[4]); (per[k] = per[k] || []).push(String(r[7]));
+  });
+  var daftar = Object.keys(resp).map(function (k) { return resp[k]; });
+  return { ok: true, tanya: tanya, responden: daftar.length, jawaban: per, respon: daftar.slice(-300),
+    terakhir: daftar.reduce(function (m, x) { return Math.max(m, x.waktu || 0); }, 0) };
 }
