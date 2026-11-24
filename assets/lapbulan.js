@@ -6,7 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var BLN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   var L = { jenis: 'konman', ttd: ['mgr'] };
-  var TEMA = { konman: { ac: '0B3B6F', ac2: 'F5C400', soft: 'EAF1F8', nama: 'Kontrak Manajemen' }, risiko: { ac: '7B1E3A', ac2: 'E8B04B', soft: 'F7ECEF', nama: 'Manajemen Risiko' } };
+  var TEMA = { konman: { ac: '0B3B6F', ac2: 'F5C400', soft: 'EAF1F8', ac3: '1572B6', nama: 'Kontrak Manajemen', judul: 'Laporan Kontrak Manajemen' }, risiko: { ac: '7B1E3A', ac2: 'E8B04B', soft: 'F7ECEF', ac3: 'B23A5A', nama: 'Pemantauan Risiko', judul: 'Laporan Pemantauan Risiko' } };
   var LV = ['Rendah', 'Moderat', 'Tinggi', 'Sangat Tinggi', 'Ekstrem'], LV_BG = ['8FD19E', 'B5EBEE', 'F5D66B', 'F4A259', 'E5625E'], LV_FG = ['18233F', '18233F', '18233F', '18233F', 'FFFFFF'];
   var KM = { 'SANGAT KECIL': 1, 'KECIL': 2, 'SEDANG': 3, 'BESAR': 4, 'SANGAT BESAR': 5 }, DM = { 'TIDAK SIGNIFIKAN': 1, 'MINOR': 2, 'MEDIUM': 3, 'SIGNIFIKAN': 4, 'SANGAT SIGNIFIKAN': 5 };
   var KM_N = ['Sangat Kecil', 'Kecil', 'Sedang', 'Besar', 'Sangat Besar'], DM_N = ['Tidak Signifikan', 'Minor', 'Medium', 'Signifikan', 'Sangat Signifikan'];
@@ -17,15 +17,14 @@
     '.lb-doc{font:10pt/1.45 Arial,Helvetica,sans-serif;color:#18233F;counter-reset:pg}',
     '.lb-pg{background:#fff;width:210mm;min-height:297mm;box-sizing:border-box;padding:18mm 20mm;margin:0 auto 21px;box-shadow:0 2px 13px rgba(15,25,50,.14);position:relative}',
     '.lb-pg.landscape{width:297mm;min-height:210mm;padding:14mm 16mm}',
-    '.lb-pg-cov{padding-top:0}.lb-cov{width:calc(100% + 40mm);margin:0 -20mm 13px;border-collapse:collapse}.lb-cov td{padding:34mm 20mm 21mm;background:var(--lb-ac);color:#fff}',
-    '.lb-cov p{margin:0 0 8px}.lb-kk{color:var(--lb-ac2);font-size:10pt;letter-spacing:.06em}.lb-judul{font-size:26pt;line-height:1.15;margin:21px 0 8px!important}.lb-sub{font-size:13pt;opacity:.9}',
-    '.lb-cov [data-sz="64"]{font-size:32pt;color:var(--lb-ac2)}.lb-cov [data-sz="56"]{font-size:28pt;color:var(--lb-ac2)}',
-    '.lb-doc h2{font-size:15pt;color:var(--lb-ac);margin:21px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--lb-ac2)}.lb-doc h2:first-child{margin-top:0}',
+    '.lb-banner{margin:0 0 13px}.lb-pg>.lb-banner:first-child{margin-top:-5mm}',
+    '.lb-doc h2{position:relative;font-size:12.5pt;color:#fff;background:linear-gradient(90deg,var(--lb-ac),var(--lb-ac3));margin:21px 0 8px;padding:6px 13px;border-radius:8px;overflow:hidden}.lb-doc h2:first-child{margin-top:0}',
+    '.lb-doc h2::after{content:"";position:absolute;right:21px;top:0;bottom:0;width:13px;background:var(--lb-ac2);transform:skewX(-28deg)}.lb-doc h2::before{content:"";position:absolute;right:42px;top:0;bottom:0;width:6px;background:rgba(255,255,255,.35);transform:skewX(-28deg)}',
     '.lb-doc h3{font-size:11.5pt;margin:13px 0 5px}.lb-doc p{margin:0 0 8px}.lb-doc [data-align=just]{text-align:justify}.lb-doc [data-align=center]{text-align:center}',
     '.lb-doc ol,.lb-doc ul{margin:0 0 8px;padding-left:21px;text-align:justify}',
     '.lb-t{width:100%;border-collapse:collapse;margin:5px 0 13px;page-break-inside:auto}.lb-t th{background:var(--lb-ac);color:#fff;font-weight:700;text-align:left;padding:5px 6px;font-size:9pt}',
     '.lb-t td{border:1px solid #D8DBE4;padding:5px 6px;vertical-align:middle}.lb-t tr{page-break-inside:avoid}.lb-t .c{text-align:center}.lb-kecil{font-size:8.5pt}.lb-rr{font-size:8pt}.lb-kartu td{font-size:10pt;text-align:center}',
-    '.lb-peta{width:auto;margin:0 auto 8px}.lb-peta td{width:21mm;height:11mm;text-align:center;font-size:11pt}.lb-peta td:first-child{width:24mm;text-align:right}',
+    '.lb-peta{width:auto;margin:0 auto 8px}.lb-peta td{width:21mm;height:8mm;padding:2px 4px;text-align:center;font-size:10.5pt}.lb-peta td:first-child{width:24mm;text-align:right}',
     '.lb-chip{display:inline-block;padding:1px 6px;border-radius:8px;font-weight:700;font-size:7.5pt;white-space:nowrap}',
     '.lb-chart{display:block;width:100%;height:auto;margin:5px 0}.lb-cap{font-size:8.5pt;color:#5A6380;margin:0 0 8px}',
     '.lb-ind{page-break-inside:avoid;border-top:1px solid #E3E6EE;padding-top:8px;margin-top:8px}',
@@ -79,12 +78,67 @@
       return r[0] === 'tengah' ? '<tr><td colspan="2"><div class="lb-tengah">' + k(r[1]) + '</div></td></tr>' : '<tr><td data-w="50">' + (i ? '' : '<p>&nbsp;</p>') + k(r[0]) + '</td><td data-w="50">' + (i ? '' : tgl) + k(r[1]) + '</td></tr>';
     }).join('') + '</tbody></table>';
   }
-  function sampul(T, judul, sub, isiKanan) {
-    return '<table class="lb-cov" data-tanpa-garis="1"><tbody><tr>' + td('<p class="lb-kk" data-warna="' + T.ac2 + '" data-sz="20"><b>PT PLN (PERSERO) · UNIT PELAKSANA PENDIDIKAN DAN PELATIHAN SEMARANG</b></p>' +
-      '<p class="lb-judul" data-warna="FFFFFF" data-sz="52"><b>' + esc(judul) + '</b></p><p class="lb-sub" data-warna="FFFFFF" data-sz="26">' + esc(sub) + '</p>' + (isiKanan || ''), { bg: T.ac, fg: 'FFFFFF' }) + '</tr></tbody></table>';
+  /* banner ilustrasi bergaya materi PLN (langit biru, sapuan diagonal, aksen kuning, menara transmisi) */
+  function banner(jenis, judul, sub) {
+    var R = jenis === 'risiko', T = TEMA[jenis], W = 680, H = 156;
+    var bg = R ? ['#EAF4FB', '#F7DCE2'] : ['#E4F4FC', '#A7DCF3'], p1 = '#' + T.ac, p2 = '#' + T.ac3;
+    var ikonJudul = R ? '<path d="M43 41l13 5v9c0 8-6 13-13 15-7-2-13-7-13-15v-9z" fill="none" stroke="' + p1 + '" stroke-width="2.6" stroke-linejoin="round"/><path d="M43 49v8" stroke="' + p1 + '" stroke-width="2.8" stroke-linecap="round"/><circle cx="43" cy="62" r="1.7" fill="' + p1 + '"/>'
+      : '<rect x="33" y="41" width="20" height="27" rx="3" fill="none" stroke="' + p1 + '" stroke-width="2.6"/><rect x="38" y="38" width="10" height="6" rx="2" fill="' + p1 + '"/><path d="M37 55l4 4 7-8" fill="none" stroke="' + p1 + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+    var gedung = [[440, 46], [458, 70], [472, 34], [490, 58], [506, 80], [520, 44], [536, 66], [552, 52], [566, 74]].map(function (g) { return '<rect x="' + g[0] + '" y="' + (140 - g[1]) + '" width="13" height="' + g[1] + '" fill="#7FC1E3" opacity=".55"/>'; }).join('');
+    var menara = function (x, s) {   // menara transmisi garis
+      var t = 140 - 112 * s, w = 22 * s, L = function (a, b, c, d) { return '<line x1="' + a + '" y1="' + b + '" x2="' + c + '" y2="' + d + '"/>'; }, o = '';
+      o += L(x - w, 140, x - 4 * s, t) + L(x + w, 140, x + 4 * s, t);
+      [0.22, 0.42].forEach(function (f) { var y = t + 112 * s * f, a = 4 * s + (w - 4 * s) * f; o += L(x - a - 20 * s, y, x + a + 20 * s, y) + L(x - a - 20 * s, y, x - a - 20 * s, y + 7 * s) + L(x + a + 20 * s, y, x + a + 20 * s, y + 7 * s); });
+      for (var f = 0.1; f < 0.95; f += 0.15) { var y1 = t + 112 * s * f, y2 = t + 112 * s * (f + 0.15), a1 = 4 * s + (w - 4 * s) * f, a2 = 4 * s + (w - 4 * s) * Math.min(1, f + 0.15); o += L(x - a1, y1, x + a2, y2) + L(x + a1, y1, x - a2, y2); }
+      return '<g stroke="#0F4C81" stroke-width="' + (1.4 * s).toFixed(2) + '" opacity=".85">' + o + '</g>';
+    };
+    var kartu = R
+      ? '<path d="M520 40l20 8v14c0 13-9 21-20 24-11-3-20-11-20-24V48z" fill="' + p1 + '"/><path d="M520 52v12" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="520" cy="72" r="2.6" fill="#fff"/>' +
+        [0, 1, 2].map(function (r) { return [0, 1, 2].map(function (c) { var w = ['#8FD19E', '#F5D66B', '#E5625E', '#B5EBEE', '#F5D66B', '#F4A259', '#8FD19E', '#B5EBEE', '#F5D66B'][r * 3 + c]; return '<rect x="' + (556 + c * 13) + '" y="' + (44 + r * 13) + '" width="11" height="11" rx="2" fill="' + w + '"/>'; }).join(''); }).join('') +
+        '<circle cx="586" cy="92" r="11" fill="#F5C400"/><path d="M581 92l4 4 6-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+      : '<rect x="500" y="34" width="38" height="50" rx="5" fill="#fff" stroke="' + p1 + '" stroke-width="2"/><rect x="511" y="30" width="16" height="8" rx="3" fill="' + p1 + '"/>' +
+        [46, 58, 70].map(function (y) { return '<path d="M506 ' + y + 'l3 3 5-6" fill="none" stroke="#1F8A4C" stroke-width="2.2" stroke-linecap="round"/><line x1="518" y1="' + (y + 1) + '" x2="532" y2="' + (y + 1) + '" stroke="#B9C3D6" stroke-width="2.4" stroke-linecap="round"/>'; }).join('') +
+        [[552, 18], [565, 28], [578, 40]].map(function (b) { return '<rect x="' + b[0] + '" y="' + (84 - b[1]) + '" width="10" height="' + b[1] + '" rx="2" fill="' + p2 + '"/>'; }).join('') +
+        '<path d="M550 58l14-9 12 4 16-14" fill="none" stroke="#F5C400" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M586 38l7 0 0 7" fill="none" stroke="#F5C400" stroke-width="3" stroke-linecap="round"/>';
+    return '<svg class="lb-chart lb-banner" contenteditable="false" xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" font-family="Arial, Helvetica, sans-serif">' +
+      '<defs><linearGradient id="bgL' + jenis + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + bg[0] + '"/><stop offset="1" stop-color="' + bg[1] + '"/></linearGradient>' +
+      '<linearGradient id="pl' + jenis + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + p1 + '"/><stop offset="1" stop-color="' + p2 + '"/></linearGradient>' +
+      '<clipPath id="kp' + jenis + '"><rect width="' + W + '" height="' + H + '" rx="13"/></clipPath></defs><g clip-path="url(#kp' + jenis + ')">' +
+      '<rect width="' + W + '" height="' + H + '" fill="url(#bgL' + jenis + ')"/>' +
+      '<path d="M330 0h120L330 156H210z" fill="#fff" opacity=".45"/><path d="M420 0h34L334 156h-34z" fill="#1FA2C8" opacity=".16"/><path d="M640 0h40v40z" fill="#fff" opacity=".5"/>' +
+      gedung + '<path d="M430 140c40-6 80-6 250 0v16H430z" fill="#5FB0DA" opacity=".35"/>' +
+      '<path d="M598 62C560 80 500 84 430 80M598 82C560 98 500 100 430 98" fill="none" stroke="#0F4C81" stroke-width=".8" opacity=".5"/>' + menara(642, 0.92) + menara(462, 0.55) +
+      '<rect x="488" y="22" width="114" height="84" rx="13" fill="#fff" opacity=".88"/>' + kartu +
+      '<path d="M560 0h30l-12 12h-30zM596 0h14l-12 12h-14z" fill="#F5C400"/><path d="M0 150h300l-6 6H0z" fill="#F5C400"/><path d="M300 150h380v6H294z" fill="' + p2 + '" opacity=".7"/>' +
+      '<path d="M650 118l9 9-9 9M662 118l9 9-9 9" fill="none" stroke="' + p2 + '" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<text x="18" y="20" font-size="9.5" font-weight="700" letter-spacing="1.1" fill="' + p1 + '">PT PLN (PERSERO) · UPDL SEMARANG</text>' +
+      '<rect x="14" y="32" width="410" height="54" rx="12" fill="url(#pl' + jenis + ')"/><rect x="22" y="38" width="42" height="42" rx="9" fill="#fff"/>' + ikonJudul +
+      '<text x="76" y="67" font-size="23" font-weight="700" fill="#fff">' + esc(judul) + '</text>' +
+      '<rect x="14" y="96" width="' + Math.max(240, 62 + sub.length * 6.6) + '" height="30" rx="15" fill="#fff" opacity=".92"/><rect x="24" y="103" width="16" height="15" rx="3" fill="none" stroke="' + p1 + '" stroke-width="1.8"/><line x1="24" y1="108" x2="40" y2="108" stroke="' + p1 + '" stroke-width="1.8"/>' +
+      '<text x="48" y="116" font-size="12.5" font-weight="700" fill="' + p1 + '">' + esc(sub) + '</text></g></svg>';
   }
 
   /* ======================= LAPORAN KONTRAK MANAJEMEN ======================= */
+  /* Grafik per indikator. Target & realisasi dinormalkan ke skala yang sama (mis. realisasi 1 = 100% saat target ditulis 100).
+     Indikator berjenis waktu/tanggal atau tanpa target angka ditampilkan sebagai capaian (%) per bulan dengan garis 100%. */
+  function angka(x) { if (x === null || x === undefined || x === '') return null; if (/^\d{4}-\d{2}-\d{2}/.test(String(x))) return null; var n = D.num(x); return n === null || isNaN(n) ? null : n; }
+  function grafikIndikator(it, ms, T) {
+    var lbl = ms.map(function (m) { return D.cap(m).slice(0, 3); });
+    var tv = ms.map(function (m) { return it.target[m] ? angka(it.target[m].v) : null; }), rv = ms.map(function (m) { return D.hasData(it, m) ? angka(it.real[m].v) : null; });
+    var waktu = /waktu/i.test(it.satuan || '') || ms.some(function (m) { return it.target[m] && /^\d{4}-\d{2}-\d{2}/.test(String(it.target[m].v)); });
+    var persen = /%/.test(it.satuan || '');
+    ms.forEach(function (m, i) {
+      if (rv[i] === null && tv[i] === 0) tv[i] = null;
+      if (persen && rv[i] !== null && tv[i] !== null) { if (tv[i] > 2 && Math.abs(rv[i]) <= 2) rv[i] *= 100; else if (rv[i] > 2 && Math.abs(tv[i]) <= 2) tv[i] *= 100; }
+    });
+    var cocok = ms.filter(function (m, i) { return tv[i] !== null && rv[i] !== null; }).length;
+    if (waktu || !cocok) {
+      var cp = ms.map(function (m) { var v = D.hasData(it, m) ? D.capaianItem(it, m) : null; return v === null || v === undefined ? null : v * 100; });
+      if (!cp.some(function (v) { return v !== null; })) return '';
+      return svgBatang(lbl, [{ nama: 'Capaian (%)', v: cp, warna: T.ac, label: true, des: 0 }], 100, { w: 640, h: 140 }) + '<p class="lb-cap">Capaian (%) per bulan; garis merah = 100%.</p>';
+    }
+    return svgBatang(lbl, [{ nama: 'Target', v: tv, warna: 'B9C3D6' }, { nama: 'Realisasi', v: rv, warna: T.ac }], null, { w: 640, h: 140 });
+  }
   function laporanKonman() {
     var a = A(), S = a.S, Bn = a.B(), p = per(), T = TEMA.konman, K = a.K();
     if (!a.konmanAda(Bn)) return '<section class="lb-pg"><p>' + kuning('Realisasi Konman ' + p.nama + ' belum diisi. Isi dulu di tab Konman, lalu buat ulang laporan.') + '</p></section>';
@@ -95,18 +149,15 @@
     var bln = K.months.filter(function (m) { return a.konmanAda(m); }), idxNow = K.months.indexOf(Bn);
     var stTeks = function (v) { return v === null ? ['Belum ada data', 'EEF0F4', '7C8399'] : v >= 0.9999 ? ['Tercapai', 'E3F4EA', '1F8A4C'] : v >= 0.95 ? ['Hampir tercapai', 'FBF0DC', 'B7791F'] : ['Di bawah target', 'FBE5E5', 'C53030']; };
     var h = '';
-    // 1. sampul
-    h += '<section class="lb-pg lb-pg-cov">' + sampul(T, 'Laporan Bulanan Kontrak Manajemen', 'Periode ' + p.nama + ' · kumulatif Januari s.d. ' + p.bl,
-      '<p data-warna="FFFFFF" data-sz="20">&nbsp;</p><p data-warna="' + T.ac2 + '" data-sz="64"><b>' + D.fmt(skor, 2) + '</b></p><p data-warna="FFFFFF" data-sz="20">Skor Kontrak Manajemen setelah pengurang kepatuhan</p>') +
-      '<p>&nbsp;</p>' + tabel([th('Indikator tercapai', 25), th('Hampir tercapai', 25), th('Di bawah target', 25), th('Pengurang kepatuhan', 25)],
-        ['<tr>' + td('<b>' + hijau + '</b> dari ' + cap.length, { bg: 'E3F4EA' }) + td('<b>' + kuningN + '</b>', { bg: 'FBF0DC' }) + td('<b>' + merah + '</b>', { bg: 'FBE5E5' }) + td('<b>' + (pg ? '−' + D.fmt(pg, 2) : 'Tidak ada') + '</b>') + '</tr>'], 'lb-kartu') +
-      '<p>&nbsp;</p><p><b>Tagline / tema bulan ini:</b> ' + kuning('tuliskan tema atau pesan utama bulan ini') + '</p></section>';
-    // 2. ringkasan eksekutif
+    // 1. banner + ringkasan eksekutif (halaman pertama langsung berisi)
     var nar = window.DashLap.narasi();
-    h += '<section class="lb-pg"><h2>1. Ringkasan Eksekutif</h2>' + nar.map(function (x) {
+    h += '<section class="lb-pg">' + banner('konman', T.judul, 'Periode ' + p.nama + ' · UPDL Semarang') +
+      tabel([th('Skor Kontrak Manajemen', 24), th('Indikator tercapai', 19), th('Hampir tercapai', 19), th('Di bawah target', 19), th('Pengurang kepatuhan', 19)],
+        ['<tr>' + td('<b>' + D.fmt(skor, 2) + '</b>', { bg: T.soft, cls: 'c' }) + td('<b>' + hijau + '</b> dari ' + cap.length, { bg: 'E3F4EA', cls: 'c' }) + td('<b>' + kuningN + '</b>', { bg: 'FBF0DC', cls: 'c' }) + td('<b>' + merah + '</b>', { bg: 'FBE5E5', cls: 'c' }) + td('<b>' + (pg ? '−' + D.fmt(pg, 2) : 'Tidak ada') + '</b>', { cls: 'c' }) + '</tr>'], 'lb-kartu') +
+      '<h2>1. Ringkasan Eksekutif</h2>' + nar.map(function (x) {
       return typeof x === 'string' ? '<p data-align="just">' + esc(x) + '</p>' : '<p data-align="just">' + esc(x.intro) + '</p><ol>' + x.butir.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ol>' + (x.tutup ? '<p data-align="just">' + esc(x.tutup) + '</p>' : '');
     }).join('') + '<p data-align="just">' + kuning('tambahkan catatan manajemen bila perlu (konteks kebijakan, kejadian khusus bulan ini)') + '</p>' +
-      '<h3>Capaian skor Kontrak Manajemen per bulan</h3>' + svgBatang(bln.map(function (m) { return D.cap(m).slice(0, 3); }), [{ nama: 'Skor', v: bln.map(function (m) { return a.totalSkor(m); }), warna: T.ac, label: true, des: 1, warnaV: function (v) { return v >= 100 ? '1F8A4C' : v >= 95 ? 'B7791F' : 'C53030'; } }], 100) +
+      '<h3>Capaian skor Kontrak Manajemen per bulan</h3>' + svgBatang(bln.map(function (m) { return D.cap(m).slice(0, 3); }), [{ nama: 'Skor', v: bln.map(function (m) { return a.totalSkor(m); }), warna: T.ac, label: true, des: 1, warnaV: function (v) { return v >= 100 ? '1F8A4C' : v >= 95 ? 'B7791F' : 'C53030'; } }], 100, { h: 170 }) +
       '<p class="lb-cap">Garis putus-putus merah = target 100. Hijau ≥ 100, kuning 95–99, merah &lt; 95.</p></section>';
     // 3. capaian per indikator
     h += '<section class="lb-pg"><h2>2. Capaian per Indikator · ' + esc(p.nama) + '</h2>' + tabel([th('No', 5), th('Indikator', 27), th('Satuan', 10), th('Bobot', 7), th('Target Smt II', 10), th('Target ' + esc(p.bl), 10), th('Realisasi', 10), th('Capaian', 9), th('Status', 12)],
@@ -125,9 +176,7 @@
       h += '<div class="lb-ind"><h3>' + esc(a.labelNo(it)) + '. ' + esc(it.nama) + '</h3>' +
         tabel([th('PIC', 16), th('Satuan', 16), th('Target Smt II', 16), th('Target ' + esc(p.bl), 16), th('Realisasi', 16), th('Status', 20)],
           ['<tr>' + td(esc(it.pic || '–')) + td(esc(it.satuan || '–')) + td(esc(it.target2 || '–')) + td(esc(it.target[Bn] ? it.target[Bn].d : '–')) + td(esc(D.hasData(it, Bn) ? it.real[Bn].d : '–')) + td(st[0] + (x.v === null ? '' : ' · ' + D.pct(x.v, 1)), { bg: st[1], fg: st[2] }) + '</tr>'], 'lb-kecil') +
-        (ms.length > 1 ? svgBatang(ms.map(function (m) { return D.cap(m).slice(0, 3); }), [
-          { nama: 'Target', v: ms.map(function (m) { return it.target[m] ? D.num(it.target[m].v) : null; }), warna: 'B9C3D6' },
-          { nama: 'Realisasi', v: ms.map(function (m) { return D.hasData(it, m) ? D.num(it.real[m].v) : null; }), warna: T.ac }], null, { w: 640, h: 150 }) : '') +
+        (ms.length > 1 ? grafikIndikator(it, ms, T) : '') +
         '<p data-align="just"><b>Analisa:</b> ' + esc(ana) + ' ' + (it.ket && it.ket[Bn] ? esc(it.ket[Bn]) : kuning('jelaskan penyebab capaian bulan ini')) + '</p>' +
         '<p data-align="just"><b>Action step:</b> ' + kuning(x.v !== null && x.v >= 0.9999 ? 'langkah mempertahankan capaian' : 'langkah perbaikan, PIC, dan tenggat') + '</p></div>';
     });
@@ -159,6 +208,39 @@
     b += '<tr>' + td('<small>Kemungkinan ↑ / Dampak →</small>', { bg: 'F4F5F8' }) + DM_N.map(function (x) { return td('<small>' + x + '</small>', { bg: 'F4F5F8', cls: 'c' }); }).join('') + '</tr>';
     return '<p class="lb-cap"><b>' + esc(judul) + '</b></p><table class="lb-t lb-peta"><tbody>' + b + '</tbody></table>';
   }
+  /* Pemantauan Risiko Fraud (FRA): ringkasan, profil per proses, risiko yang perlu perhatian, progres rencana aksi per PIC */
+  var SKEMA = { Corruption: 'Korupsi', AssetMisappropriation: 'Penyalahgunaan aset', FraudulentStatement: 'Kecurangan laporan', ScammingDataTheft: 'Penipuan / pencurian data' };
+  function fraHtml(F) {
+    var G = F.ringkas, rs = F.risiko || [], ak = F.aksi || [], totA = G.aksi.Selesai + G.aksi.Proses + G.aksi.Belum;
+    var ya = function (t) { return /^(ya|terjadi|muncul)/i.test(String(t || '').trim()); };
+    var turun = rs.filter(function (r) { return /turun/i.test(r.perubahan || ''); }).length, modRes = rs.filter(function (r) { return lvIdx(r.res) >= 1; });
+    var rf = rs.filter(function (r) { return ya(r.rfMuncul); }), kj = rs.filter(function (r) { return ya(r.kejadian); });
+    var h = '<h2>6. Pemantauan Risiko Fraud (FRA)</h2>' + (F.periode ? '<p class="lb-cap">Periode pemantauan FRA: <b>' + esc(F.periode) + '</b>.</p>' : '') +
+      tabel([th('Risiko fraud', 20), th('Red flag muncul', 20), th('Kejadian fraud', 20), th('Residu ≥ Moderat', 20), th('Rencana aksi selesai', 20)],
+        ['<tr>' + td('<b>' + G.n + '</b>', { cls: 'c' }) + td('<b>' + G.redflag + '</b>', G.redflag ? { bg: 'FBF0DC', fg: 'B7791F', cls: 'c' } : { bg: 'E3F4EA', cls: 'c' }) + td('<b>' + G.kejadian + '</b>', G.kejadian ? { bg: 'FBE5E5', fg: 'C53030', cls: 'c' } : { bg: 'E3F4EA', cls: 'c' }) +
+          td('<b>' + modRes.length + '</b>', { cls: 'c' }) + td('<b>' + G.aksi.Selesai + '</b> dari ' + totA + (totA ? ' (' + D.fmt(G.aksi.Selesai / totA * 100, 0) + '%)' : ''), { cls: 'c' }) + '</tr>'], 'lb-kartu lb-kecil') +
+      '<p data-align="just">Dari ' + G.n + ' risiko fraud yang dipantau, ' + turun + ' risiko turun level dari inheren ke residu' + (modRes.length ? ' dan ' + modRes.length + ' risiko masih berlevel residu Moderat ke atas' : '; seluruh risiko berlevel residu Rendah') + '. ' +
+      (rf.length ? 'Red flag muncul pada ' + rf.map(function (r) { return r.id; }).join(', ') + '. ' : 'Tidak ada red flag yang muncul. ') + (kj.length ? kj.length + ' kejadian fraud tercatat dan perlu ditindaklanjuti. ' : 'Tidak ada kejadian fraud yang tercatat. ') +
+      'Dari ' + totA + ' rencana aksi mitigasi, ' + G.aksi.Selesai + ' selesai, ' + G.aksi.Proses + ' dalam proses, dan ' + G.aksi.Belum + ' belum dimulai.</p>';
+    var pr = Object.keys(G.proses || {});
+    if (pr.length) h += '<h3>Profil risiko fraud per proses bisnis</h3>' + tabel([th('Proses bisnis', 40), th('Jumlah', 12), th('Inheren ≥ Moderat', 16), th('Residu ≥ Moderat', 16), th('Residu tertinggi', 16)], pr.map(function (k) {
+      var x = G.proses[k], jml = 0, im = 0, rm = 0, top = -1;
+      LV.forEach(function (l, i) { jml += x.inh[l] || 0; if (i >= 1) { im += x.inh[l] || 0; rm += x.res[l] || 0; } if ((x.res[l] || 0) > 0) top = i; });
+      return '<tr>' + td(esc(k)) + td(String(jml), { cls: 'c' }) + td(String(im), { cls: 'c' }) + td(String(rm), rm ? { bg: 'FBF0DC', cls: 'c' } : { cls: 'c' }) + td(top >= 0 ? chip(LV[top]) : '–', { cls: 'c' }) + '</tr>';
+    }), 'lb-kecil') + '<p class="lb-cap">Skema fraud: ' + Object.keys(G.skema || {}).map(function (k) { return esc(SKEMA[k] || k) + ' ' + G.skema[k]; }).join(' · ') + '.</p>';
+    var perlu = rs.filter(function (r) { return lvIdx(r.res) >= 1 || ya(r.rfMuncul) || ya(r.kejadian); });
+    h += '<h3>Risiko fraud yang perlu perhatian</h3>' + (perlu.length ? tabel([th('ID', 8), th('Risiko fraud', 32), th('Inheren → residu', 16), th('Red flag / kejadian', 14), th('Progres mitigasi', 18), th('PIC', 12)], perlu.map(function (r) {
+      var tanda = [ya(r.rfMuncul) ? 'Red flag muncul' : '', ya(r.kejadian) ? 'Kejadian' : ''].filter(Boolean).join(', ') || 'Tidak ada';
+      return '<tr>' + td('<small>' + esc(r.id) + '</small>') + td(esc(r.des) + '<br><small>' + esc(r.proses || '') + '</small>') + td(chip(r.inh) + ' → ' + chip(r.res)) + td(esc(tanda), tanda === 'Tidak ada' ? {} : { bg: 'FBF0DC', fg: 'B7791F' }) +
+        td(r.progres ? '<small>' + esc(r.progres) + '</small>' : kuning('progres mitigasi')) + td('<small>' + esc(r.pic || '') + '</small>') + '</tr>';
+    }), 'lb-kecil') : '<p>Seluruh risiko fraud berlevel residu Rendah tanpa red flag maupun kejadian.</p>');
+    var pic = {}; ak.forEach(function (a) { var k = String(a[4] || '–').trim() || '–', st = /selesai/i.test(a[7]) ? 0 : /proses/i.test(a[7]) ? 1 : 2; (pic[k] = pic[k] || [0, 0, 0])[st]++; });
+    var pk = Object.keys(pic).sort(function (a, b) { return (pic[b][1] + pic[b][2]) - (pic[a][1] + pic[a][2]); });
+    if (pk.length) h += '<h3>Progres rencana aksi mitigasi per PIC</h3>' + tabel([th('PIC', 40), th('Selesai', 15), th('Proses', 15), th('Belum', 15), th('Total', 15)], pk.map(function (k) {
+      var x = pic[k]; return '<tr>' + td(esc(k)) + td(String(x[0]), { cls: 'c', bg: x[0] ? 'E3F4EA' : '' }) + td(String(x[1]), { cls: 'c' }) + td(String(x[2]), x[2] ? { cls: 'c', bg: 'FBE5E5', fg: 'C53030' } : { cls: 'c' }) + td('<b>' + (x[0] + x[1] + x[2]) + '</b>', { cls: 'c' }) + '</tr>';
+    }), 'lb-kecil');
+    return h;
+  }
   function laporanRisiko() {
     var a = A(), S = a.S, p = per(), T = TEMA.risiko, RR = S.data.rr;
     if (!RR || RR.error || !RR.rows || !RR.rows.length) return '<section class="lb-pg"><p>' + kuning('Risk Register belum terbaca' + (RR && RR.error ? ': ' + RR.error : '') + '. Pastikan Apps Script terbaru sudah dipasang.') + '</p></section>';
@@ -171,12 +253,11 @@
     var kriIdMerah = {}; kriMerah.forEach(function (x) { kriIdMerah[String(x.k.id || '').trim()] = true; });
     var adaPantau = Object.keys(PT).length;
     var h = '';
-    // sampul dengan peta risiko residu
-    h += '<section class="lb-pg lb-pg-cov">' + sampul(T, 'Laporan Bulanan Manajemen Risiko', 'Periode ' + p.nama + ' · Profil Risiko UPDL Semarang ' + p.y,
-      '<p data-warna="FFFFFF" data-sz="20">&nbsp;</p><p data-warna="' + T.ac2 + '" data-sz="56"><b>' + R.length + ' risiko</b></p><p data-warna="FFFFFF" data-sz="20">' + Rs[4] + ' ekstrem · ' + Rs[3] + ' sangat tinggi · ' + Rs[2] + ' tinggi (level residu)</p>') +
-      '<p>&nbsp;</p>' + petaHtml(R, 'resK', 'resD', 'res', 'Peta risiko residu ' + p.nama + ' (angka = jumlah risiko)') + '</section>';
     // 1. ringkasan
-    h += '<section class="lb-pg"><h2>1. Ringkasan</h2>' +
+    h += '<section class="lb-pg">' + banner('risiko', T.judul, 'Periode ' + p.nama + ' · Profil Risiko UPDL Semarang ' + p.y) +
+      tabel([th('Jumlah risiko', 20), th('Residu Ekstrem', 20), th('Residu Sangat Tinggi', 20), th('Residu Tinggi', 20), th('KRI merah', 20)],
+        ['<tr>' + td('<b>' + R.length + '</b>', { bg: T.soft, cls: 'c' }) + td('<b>' + Rs[4] + '</b>', { bg: Rs[4] ? 'FBE5E5' : 'F4F5F8', cls: 'c' }) + td('<b>' + Rs[3] + '</b>', { bg: Rs[3] ? 'FDEBDD' : 'F4F5F8', cls: 'c' }) + td('<b>' + Rs[2] + '</b>', { bg: Rs[2] ? 'FBF0DC' : 'F4F5F8', cls: 'c' }) + td('<b>' + kriMerah.length + '</b>', { bg: kriMerah.length ? 'FBE5E5' : 'E3F4EA', cls: 'c' }) + '</tr>'], 'lb-kartu') +
+      '<h2>1. Ringkasan</h2>' +
       '<p data-align="just">Profil Risiko UPDL Semarang ' + p.y + ' memuat ' + R.length + ' risiko' + (n(function (r) { return /peluang|opportun/i.test(r.jenis); }) ? ' (termasuk ' + n(function (r) { return /peluang|opportun/i.test(r.jenis); }) + ' peluang)' : '') + '. Setelah kontrol eksisting, ' + turun + ' risiko turun level dari inheren ke residu, dan ' + capaiTgt + ' risiko sudah berada pada atau di bawah level target. ' +
       'Saat ini ' + tinggi.length + ' risiko masih berlevel residu Tinggi ke atas' + (kriMerah.length ? ', dan ' + kriMerah.length + ' KRI berstatus merah' : '') + '.</p>' +
       (S.data.fra && S.data.fra.ringkas ? '<p data-align="just">Risiko fraud (FRA): ' + S.data.fra.ringkas.n + ' risiko, ' + S.data.fra.ringkas.redflag + ' red flag muncul, ' + S.data.fra.ringkas.kejadian + ' kejadian tercatat.</p>' : '') +
@@ -203,12 +284,7 @@
         var k = x.k, ak = x.ak, st = ak ? ak.st : null, warna = { good: ['E3F4EA', '1F8A4C', 'Hijau'], warn: ['FBF0DC', 'B7791F', 'Kuning'], bad: ['FBE5E5', 'C53030', 'Merah'] }[st] || ['EEF0F4', '7C8399', 'Belum diukur'];
         return '<tr>' + td('<small>' + esc(k.id || '') + '</small>') + td(esc(k.peristiwa || '')) + td(ak ? esc(a.kriFmt(k, ak.v)) + ' <small>(' + BLN[ak.m].slice(0, 3) + ')</small>' : '–') + td(warna[2], { bg: warna[0], fg: warna[1] }) + td(esc(String(k.pic || '').replace(/\s*\(R\)$/, ''))) + '</tr>';
       }), 'lb-kecil') : '<p>Data KRI belum tersedia.</p>') +
-      (S.data.fra && S.data.fra.ringkas ? '<h2>6. Ringkasan Risiko Fraud (FRA)</h2>' + (function (F) {
-        var lv = Object.keys(F.res || {});
-        return tabel([th('Jumlah risiko', 20), th('Red flag muncul', 20), th('Kejadian', 20), th('Rencana aksi selesai', 20), th('Proses / belum', 20)],
-          ['<tr>' + td('<b>' + F.n + '</b>') + td(String(F.redflag), F.redflag ? { bg: 'FBF0DC', fg: 'B7791F' } : {}) + td(String(F.kejadian), F.kejadian ? { bg: 'FBE5E5', fg: 'C53030' } : {}) + td(String(F.aksi.Selesai)) + td(F.aksi.Proses + ' / ' + F.aksi.Belum) + '</tr>'], 'lb-kecil') +
-          (lv.length ? '<p class="lb-cap">Level residu: ' + lv.map(function (k) { return k + ' ' + F.res[k]; }).join(' · ') + '</p>' : '');
-      })(S.data.fra.ringkas) : '') +
+      (S.data.fra && S.data.fra.ringkas ? fraHtml(S.data.fra) : '') +
       '<h2>' + (S.data.fra && S.data.fra.ringkas ? '7' : '6') + '. Penutup</h2><p data-align="just">Secara umum, ' + tinggi.length + ' dari ' + R.length + ' risiko masih memerlukan perhatian dengan level residu Tinggi ke atas. ' + kuning('kesimpulan dan arahan manajemen') + '</p>' +
       '<p data-align="just"><b>Keputusan yang diperlukan:</b> ' + kuning('keputusan atau dukungan yang diminta dari manajemen') + '</p><p>&nbsp;</p>' + ttd() + '</section>';
     return h;
@@ -238,7 +314,7 @@
       '<div class="lb-info"><b>' + esc(p.nama) + '</b> · Klik teks untuk menyunting. Bagian <mark>kuning</mark> perlu diisi; latar kuning hilang setelah diisi.</div>' +
       '<div class="lb-ttdpil">Tanda tangan: ' + cek('tl', 'TL EPMK') + cek('asman', 'Asman') + cek('mgr', 'Manajer') + '</div>' +
       '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button><button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
-      '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
+      '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac3:#' + T.ac3 + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
   }
   function klik(e) {
     var j = e.target.closest('[data-lbj]'); if (j) { L.jenis = j.getAttribute('data-lbj'); return susun(); }
@@ -269,7 +345,7 @@
   }
   function svgKePng(svg) {
     return new Promise(function (ok) {
-      var W = +svg.getAttribute('width') || 640, H = +svg.getAttribute('height') || 200, img = new Image(), sk = 2;
+      var W = +svg.getAttribute('width') || 640, H = +svg.getAttribute('height') || 200, img = new Image(), sk = svg.classList.contains('lb-banner') ? 3 : 2;
       img.onload = function () { var c = document.createElement('canvas'); c.width = W * sk; c.height = H * sk; var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
         c.toBlob(function (b) { b.arrayBuffer().then(function (ab) { ok({ data: new Uint8Array(ab), w: W, h: H }); }); }, 'image/png'); };
       img.onerror = function () { ok(null); };
@@ -310,7 +386,7 @@
             alignment: al === 'center' ? X.AlignmentType.CENTER : al === 'right' ? X.AlignmentType.RIGHT : al === 'just' ? X.AlignmentType.JUSTIFIED : undefined }, extra || {}));
         }
         function tabelDocx(tb, lebar) {
-          var tanpa = tb.hasAttribute('data-tanpa-garis'), sampulT = tb.classList.contains('lb-cov'), tahan = tb.classList.contains('lb-ttd'), trs = Array.prototype.slice.call(tb.querySelectorAll(':scope > thead > tr, :scope > tbody > tr'));
+          var tanpa = tb.hasAttribute('data-tanpa-garis'), sampulT = tb.classList.contains('lb-cov'), tahan = tb.classList.contains('lb-ttd') || tb.classList.contains('lb-peta'), trs = Array.prototype.slice.call(tb.querySelectorAll(':scope > thead > tr, :scope > tbody > tr'));
           var pertama = trs[0] ? Array.prototype.slice.call(trs[0].children) : [], kolom = 0; pertama.forEach(function (c) { kolom += +(c.getAttribute('colspan') || 1); });
           var ws = []; pertama.forEach(function (c) { var w = +c.getAttribute('data-w'), sp = +(c.getAttribute('colspan') || 1); for (var i = 0; i < sp; i++) ws.push(w ? w / sp : 0); });
           var tot = ws.reduce(function (s, x) { return s + x; }, 0), kosong = ws.filter(function (x) { return !x; }).length;
@@ -321,7 +397,7 @@
             var ci = 0, kepala = tr.parentNode.tagName === 'THEAD';
             return new X.TableRow({ tableHeader: kepala, cantSplit: true, children: Array.prototype.map.call(tr.children, function (c) {
               var sp = +(c.getAttribute('colspan') || 1), w = 0; for (var i = 0; i < sp; i++) w += dxa[ci + i] || 0; ci += sp;
-              var chipEl = c.querySelector('.lb-chip'), bg = hexOk(c.getAttribute('data-bg')) || (chipEl ? hexOk(chipEl.getAttribute('data-bg')) : undefined) || (kepala ? T.ac : undefined), fg = hexOk(c.getAttribute('data-fg')) || (kepala ? 'FFFFFF' : undefined);
+              var chips = c.querySelectorAll('.lb-chip'), chipEl = chips.length === 1 ? chips[0] : null, bg = hexOk(c.getAttribute('data-bg')) || (chipEl ? hexOk(chipEl.getAttribute('data-bg')) : undefined) || (kepala ? T.ac : undefined), fg = hexOk(c.getAttribute('data-fg')) || (kepala ? 'FFFFFF' : undefined);
               var isi = []; blok(c, isi, w - 160, { b: kepala, c: fg, sz: tb.classList.contains('lb-kecil') ? 17 : undefined, tengah: c.classList.contains('c') || !!chipEl, tahan: tahan });
               if (!isi.length) isi.push(new X.Paragraph({ children: [] }));
               return new X.TableCell({ children: isi, columnSpan: sp > 1 ? sp : undefined, width: { size: w, type: X.WidthType.DXA }, verticalAlign: X.VerticalAlign.CENTER,
@@ -342,8 +418,9 @@
             if (/^(B|STRONG|I|EM|U|SPAN|SMALL|MARK|A|BR)$/.test(tg)) { inline.push(n); return; }
             siram();
             if (tg === 'SVG') { var im = PNG.get(n); if (im) { var sk = Math.min(1, (lebar / 15) / im.w); out.push(new X.Paragraph({ alignment: X.AlignmentType.CENTER, spacing: { after: 80 }, children: [new X.ImageRun({ type: 'png', data: im.data, transformation: { width: Math.round(im.w * sk), height: Math.round(im.h * sk) } })] })); } return; }
-            if (tg === 'H1' || tg === 'H2' || tg === 'H3') { out.push(new X.Paragraph({ heading: tg === 'H3' ? X.HeadingLevel.HEADING_2 : X.HeadingLevel.HEADING_1, keepNext: true, children: runs(n, {}) })); return; }
-            if (tg === 'P') { if (n.classList.contains('lb-ruang')) { out.push(new X.Paragraph({ keepNext: true, spacing: { before: 700 }, children: [] })); return; } out.push(para(n, f, f.tengah ? { alignment: X.AlignmentType.CENTER } : null)); return; }
+            if (tg === 'H2') { out.push(new X.Paragraph({ heading: X.HeadingLevel.HEADING_1, keepNext: true, shading: { fill: T.ac, type: X.ShadingType.CLEAR, color: 'auto' }, indent: { left: 120, right: 120 }, border: { right: { style: X.BorderStyle.SINGLE, size: 48, color: T.ac2, space: 6 } }, children: runs(n, { c: 'FFFFFF', b: true }) })); return; }
+            if (tg === 'H1' || tg === 'H3') { out.push(new X.Paragraph({ heading: X.HeadingLevel.HEADING_2, keepNext: true, children: runs(n, {}) })); return; }
+            if (tg === 'P') { if (n.classList.contains('lb-ruang')) { out.push(new X.Paragraph({ keepNext: true, spacing: { before: 700 }, children: [] })); return; } out.push(para(n, f, Object.assign(f.tengah ? { alignment: X.AlignmentType.CENTER } : {}, n.classList.contains('lb-cap') ? { keepNext: true } : {}))); return; }
             if (tg === 'OL' || tg === 'UL') { var inst = ++nOl; Array.prototype.forEach.call(n.children, function (li) { out.push(new X.Paragraph({ children: runs(li, f), numbering: { reference: tg === 'OL' ? 'ol' : 'ul', level: 0, instance: inst }, spacing: { after: 60 }, alignment: X.AlignmentType.JUSTIFIED })); }); return; }
             if (tg === 'TABLE') { out.push(tabelDocx(n, lebar)); out.push(new X.Paragraph({ spacing: { after: 80 }, children: [] })); return; }
             blok(n, out, lebar, f);   // div, section, dll.
