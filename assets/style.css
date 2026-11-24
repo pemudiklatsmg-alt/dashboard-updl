@@ -2607,3 +2607,18 @@ html body .tumpuk[hidden] + .tm-dots { display: none !important; }
 [data-bagian="maturity"] .ml, [data-bagian="maturity"] .ml.fill { max-height: none !important; overflow: visible; height: auto !important; }
 section.panel[data-bagian="maturity"], section.panel[data-bagian="perbaikan"] { flex-shrink: 0 !important; height: auto !important; max-height: none !important; overflow: visible !important; }
 [data-bagian="maturity"] #mlList { flex: none !important; }
+
+/* ---------- Laporan bulanan (pratinjau & sunting) ---------- */
+body.lb-buka{overflow:hidden}
+.lb-wrap{position:fixed;inset:0;z-index:90;background:var(--bg,#F2F3F7);display:flex;flex-direction:column}
+.lb-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px;padding:8px max(13px,env(safe-area-inset-right,0px)) 8px max(13px,env(safe-area-inset-left,0px));padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--card,#fff);border-bottom:1px solid var(--line,#E3E6EE)}
+.lb-bar .seg{display:inline-flex;border:1px solid var(--line,#E3E6EE);border-radius:8px;overflow:hidden}
+.lb-bar .seg button{border:0;background:none;padding:6px 13px;font:inherit;font-size:13px;color:inherit;cursor:pointer}
+.lb-bar .seg button[aria-pressed=true]{background:var(--accent,#0B3B6F);color:#fff}
+.lb-info{flex:1 1 260px;min-width:0;font-size:12.5px;color:var(--muted,#5A6380)}.lb-info mark{background:#FFF176;padding:0 3px;border-radius:2px}
+.lb-ttdpil{display:flex;gap:8px;align-items:center;font-size:12.5px;flex-wrap:wrap}.lb-ttdpil label{display:inline-flex;gap:4px;align-items:center}
+.lb-aksi{display:flex;gap:8px;flex-wrap:wrap}
+.lb-scroll{flex:1;overflow:auto;padding:21px 13px 34px;background:#E6E8EE}
+.lb-doc{outline:none}
+.lb-doc .lb-chart{pointer-events:none}
+@media (max-width:700px){.lb-scroll{padding:8px 0}.lb-doc{zoom:.46}}
