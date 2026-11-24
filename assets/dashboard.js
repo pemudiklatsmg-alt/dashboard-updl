@@ -2186,6 +2186,7 @@
     tlRows: tlRows, tlStatus: tlStatus, tlAsli: tlAsli, ev: ev, admin: admin, keluar: keluar, reload: muatUlang, toast: toast, openModal: openModal,
     idpRows: idpRows, inoRows: inoRows, kIsu: kIsu, kPihak: kPihak, kSasaran: kSasaran, JALUR: JALUR, KEL_IDP: KEL_IDP, TAHAP: TAHAP, judulNama: judulNama,
     kesegaran: kesegaran, perhatian: perhatian, perubahanTerakhir: perubahanTerakhir, sheetLink: sheetLink, openKualitas: openKualitas, cekKualitas: cekKualitas, ikon: ikon, PIC_DEF: PIC_DEF, renderTugas: renderTugas, muatUlang: muatUlang,
+    kriRows: kriRows, kriAkhir: kriAkhir, kriStatus: kriStatus, kriFmt: kriFmt,
     pilihTab: pilihTab, renderChart: renderChart, tabUntuk: function (n) { if (S.vt === 'semua' || S.vt === 'ringkasan' && n === 'ringkasan') return; var t = tabDari(n); if (t && t !== S.vt) pilihTab(t); }
   };
   function toast(t, ms) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, ms || 4000); }

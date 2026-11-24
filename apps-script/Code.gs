@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 7;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
+var VERSI = 8;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -267,6 +267,7 @@ function buildData_() {
   catch (e) { out.warnings.push('Isu & pihak berkepentingan tidak bisa dibaca: ' + e.message); out.konteks = null; }
 
   // KRI (file Profil Risiko, tab 10. Pemantauan KRI) dan FRA (file FRA terpisah)
+  try { out.rr = luar('rr', function () { return bacaRiskRegister_(cfg); }); } catch (e) { out.rr = { error: e.message }; }
   try { out.kri = luar('kri', function () { return bacaKri_(cfg); }); }
   catch (e) { out.warnings.push('Pemantauan KRI tidak bisa dibaca: ' + e.message); out.kri = null; }
   if (cfg.FRA_ID) {
@@ -1871,4 +1872,38 @@ function fotoPegawai_() {
   }
   try { c.putAll(simpan, 21600); c.put('foto_daftar', JSON.stringify({ k: Object.keys(out), n: nama, x: lewati }), 21600); } catch (e) { /* cache opsional */ }
   return { ok: true, foto: out, nama: nama, lewati: lewati };
+}
+
+
+/* ======================================================================
+   RISK REGISTER (file Profil Risiko, sheet "RISK REGISTER") + Bulanan-Pemantauan Perlakuan.
+   Untuk Laporan Manajemen Risiko bulanan. Kolom dibaca relatif terhadap kolom "No/ ID Risk".
+   ====================================================================== */
+function bacaRiskRegister_(cfg) {
+  if (!cfg.PROFIL_RISIKO_ID) return null;
+  var ss = SpreadsheetApp.openById(String(cfg.PROFIL_RISIKO_ID).trim()), sh = ss.getSheetByName(cfg.RISK_REGISTER_TAB || 'RISK REGISTER');
+  if (!sh) return { error: 'Sheet "' + (cfg.RISK_REGISTER_TAB || 'RISK REGISTER') + '" tidak ditemukan' };
+  var d = sh.getDataRange().getDisplayValues(), hr = -1, ci = -1;
+  for (var i = 0; i < Math.min(d.length, 20) && hr < 0; i++) for (var j = 0; j < d[i].length; j++) if (/^No\/?\s*ID Risk/i.test(String(d[i][j]).trim())) { hr = i; ci = j; break; }
+  if (hr < 0) return { error: 'Kolom "No/ ID Risk" tidak ditemukan di RISK REGISTER' };
+  var g = function (r, k) { var x = r[ci + k]; return x === undefined ? '' : String(x).trim(); };
+  var rows = [];
+  for (i = hr + 1; i < d.length; i++) {
+    var r = d[i], id = g(r, 0);
+    if (!/^[A-Z]{3,}[A-Z0-9.\-]*\d/.test(id)) continue;
+    rows.push({ id: id, sasaran: g(r, -3), des: g(r, 1), jenis: g(r, 2), pemilik: g(r, 3), takso: g(r, 4),
+      inhK: g(r, 7), inhD: g(r, 8), inh: g(r, 9), kontrol: g(r, 11), efektif: g(r, 12), resK: g(r, 13), resD: g(r, 14), res: g(r, 15),
+      keputusan: g(r, 18), strategi: g(r, 19), rencana: g(r, 20), pic: g(r, 21), waktu: g(r, 23), frek: g(r, 25), tgtK: g(r, 26), tgtD: g(r, 27), tgt: g(r, 28) });
+  }
+  var pantau = {}, judul = '', sp = ss.getSheetByName(cfg.PEMANTAUAN_TAB || 'Bulanan-Pemantauan Perlakuan');
+  if (sp) {
+    var p = sp.getDataRange().getDisplayValues(), ph = -1, pc = -1;
+    for (i = 0; i < Math.min(p.length, 15); i++) { var t = p[i].join(' '); if (/PEMANTAUAN PERLAKUAN RISIKO PERIODE/i.test(t)) judul = t.trim(); }
+    for (i = 0; i < Math.min(p.length, 15) && ph < 0; i++) for (j = 0; j < p[i].length; j++) if (/^No\/?\s*ID Risk/i.test(String(p[i][j]).trim())) { ph = i; pc = j; break; }
+    if (ph >= 0) for (i = ph + 1; i < p.length; i++) {
+      var q = p[i], pid = String(q[pc] || '').trim(); if (!/^[A-Z]{3,}.*\d/.test(pid)) continue;
+      pantau[pid] = { catatan: String(q[pc + 3] || '').trim(), status: String(q[pc + 4] || '').trim(), perluTL: String(q[pc + 5] || '').trim(), tl: String(q[pc + 6] || '').trim() };
+    }
+  }
+  return { rows: rows, pantau: pantau, judulPantau: judul };
 }
