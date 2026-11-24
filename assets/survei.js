@@ -98,6 +98,7 @@
   function tutupAjak() { var el = document.getElementById('svAjak'); if (el) el.remove(); }
   function ajak() {
     if (!A() || !A().S || !A().S.data || document.getElementById('svAjak')) return;
+    if (!(A().S.data.meta && A().S.data.meta.versi >= 10)) return;   // ajakan baru tampil setelah Apps Script dengan survei terpasang
     if (bacaLokal(KUNCI) || sessionStorage.getItem('dash-survei-nanti')) return;
     var el = document.createElement('div'); el.id = 'svAjak'; el.className = 'sv-ajak'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Ajakan survei');
     el.innerHTML = '<div><b>Bantu kami menilai dashboard ini</b><span>Survei kepuasan, sekitar 2 menit.</span></div><div class="sv-ab"><button type="button" class="btn" data-sv="nanti">Nanti</button><button type="button" class="btn primary" data-sv="buka">Isi survei</button></div>';
