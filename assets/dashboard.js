@@ -408,7 +408,7 @@
       if (hampir.length) L.push({ c: 'warn', t: '<b>' + hampir.length + ' indikator</b> hampir tercapai (95–99%): ' + namaSingkat(hampir, pn), go: 'indikator' });
     }
     var asp = kepRows().filter(function (x) { var n = kepVal(x, Bn); return n !== null && n !== 0; });
-    if (asp.length) L.push({ c: 'bad', t: 'Pengurang kepatuhan <b>−' + D.fmt(pengurang(Bn), 2) + '</b>: ' + namaSingkat(asp, function (x) { return String(x['Aspek Kepatuhan']).trim(); }), go: 'kepatuhan' });
+    if (asp.length) L.push({ c: 'bad', t: 'Pengurang kepatuhan <b>−' + D.fmt(pengurang(Bn), 2) + '</b>: ' + namaSingkat(asp, function (x) { return String(x['Aspek Kepatuhan']).trim(); }), go: 'indikator' });
     var kr = kesegaran().filter(function (x) { return x.kurang; });
     if (kr.length) L.push({ c: 'warn', t: 'Data ' + bl + ' belum diisi: <b>' + kr.map(function (x) { return esc(x.nama); }).join(', ') + '</b>', act: 'segar' });
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set()), nk = r.pakaiRencana || r.tanpaPeserta;
@@ -1155,14 +1155,14 @@
     var urutAsli = function (a, b) { return P.indexOf(a) - P.indexOf(b); };   // urutan mengikuti baris di tab Data - Pegawai
     var id = 0; P.forEach(function (p) { p.id = 'og' + (id++); });
     function kartu(p, cls, up, putus) {
-      var foto = S.foto && p.nip && S.foto[p.nip.toUpperCase()];
-      return '<div class="og-pc og2-c' + (cls ? ' ' + cls : '') + '" data-ogid="' + p.id + '"' + (up ? ' data-up="' + up.id + '"' : '') + (putus ? ' data-putus="1"' : '') + ' data-nip="' + esc(p.nip) + '" data-q="' + esc((p.nama + ' ' + p.jab + ' ' + p.nip).toLowerCase()) + '">' +
+      var foto = fotoDari(p);
+      return '<div class="og-pc og2-c' + (cls ? ' ' + cls : '') + '" data-ogid="' + p.id + '"' + (up ? ' data-up="' + up.id + '"' : '') + (putus ? ' data-putus="1"' : '') + ' data-nip="' + esc(p.nip) + '" data-nama="' + esc(p.nama) + '" data-q="' + esc((p.nama + ' ' + p.jab + ' ' + p.nip).toLowerCase()) + '">' +
         '<span class="og2-f">' + (foto ? '<img src="' + foto + '" alt="">' : '<span class="og2-ini">' + esc(inisial(p.nama)) + '</span>') + '</span>' +
         '<b class="og2-n">' + esc(judulNama(p.nama)) + '</b>' + (p.nip ? '<span class="og2-nip">NIP ' + esc(p.nip) + '</span>' : '') + '<span class="og2-j">' + esc(judulNama(p.jab)) + '</span></div>';
     }
     var direct = anak(root).sort(urutAsli), lanes = direct.filter(function (p) { return anak(p).length; }), staf = direct.filter(function (p) { return !anak(p).length; });
     var sl = staf.slice(0, Math.ceil(staf.length / 2)), sr = staf.slice(Math.ceil(staf.length / 2));
-    var h = '<div class="og2"><div class="og2-in"><div class="og2-head"><div><span class="og2-kk">Struktur Organisasi</span><b>PLN UPDL Semarang</b></div><span>' + esc(S.data.org.periode ? 'Periode ' + S.data.org.periode : '') + '</span></div>' +
+    var h = '<div class="og2"><div class="og2-in"><div class="og2-head"><div><span class="og2-kk">Struktur Organisasi</span><b>PLN UPDL Semarang</b></div><span>' + esc(S.data.org.periode ? 'Periode ' + S.data.org.periode : '') + '<small id="ogFotoSt" class="og2-st">Memuat foto…</small></span></div>' +
       '<div class="og2-apex">' + kartu(root, 'mgr') + '</div><div class="og2-row">';
     h += '<div class="og2-staf">' + sl.map(function (p) { return kartu(p, 'tl', root); }).join('') + '</div>';
     lanes.forEach(function (a) {
@@ -1210,18 +1210,34 @@
     });
     svg.innerHTML = '<path d="' + d1 + '" class="og2-g"/><path d="' + d2 + '" class="og2-g putus"/>';
   }
-  /* foto pegawai: diambil sekali setelah login lewat Apps Script (aksi "foto"), disimpan selama sesi */
+  /* foto pegawai: diambil sekali setelah login lewat Apps Script (aksi "foto"), disimpan selama sesi.
+     Dicocokkan lewat NIP; bila nama file tanpa NIP, lewat nama (cukup sebagian, mis. "Dadang Aris"). */
+  function normNama(t) { return String(t || '').replace(/[^A-Za-z ]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase(); }
+  function fotoDari(p) {
+    var F = S.foto; if (!F) return '';
+    var nip = String(p.nip || '').toUpperCase(); if (nip && F[nip]) return F[nip];
+    var N = S.fotoNama || {}, nm = normNama(p.nama), k = Object.keys(N).filter(function (x) { return x && (nm === x || nm.indexOf(x + ' ') === 0 || x.indexOf(nm + ' ') === 0); })[0];
+    return k ? F[N[k]] || '' : '';
+  }
+  function pasangFoto() {
+    var ada = 0, total = 0;
+    Array.prototype.forEach.call(document.querySelectorAll('#orgBody .og2-c[data-ogid]'), function (c) {
+      total++;
+      var f = fotoDari({ nip: c.getAttribute('data-nip'), nama: c.getAttribute('data-nama') }), w = c.querySelector('.og2-f'); if (!f || !w) return;
+      ada++; var ini = w.querySelector('img') ? '<span class="og2-ini">' + esc(inisial(c.getAttribute('data-nama'))) + '</span>' : w.innerHTML;
+      w.innerHTML = '<img src="' + f + '" alt="">';
+      w.querySelector('img').onerror = function () { w.innerHTML = ini; };   // gambar rusak → kembali ke inisial, tidak kosong
+    });
+    var st = document.getElementById('ogFotoSt');
+    if (st) st.textContent = S.fotoErr ? 'Foto belum bisa dimuat: ' + S.fotoErr : 'Foto ' + ada + ' dari ' + total + ' pegawai' + (S.fotoLewati && S.fotoLewati.length ? ' · dilewati: ' + S.fotoLewati.join(', ') : '');
+  }
   function muatFoto() {
-    if (S.foto || S.fotoMuat) return;
+    if (S.foto || S.fotoMuat) { if (S.foto) pasangFoto(); return; }
     S.fotoMuat = true; var s0 = D.sesi();
     D.api({ aksi: 'foto', token: s0 ? s0.token : '' }).then(function (d) {
-      S.foto = d.foto || {};
-      Array.prototype.forEach.call(document.querySelectorAll('#orgBody .og2-c[data-nip]'), function (c) {
-        var f = S.foto[String(c.getAttribute('data-nip')).toUpperCase()]; if (!f) return;
-        c.querySelector('.og2-f').innerHTML = '<img src="' + f + '" alt="">';
-      });
-      garisOrg();
-    }).catch(function () { S.foto = {}; });
+      S.foto = d.foto || {}; S.fotoNama = d.nama || {}; S.fotoLewati = d.lewati || []; S.fotoErr = '';
+      pasangFoto(); garisOrg();
+    }).catch(function (e) { S.foto = {}; S.fotoErr = e.message; pasangFoto(); });
   }
   window.addEventListener('resize', function () { if (document.querySelector('#orgBody .og2')) { clearTimeout(garisOrg.t); garisOrg.t = setTimeout(garisOrg, 120); } });
   function orgAlihDaya(AD) {
@@ -1533,6 +1549,7 @@
     org: '<rect x="9" y="3" width="6" height="5" rx="1.5"/><rect x="3" y="16" width="6" height="5" rx="1.5"/><rect x="15" y="16" width="6" height="5" rx="1.5"/><path d="M12 8v4M6 16v-2h12v2"/>',
     panah: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8M13 9l3 3-3 3"/>',
     grafik: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    tangga: '<path d="M4 20h16"/><path d="M6 20v-5h3v5"/><path d="M10.5 20v-9h3v9"/><path d="M15 20V6h3v14"/>',
     target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
     lapis: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
     perisai: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
@@ -1749,7 +1766,7 @@
   function hitungTugas() { if (!admin()) return 0; try { return tugasList().filter(function (x) { return x.st === 'bad'; }).length; } catch (e) { return 0; } }
 
   /* ---------- navigasi samping (laptop) ---------- */
-  var NAV = [['ringkasan', 'Ringkasan', 'rumah', 'Gambaran bulan ini'], ['kinerja', 'Kinerja Unit', 'target', 'Konman, indikator, kepatuhan'], ['pembelajaran', 'Rekap Pembelajaran', 'toga', 'Kelas, peserta, HOP'],
+  var NAV = [['ringkasan', 'Ringkasan', 'rumah', 'Gambaran bulan ini'], ['kinerja', 'Kinerja Unit', 'target', 'Konman, indikator, kepatuhan'], ['maturity', 'Maturity Level', 'tangga', 'Proses bisnis & key element'], ['pembelajaran', 'Rekap Pembelajaran', 'toga', 'Kelas, peserta, HOP'],
     ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, ROTI, Sertifikat'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
   function renderSidenav() {
     var el = $('sidenav'); if (!el) return;
@@ -1767,7 +1784,7 @@
   }
 
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
-  var VT = { kinerja: ['bulanan', 'indikator', 'kepatuhan'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT = { kinerja: ['bulanan', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik', 'perbaikan'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* abaikan */ }
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
@@ -1842,7 +1859,7 @@
       { judul: 'Kelas terlaksana (kumulatif)', ket: 'Jumlah kelas berstatus Selesai sejak Januari sampai akhir tiap bulan.', satuan: 'kelas', des: 0, v: tr[1], ke: ['ringkasan', '#kpis > .card:nth-child(3)'], keNama: 'Total Kelas (tab Pembelajaran)' },
       { judul: 'Hari Orang Pelatihan', ket: 'Rata-rata hari pelatihan per pegawai, kumulatif sejak Januari. Garis putus-putus = target Konman bulan itu.', satuan: '', des: 2, v: tr[2], target: tgtHop, ke: ['ringkasan', '#kpis [data-act=hop]'], keNama: 'Hari Orang Pelatihan (tab Pembelajaran)' },
       { judul: 'Kepuasan peserta (EL1)', ket: 'Rata-rata nilai kepuasan peserta skala 1–5, kumulatif sejak Januari.', satuan: '/ 5', des: 2, v: tr[3], target: p.targetL1 ? bln.map(function () { return p.targetL1; }) : null, ke: ['ringkasan', '#kpis [data-act=kepuasan]'], keNama: 'Kepuasan Peserta (tab Pembelajaran)' },
-      { judul: 'Perbaikan berkelanjutan', ke: ['kepatuhan', '#tlBody'], keNama: 'Perbaikan Berkelanjutan' },
+      { judul: 'Perbaikan berkelanjutan', ke: ['perbaikan', '#tlBody'], keNama: 'Perbaikan Berkelanjutan (tab Evaluasi)' },
       { judul: 'Penilaian instruktur (EL1)', ket: 'Rata-rata nilai penilaian instruktur skala 1–5, kumulatif sejak Januari.', satuan: '/ 5', des: 2, v: tr[5], target: p.targetInstruktur ? bln.map(function () { return p.targetInstruktur; }) : null, ke: ['ringkasan', '#kpis [data-act=instruktur]'], keNama: 'Penilaian Instruktur (tab Pembelajaran)' }
     ];
     var tiles = '<div class="rgk-t">' + T.map(function (x, i) {

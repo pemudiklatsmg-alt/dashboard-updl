@@ -2,7 +2,7 @@
    dan ringkasan login untuk Admin. Memakai window.DashApp dari dashboard.js. */
 (function () {
   var $ = function (id) { return document.getElementById(id); }, A = window.DashApp, D = window.Dash, esc = D.esc;
-  var BAGIAN = { ringkasan: 'Pembelajaran', evaluasi: 'Evaluasi pembelajaran', bulanan: 'Capaian per bulan', indikator: 'Indikator & Maturity', kepatuhan: 'Kepatuhan & Perbaikan', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko', kri: 'Key Risk Indicator', fraud: 'Risiko Fraud' };
+  var BAGIAN = { ringkasan: 'Pembelajaran', evaluasi: 'Evaluasi pembelajaran', bulanan: 'Capaian per bulan', indikator: 'Indikator & Kepatuhan', maturity: 'Maturity Level', perbaikan: 'Perbaikan Berkelanjutan', pengembangan: 'IDP & Inovasi', isu: 'Isu & Pihak Berkepentingan', risiko: 'Peta Risiko', kri: 'Key Risk Indicator', fraud: 'Risiko Fraud' };
   function bagian(n) { return document.querySelector('[data-bagian="' + n + '"]'); }
   function siap() { return !!(A.S.data) && !$('app').hidden; }
 
@@ -42,7 +42,7 @@
   /* ---------- mode presentasi ---------- */
   /* Slide disusun otomatis: bagian sejenis yang pendek digabung, bagian dua-panel yang padat dipecah
      per panel, lalu tiap slide diskalakan (CSS zoom) agar mengisi layar. Batas baca: tidak lebih kecil dari ~80%. */
-  var KELOMPOK = [['rgk'], ['bulanan', 'kepatuhan', 'indikator'], ['ringkasan', 'evaluasi', 'pengembangan'], ['isu', 'risiko', 'kri', 'fraud']];
+  var KELOMPOK = [['rgk'], ['bulanan', 'indikator', 'maturity'], ['ringkasan', 'evaluasi', 'perbaikan', 'pengembangan'], ['isu', 'risiko', 'kri', 'fraud']];
   var MIN_BACA = 0.8, URUT = [];
   function el1(x) { x = x.split('#')[0]; return x === 'rgk' ? $('rgk') : bagian(x); }
   function slideEls(sl) { return sl.map(el1).filter(Boolean); }

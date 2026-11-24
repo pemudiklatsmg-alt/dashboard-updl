@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 6;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
+var VERSI = 7;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -1795,7 +1795,7 @@ function cekIzinDrive() { Logger.log(JSON.stringify(infoPerubahan_().file)); }
    Disimpan di tab "Tugas Lain" (dibuat otomatis). Hanya akun Admin yang bisa melihat dan mengubah.
    ====================================================================== */
 var TL_KOLOM_ = ['ID', 'Tanggal', 'Jenis', 'Uraian', 'PIC', 'Tenggat', 'Status', 'Catatan', 'Diubah', 'Oleh'];
-var TL_JENIS_ = ['Disposisi', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Lainnya'];
+var TL_JENIS_ = ['Disposisi', 'Penugasan', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Lainnya'];
 var TL_STATUS_ = ['Belum Dimulai', 'Proses', 'Selesai', 'Hold', 'Dibatalkan'];
 function tabTugasLain_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.TUGASLAIN);
@@ -1853,19 +1853,22 @@ function fotoPegawai_() {
   var id = String(getConfig_().FOTO_PEGAWAI_FOLDER || FOTO_FOLDER_BAWAAN).trim();
   var c = CacheService.getScriptCache(), daftar = c.get('foto_daftar');
   if (daftar) {
-    var keys = JSON.parse(daftar), got = c.getAll(keys.map(function (k) { return 'foto_' + k; })), o = {};
+    var D0 = JSON.parse(daftar), keys = D0.k || [], got = c.getAll(keys.map(function (k) { return 'foto_' + k; })), o = {};
     keys.forEach(function (k) { if (got['foto_' + k]) o[k] = got['foto_' + k]; });
-    if (Object.keys(o).length === keys.length) return { ok: true, foto: o };
+    if (keys.length && Object.keys(o).length === keys.length) return { ok: true, foto: o, nama: D0.n || {}, lewati: D0.x || [] };
   }
-  var out = {}, it = DriveApp.getFolderById(id).getFiles(), simpan = {};
+  // nama file: "NAMA_NIP.jpg" atau cukup "Nama.jpg" (dicocokkan dengan sebagian nama di Data - Pegawai)
+  var out = {}, nama = {}, lewati = [], it = DriveApp.getFolderById(id).getFiles(), simpan = {}, n = 0;
   while (it.hasNext()) {
-    var f = it.next(), nm = f.getName().replace(/\.[a-z]+$/i, '').trim(), m = nm.match(/_\s*([0-9A-Z]{5,})$/i);
-    if (!m || !/^image\//.test(f.getMimeType())) continue;
-    if (f.getSize() > 90000) continue;   // simpan foto kecil (sekitar 480×600 px) agar dashboard tetap ringan
-    var nip = m[1].toUpperCase();
-    out[nip] = 'data:' + f.getMimeType() + ';base64,' + Utilities.base64Encode(f.getBlob().getBytes());
-    simpan['foto_' + nip] = out[nip];
+    var f = it.next(), nm = f.getName().replace(/\.[a-z0-9]+$/i, '').trim(), m = nm.match(/[_\s-]\s*([0-9]{5,}[0-9A-Z]*)$/i);
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(f.getMimeType())) { lewati.push(nm + ' (bukan JPG/PNG)'); continue; }
+    if (f.getSize() > 150000) { lewati.push(nm + ' (lebih dari 150 KB)'); continue; }   // foto kecil saja agar dashboard ringan
+    var kunci = m ? m[1].toUpperCase() : 'F' + (n++);
+    var nmBersih = (m ? nm.slice(0, m.index) : nm).replace(/[_]+/g, ' ').replace(/[^A-Za-z ]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+    out[kunci] = 'data:' + f.getMimeType() + ';base64,' + Utilities.base64Encode(f.getBlob().getBytes());
+    if (nmBersih) nama[nmBersih] = kunci;
+    simpan['foto_' + kunci] = out[kunci];
   }
-  try { c.putAll(simpan, 21600); c.put('foto_daftar', JSON.stringify(Object.keys(out)), 21600); } catch (e) { /* cache opsional */ }
-  return { ok: true, foto: out };
+  try { c.putAll(simpan, 21600); c.put('foto_daftar', JSON.stringify({ k: Object.keys(out), n: nama, x: lewati }), 21600); } catch (e) { /* cache opsional */ }
+  return { ok: true, foto: out, nama: nama, lewati: lewati };
 }

@@ -64,19 +64,31 @@
     if (Kp || In) s2 += '. Hasil Evaluasi Level 1: ' + [Kp ? 'kepuasan peserta ' + D.fmt(Kp.nilai, 2) + ' dari 5' : '', In ? 'penilaian instruktur ' + D.fmt(In.nilai, 2) + ' dari 5' : ''].filter(Boolean).join(' dan ');
     out.push(s2 + '.');
     var P = (a.perhatian ? a.perhatian() : []).filter(function (x) { return !/belum diisi/i.test(teks(x.t)); }).slice(0, 3);
-    if (P.length) out.push('Hal yang perlu ditindaklanjuti: ' + P.map(function (x, i) { return (i + 1) + ') ' + teks(x.t).replace(/\.$/, ''); }).join('; ') + '. Tindak lanjut dikoordinasikan oleh PIC terkait dan dipantau pada rapat kinerja bulan berikutnya.');
+    if (P.length) out.push({ intro: 'Hal yang perlu ditindaklanjuti:', butir: P.map(function (x) { var t = teks(x.t).replace(/\.$/, ''); return t.charAt(0).toUpperCase() + t.slice(1) + '.'; }), tutup: 'Tindak lanjut dikoordinasikan oleh PIC terkait dan dipantau pada rapat kinerja bulan berikutnya.' });
     else out.push('Tidak ada hal mendesak yang perlu ditindaklanjuti bulan ini. Kinerja dipertahankan dan dipantau pada rapat kinerja bulan berikutnya.');
     return out;
   }
   function narasiHtml() {
-    return '<div class="lap-nar"><h4>Analisis singkat</h4>' + narasi().map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+    return '<div class="lap-nar"><h4>Analisis singkat</h4>' + narasi().map(function (p) {
+      if (typeof p === 'string') return '<p>' + esc(p) + '</p>';
+      return '<p>' + esc(p.intro) + '</p><ol>' + p.butir.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ol>' + (p.tutup ? '<p>' + esc(p.tutup) + '</p>' : '');
+    }).join('') + '</div>';
+  }
+  /* Tata letak tanda tangan: 1 orang di kanan; 2 orang: jabatan lebih tinggi kiri, lebih rendah kanan;
+     3 orang: Asman kiri, TL kanan, Manajer di tengah bawah. Urutan jabatan: mgr > asman > tl. */
+  var PERINGKAT = { mgr: 0, asman: 1, tl: 2 };
+  function susunTtd() {
+    var L = opsi.ttd.slice().sort(function (a, b) { return PERINGKAT[a] - PERINGKAT[b]; }).map(penandatangan);
+    if (L.length === 1) return [[null, L[0]]];
+    if (L.length === 2) return [[L[0], L[1]]];
+    return [[L[1], L[2]], ['tengah', L[0]]];
   }
   function ttdHtml() {
     if (!opsi.ttd.length) return '';
-    var L = TTD.filter(function (t) { return opsi.ttd.indexOf(t.k) >= 0; }).map(function (t) { return penandatangan(t.k); });
-    return '<div class="lap-ttdblok" style="--n:' + L.length + '"><div class="lap-tempat">Semarang, ' + esc(tglPanjang(opsi.tgl)) + '</div><div class="lap-kol">' + L.map(function (p) {
-      return '<div class="lap-k"><span>' + esc(p.peran) + ',</span><b>' + esc(p.jab) + '</b><i class="lap-ruang"></i><u>' + esc(p.nama || '(nama)') + '</u>' + (p.nip ? '<small>NIP ' + esc(p.nip) + '</small>' : '') + '</div>';
-    }).join('') + '</div></div>';
+    var k = function (p) { return p ? '<div class="lap-k"><span>' + esc(p.peran) + ',</span><b>' + esc(p.jab) + '</b><i class="lap-ruang"></i><u>' + esc(p.nama || '(nama)') + '</u>' + (p.nip ? '<small>NIP ' + esc(p.nip) + '</small>' : '') + '</div>' : '<div></div>'; };
+    return '<div class="lap-ttdblok"><div class="lap-kol"><div></div><div class="lap-tempat">Semarang, ' + esc(tglPanjang(opsi.tgl)) + '</div></div>' + susunTtd().map(function (b) {
+      return b[0] === 'tengah' ? '<div class="lap-kol tengah">' + k(b[1]) + '</div>' : '<div class="lap-kol">' + k(b[0]) + k(b[1]) + '</div>';
+    }).join('') + '</div>';
   }
-  window.DashLap = { opsi: function () { return opsi; }, opsiHtml: opsiHtml, baca: baca, narasi: narasi, narasiHtml: narasiHtml, ttdHtml: ttdHtml, penandatangan: penandatangan, tglPanjang: tglPanjang, TTD: TTD };
+  window.DashLap = { susunTtd: susunTtd, opsi: function () { return opsi; }, opsiHtml: opsiHtml, baca: baca, narasi: narasi, narasiHtml: narasiHtml, ttdHtml: ttdHtml, penandatangan: penandatangan, tglPanjang: tglPanjang, TTD: TTD };
 })();

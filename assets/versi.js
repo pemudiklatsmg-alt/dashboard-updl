@@ -6,6 +6,9 @@
 (function () {
   // b = Baru, l = Lebih baik, p = Diperbaiki (masing-masing maksimal 2–3 poin)
   var RILIS = [
+    { v: '2.7', t: '24 Nov 2026', b: ['Menu baru Maturity Level', 'Jenis tugas lain "Penugasan"'],
+      l: ['Kinerja Unit kini berisi Indikator & Kepatuhan; Perbaikan Berkelanjutan pindah ke Evaluasi', 'Tanda tangan laporan mengikuti jumlah penanda tangan (kanan; kiri–kanan; ditambah tengah bawah)', 'Narasi laporan rata kiri-kanan dan daftar tindak lanjut bernomor'],
+      p: ['Foto pegawai cocok lewat NIP atau sebagian nama, dan tidak lagi tampil kosong bila gambar gagal dimuat'] },
     { v: '2.6', t: '23 Nov 2026', b: ['Struktur Organisasi dengan foto, NIP, dan garis bagan seperti struktur resmi', 'Tugas lain di halaman Tugas Tim (disposisi, bantuan, koordinasi, jadwal zoom/dinas/diklat) dengan status Hold & Dibatalkan', 'Laporan Cetak/PDF & Excel: narasi analisis singkat, tanggal laporan, dan kolom tanda tangan pilihan'],
       l: ['Ringkasan: kartu Risiko diganti Penilaian Instruktur; menu Evaluasi kini "Level 1–4, ROTI, Sertifikat"', 'Mode presentasi: efek muncul berurutan, batang tumbuh, dan angka menghitung naik di semua slide', 'Pengingat email: tombol Kirim email sekarang dan riwayat pengiriman; hanya 2 akun (Admin & Lihat)'],
       p: ['Kartu Evaluasi (mis. Sertifikat Terbit) tidak lagi bertumpuk saat jendela dipersempit', 'Arti warna di Tugas Tim kini dijelaskan lewat legenda'] },

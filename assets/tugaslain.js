@@ -5,7 +5,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var F = { st: 'aktif', buka: false, edit: null, sibuk: false };
   var PIC = ['TL EPMK', 'OF EPMK', 'ADM EPMK'];
-  var JENIS = ['Disposisi', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Lainnya'];
+  var JENIS = ['Disposisi', 'Penugasan', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Lainnya'];
   var STATUS = ['Belum Dimulai', 'Proses', 'Selesai', 'Hold', 'Dibatalkan'];
 
   function data() { var S = A().S; return (S.data && S.data.tugasLain) || { rows: [] }; }

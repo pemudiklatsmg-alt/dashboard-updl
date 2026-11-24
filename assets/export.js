@@ -81,27 +81,35 @@
     var op = DashLap.opsi(), ws = wb.worksheets[0]; if (!ws) return;
     var n = ws._n || ws.columnCount || 6;
     if (op.narasi) {   // di akhir sheet agar gambar & tabel di atasnya tidak bergeser
-      var P = DashLap.narasi(), rN = ws.rowCount + 2;
+      var P = [], rN = ws.rowCount + 2;
+      DashLap.narasi().forEach(function (p) { if (typeof p === 'string') P.push(p); else { P.push(p.intro); p.butir.forEach(function (b, i) { P.push('   ' + (i + 1) + '. ' + b); }); if (p.tutup) P.push(p.tutup); } });
       ws.mergeCells(rN, 1, rN, n); var c0 = ws.getCell(rN, 1); c0.value = 'ANALISIS SINGKAT';
       c0.font = { name: FONT, size: 10, bold: true, color: { argb: C.maroon } };
       for (var q = 1; q <= n; q++) { ws.getCell(rN, q).fill = isi(C.soft); ws.getCell(rN, q).border = KOTAK; }
+      var lebarTotal = 0; for (var j2 = 1; j2 <= n; j2++) lebarTotal += ws.getColumn(j2).width || 10;
       P.forEach(function (t, i) {
         var r = rN + 1 + i; ws.mergeCells(r, 1, r, n);
-        var c = ws.getCell(r, 1); c.value = t; c.font = { name: FONT, size: 10, color: { argb: C.ink } }; c.alignment = { wrapText: true, vertical: 'top' };
-        var lebarTotal = 0; for (var j = 1; j <= n; j++) lebarTotal += ws.getColumn(j).width || 10;
-        ws.getRow(r).height = Math.max(28, Math.ceil(t.length / (lebarTotal * 1.1)) * 14 + 6);
+        var c = ws.getCell(r, 1); c.value = t; c.font = { name: FONT, size: 10, color: { argb: C.ink } };
+        c.alignment = { wrapText: true, vertical: 'top', horizontal: 'justify', indent: /^\s+\d+\./.test(t) ? 1 : 0 };
+        ws.getRow(r).height = Math.max(16, Math.ceil(t.length / (lebarTotal * 1.1)) * 14 + 4);
       });
     }
     if (op.ttd.length) {
-      var L = op.ttd.map(DashLap.penandatangan), r0 = ws.rowCount + 2, lebar = Math.max(1, Math.floor(n / L.length));
-      ws.getCell(r0, 1).value = 'Semarang, ' + DashLap.tglPanjang(op.tgl); ws.getCell(r0, 1).font = { name: FONT, size: 10 };
-      L.forEach(function (p, i) {
-        var c1 = 1 + i * lebar, c2 = i === L.length - 1 ? n : c1 + lebar - 1;
-        [[r0 + 1, p.peran + ','], [r0 + 2, p.jab], [r0 + 6, p.nama || '(nama)'], [r0 + 7, p.nip ? 'NIP ' + p.nip : '']].forEach(function (x, j) {
+      var B = DashLap.susunTtd(), r0 = ws.rowCount + 2, kiri = Math.max(1, Math.floor(n / 2));
+      var blok = function (p, c1, c2, r) {
+        if (!p || p === 'tengah') return;
+        [[r, p.peran + ','], [r + 1, p.jab], [r + 5, p.nama || '(nama)'], [r + 6, p.nip ? 'NIP ' + p.nip : '']].forEach(function (x, j) {
           if (c2 > c1) ws.mergeCells(x[0], c1, x[0], c2);
           var c = ws.getCell(x[0], c1); c.value = x[1]; c.alignment = { horizontal: 'center' };
           c.font = { name: FONT, size: 10, bold: j === 1 || j === 2, underline: j === 2, color: { argb: C.ink } };
         });
+      };
+      if (n > kiri) ws.mergeCells(r0, kiri + 1, r0, n);
+      var ct = ws.getCell(r0, kiri + 1); ct.value = 'Semarang, ' + DashLap.tglPanjang(op.tgl); ct.alignment = { horizontal: 'center' }; ct.font = { name: FONT, size: 10 };
+      B.forEach(function (b, i) {
+        var r = r0 + 1 + i * 9;
+        if (b[0] === 'tengah') { var m1 = Math.max(1, Math.floor(n / 4) + 1), m2 = Math.min(n, n - Math.floor(n / 4)); blok(b[1], m1, m2, r); }
+        else { blok(b[0], 1, kiri, r); blok(b[1], kiri + 1, n, r); }
       });
     }
   }

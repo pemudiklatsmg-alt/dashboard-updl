@@ -871,7 +871,7 @@ body.pres .sheet { max-width: 1600px; }
   html.glass .card, html.glass .panel, html.glass .perhatian, html.glass .sheet, html.glass .top { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
   .sheet { border: 0 !important; padding: 0 !important; gap: 8px !important; max-width: none !important; zoom: .68; }
   .top, .mmenu, .mscrim, .modal, .pres-bar, #toast, #warn, .credit, .foot-note, .login,
-  [data-bagian="kepatuhan"], [data-bagian="pengembangan"], [data-bagian="isu"], [data-bagian="risiko"], [data-bagian="kri"], [data-bagian="fraud"],
+  [data-bagian="maturity"], [data-bagian="perbaikan"], [data-bagian="pengembangan"], [data-bagian="isu"], [data-bagian="risiko"], [data-bagian="kri"], [data-bagian="fraud"],
   [data-bagian="indikator"] > .panel:nth-child(2), .ph-i em, .card .more { display: none !important; }
   .print-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 2px solid #7b1e3a; padding-bottom: 6px; }
   .print-h b { font-family: var(--f-display); font-size: 20px; font-weight: 600; }
@@ -2593,3 +2593,17 @@ html body .tumpuk[hidden] + .tm-dots { display: none !important; }
   .og2-lane { padding-top: 13px; }
 }
 .lap-kol { align-items: stretch; } .lap-k { display: flex; flex-direction: column; align-items: center; } .lap-ruang { flex: 1; min-height: 64px; }
+
+/* ===== 24 Nov: tanda tangan (1 kanan; 2 kiri-kanan; 3 + tengah bawah) & narasi rata kiri-kanan ===== */
+.lap-nar p, .lap-nar li { text-align: justify; hyphens: auto; }
+.lap-nar ol { margin: 0 0 5px; padding-left: 21px; } .lap-nar li { font-size: 12.5px; line-height: 1.5; margin-bottom: 2px; }
+.lap-ttdblok { display: grid; gap: 13px; }
+.lap-ttdblok .lap-kol { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+.lap-ttdblok .lap-kol.tengah { grid-template-columns: 1fr; justify-items: center; }
+.lap-ttdblok .lap-kol.tengah .lap-k { width: 50%; }
+.lap-ttdblok .lap-tempat { text-align: center; margin: 0; }
+.og2-head > span { display: grid; justify-items: end; gap: 2px; } .og2-st { font-size: 11px; color: var(--ink-3); }
+/* 24 Nov: menu Maturity Level berdiri sendiri, daftar key element tampil penuh */
+[data-bagian="maturity"] .ml, [data-bagian="maturity"] .ml.fill { max-height: none !important; overflow: visible; height: auto !important; }
+section.panel[data-bagian="maturity"], section.panel[data-bagian="perbaikan"] { flex-shrink: 0 !important; height: auto !important; max-height: none !important; overflow: visible !important; }
+[data-bagian="maturity"] #mlList { flex: none !important; }

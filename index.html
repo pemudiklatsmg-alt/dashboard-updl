@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261123a">
+<link rel="stylesheet" href="assets/style.css?v=20261124a">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -89,6 +89,7 @@
   <nav class="vtabs" id="vtabs" role="tablist" aria-label="Bagian dashboard">
     <button type="button" role="tab" data-vt="ringkasan">Ringkasan</button>
     <button type="button" role="tab" data-vt="kinerja">Kinerja</button>
+    <button type="button" role="tab" data-vt="maturity">Maturity</button>
     <button type="button" role="tab" data-vt="pembelajaran">Pembelajaran</button>
     <button type="button" role="tab" data-vt="evaluasi">Evaluasi</button>
     <button type="button" role="tab" data-vt="sdm">SDM &amp; Inovasi</button>
@@ -122,7 +123,7 @@
   <section class="gx" id="gxEval" aria-label="Grafik evaluasi" data-bagian="eval-grafik"></section>
 
   <!-- Baris berpasangan: tinggi kedua kartu selalu sama -->
-  <section class="pair" aria-label="Indikator kinerja dan maturity" data-bagian="indikator">
+  <section class="pair" aria-label="Indikator kinerja dan kepatuhan" data-bagian="indikator">
     <div class="panel">
       <div class="panel-h">
         <div><h2>Indikator Kinerja</h2><div class="desc">Pencapaian per indikator Konman. Klik untuk melihat target, realisasi, dan keterangan.</div></div>
@@ -133,33 +134,32 @@
     </div>
     <div class="panel">
       <div class="panel-h">
-        <div><h2>Maturity Level Proses Bisnis</h2><div class="desc" id="mlDesc">Skor per key element, skala 0–5. Garis putus-putus = target dari Konman.</div></div>
-      </div>
-      <div class="ml-sum" id="mlSum"></div>
-      <div class="panel-h" style="margin-bottom:6px">
-        <div class="seg" role="group" aria-label="Sumber skor"><button type="button" data-ml="ver" aria-pressed="true">Verifikasi</button><button type="button" data-ml="sa" aria-pressed="false">Self Assessment</button></div>
-        <span class="desc" id="mlInfo"></span>
-      </div>
-      <div class="chips" id="mlChips"></div>
-      <div class="ml fill" id="mlList"></div>
-    </div>
-  </section>
-
-  <section class="pair" aria-label="Kepatuhan dan perbaikan berkelanjutan" data-bagian="kepatuhan">
-    <div class="panel">
-      <div class="panel-h">
         <div><h2>Kepatuhan</h2><div class="desc">Nilai pengurang terhadap skor Konman per aspek. Lingkaran penuh = patuh.</div></div>
         <span class="follow" title="Mengikuti Tahun dan Bulan di bagian atas"><span class="per"></span></span>
       </div>
       <div class="kep" id="kepList"></div>
       <div class="note" id="kepNote"></div>
     </div>
-    <div class="panel">
-      <div class="panel-h">
-        <div><h2>Perbaikan Berkelanjutan</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
-      </div>
-      <div id="tlBody" class="tl-body"></div>
+  </section>
+
+  <section class="panel" data-bagian="maturity" aria-label="Maturity Level">
+    <div class="panel-h">
+      <div><h2>Maturity Level Proses Bisnis</h2><div class="desc" id="mlDesc">Skor per key element, skala 0–5. Garis putus-putus = target dari Konman.</div></div>
     </div>
+    <div class="ml-sum" id="mlSum"></div>
+    <div class="panel-h" style="margin-bottom:6px">
+      <div class="seg" role="group" aria-label="Sumber skor"><button type="button" data-ml="ver" aria-pressed="true">Verifikasi</button><button type="button" data-ml="sa" aria-pressed="false">Self Assessment</button></div>
+      <span class="desc" id="mlInfo"></span>
+    </div>
+    <div class="chips" id="mlChips"></div>
+    <div class="ml fill" id="mlList"></div>
+  </section>
+
+  <section class="panel" data-bagian="perbaikan" aria-label="Perbaikan berkelanjutan">
+    <div class="panel-h">
+      <div><h2>Perbaikan Berkelanjutan</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
+    </div>
+    <div id="tlBody" class="tl-body"></div>
   </section>
 
   <section class="pair" aria-label="Pengembangan pegawai dan inovasi" data-bagian="pengembangan">
@@ -251,21 +251,21 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261123a"></script>
-<script src="assets/common.js?v=20261123a"></script>
-<script src="assets/genie.js?v=20261123a"></script>
-<script src="assets/dashboard.js?v=20261123a"></script>
-<script src="assets/input.js?v=20261123a"></script>
-<script src="assets/laporan.js?v=20261123a"></script>
-<script src="assets/export.js?v=20261123a"></script>
-<script src="assets/fitur.js?v=20261123a"></script>
-<script src="assets/cetak.js?v=20261123a"></script>
-<script src="assets/pengaturan.js?v=20261123a"></script>
-<script src="assets/grafik.js?v=20261123a"></script>
-<script src="assets/versi.js?v=20261123a"></script>
-  <script src="assets/navbawah.js?v=20261123a"></script>
-<script src="assets/tugaslain.js?v=20261123a"></script>
-<script src="assets/upgrade.js?v=20261123a"></script>
+<script src="config.js?v=20261124a"></script>
+<script src="assets/common.js?v=20261124a"></script>
+<script src="assets/genie.js?v=20261124a"></script>
+<script src="assets/dashboard.js?v=20261124a"></script>
+<script src="assets/input.js?v=20261124a"></script>
+<script src="assets/laporan.js?v=20261124a"></script>
+<script src="assets/export.js?v=20261124a"></script>
+<script src="assets/fitur.js?v=20261124a"></script>
+<script src="assets/cetak.js?v=20261124a"></script>
+<script src="assets/pengaturan.js?v=20261124a"></script>
+<script src="assets/grafik.js?v=20261124a"></script>
+<script src="assets/versi.js?v=20261124a"></script>
+  <script src="assets/navbawah.js?v=20261124a"></script>
+<script src="assets/tugaslain.js?v=20261124a"></script>
+<script src="assets/upgrade.js?v=20261124a"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -317,7 +317,7 @@
   <p class="g-lihat">Dashboard ini menampilkan kinerja, pembelajaran, evaluasi, SDM, dan risiko PLN UPDL Semarang. Semua angka mengikuti periode yang dipilih.</p>
   <div class="time">
    <div><span class="g-ik" data-ik="kalender"></span><b>Pilih periode</b>Atur Tahun &amp; Bulan di bagian atas; semua kartu dan grafik ikut berubah<span class="g-mock"><i class="gm-pill">2026 ⌄</i><i class="gm-pill">OKTOBER ⌄</i></span></div>
-   <div><span class="g-ik" data-ik="rumah"></span><b>Menu samping</b>Pilih Ringkasan, Kinerja Unit, Rekap Pembelajaran, Evaluasi, SDM &amp; Inovasi, atau Risiko &amp; Mutu. Di HP: bilah menu di bawah layar</div>
+   <div><span class="g-ik" data-ik="rumah"></span><b>Menu samping</b>Pilih Ringkasan, Kinerja Unit, Maturity Level, Rekap Pembelajaran, Evaluasi, SDM &amp; Inovasi, atau Risiko &amp; Mutu. Di HP: bilah menu di bawah layar</div>
    <div><span class="g-ik" data-ik="panah"></span><b>Panah dalam lingkaran</b>Kartu atau baris yang bisa diklik untuk rincian. Di dalam rincian kadang bisa diklik lagi (mis. daftar kelas → satu kelas)<span class="g-mock"><i class="gm-arrow">→</i></span></div>
    <div><span class="g-ik" data-ik="grafik"></span><b>Angka di grafik</b>Bulan terpilih tampil terang &amp; tebal, bulan lain redup<span class="g-mock gm-bars"><i style="height:45%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:80%"></i><i class="on" style="height:95%"></i></span></div>
    <div class="adm"><span class="g-ik" data-ik="daftar"></span><b>Status Data</b>Menu ☰ › Status data: sumber yang kosong, belum lengkap, lengkap, dan temuan kualitas isian (data ganda, kolom kosong)</div>
@@ -346,6 +346,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261123a"></script>
+<script src="assets/panduan.js?v=20261124a"></script>
 </body>
 </html>
