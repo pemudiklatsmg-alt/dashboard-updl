@@ -2622,3 +2622,11 @@ body.lb-buka{overflow:hidden}
 .lb-doc{outline:none}
 .lb-doc .lb-chart{pointer-events:none}
 @media (max-width:700px){.lb-scroll{padding:8px 0}.lb-doc{zoom:.46}}
+
+/* ---------- Riwayat perubahan ---------- */
+.rw-fil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 13px}
+.rw-fil input,.rw-fil select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line,#E3E6EE);border-radius:8px;background:var(--card,#fff);color:inherit;min-width:0}
+.rw-fil input{flex:1 1 220px}
+.rw-t td{vertical-align:top}.rw-t .rw-u{max-width:420px;word-break:break-word}
+.rw-hari td{background:var(--soft,#F4F5F8);font-weight:600;font-size:12px;color:var(--muted,#5A6380)}
+.rw-lagi{display:flex;justify-content:center;margin-top:13px}
