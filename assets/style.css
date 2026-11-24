@@ -2610,25 +2610,25 @@ section.panel[data-bagian="maturity"], section.panel[data-bagian="perbaikan"] { 
 
 /* ---------- Laporan bulanan (pratinjau & sunting) ---------- */
 body.lb-buka{overflow:hidden}
-.lb-wrap{position:fixed;inset:0;z-index:90;background:var(--bg,#F2F3F7);display:flex;flex-direction:column}
-.lb-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px;padding:8px max(13px,env(safe-area-inset-right,0px)) 8px max(13px,env(safe-area-inset-left,0px));padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--card,#fff);border-bottom:1px solid var(--line,#E3E6EE)}
-.lb-bar .seg{display:inline-flex;border:1px solid var(--line,#E3E6EE);border-radius:8px;overflow:hidden}
+.lb-wrap{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column}
+.lb-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px;padding:8px max(13px,env(safe-area-inset-right,0px)) 8px max(13px,env(safe-area-inset-left,0px));padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--sheet);border-bottom:1px solid var(--line);color:var(--ink)}
+.lb-bar .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .lb-bar .seg button{border:0;background:none;padding:8px 13px;font:inherit;font-size:13px;color:inherit;cursor:pointer}
-.lb-bar .seg button[aria-pressed=true]{background:var(--accent,#0B3B6F);color:#fff}
-.lb-info{flex:1 1 260px;min-width:0;font-size:13px;color:var(--muted,#5A6380)}.lb-info mark{background:#FFF176;padding:0 5px;border-radius:2px}
+.lb-bar .seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.lb-info{flex:1 1 260px;min-width:0;font-size:13px;color:var(--ink-2)}.lb-info mark{background:#FFF176;padding:0 5px;border-radius:2px}
 .lb-ttdpil{display:flex;gap:8px;align-items:center;font-size:13px;flex-wrap:wrap}.lb-ttdpil label{display:inline-flex;gap:5px;align-items:center}
 .lb-aksi{display:flex;gap:8px;flex-wrap:wrap}
-.lb-scroll{flex:1;overflow:auto;padding:21px 13px 34px;background:#E6E8EE}
+.lb-scroll{flex:1;overflow:auto;padding:21px 13px 34px;background:var(--bg)}
 .lb-doc{outline:none}
 .lb-doc .lb-chart{pointer-events:none}
 @media (max-width:700px){.lb-scroll{padding:8px 0}.lb-doc{zoom:.46}}
 
 /* ---------- Riwayat perubahan ---------- */
 .rw-fil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 13px}
-.rw-fil input,.rw-fil select{font:inherit;font-size:13px;padding:8px 13px;border:1px solid var(--line,#E3E6EE);border-radius:8px;background:var(--card,#fff);color:inherit;min-width:0}
+.rw-fil input,.rw-fil select{font:inherit;font-size:13px;padding:8px 13px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:inherit;min-width:0}
 .rw-fil input{flex:1 1 220px}
 .rw-t td{vertical-align:top}.rw-t .rw-u{max-width:420px;word-break:break-word}
-.rw-hari td{background:var(--soft,#F4F5F8);font-weight:600;font-size:13px;color:var(--muted,#5A6380)}
+.rw-hari td{background:var(--idle-bg);font-weight:600;font-size:13px;color:var(--ink-2)}
 .rw-lagi{display:flex;justify-content:center;margin-top:13px}
 
 /* ---------- Banding tahun lalu ---------- */

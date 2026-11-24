@@ -18,13 +18,14 @@
     var a = A(), S = a.S, adaK = !!(S.cache.konman && S.cache.konman[y]), adaR = !!(S.cache.kelas && S.cache.kelas[y] && S.cache.kelas[y].length), o = { skor: null, kelas: null, peserta: null, hop: null, sumber: [] };
     if (adaK) { o.skor = denganTahun(y, function () { return a.konmanAda(D.BULAN[m - 1]) ? a.totalSkor(D.BULAN[m - 1]) : null; }); if (o.skor !== null) o.sumber.push('Konman ' + y); }
     if (adaR) { var r = denganTahun(y, function () { return D.hitungRendiklat(a.kelas(), y, m, a.set()); }), h = denganTahun(y, function () { return a.hop(y, m); });
-      if (r) { o.kelas = r.kelas; o.peserta = r.peserta; o.sumber.push('Rendiklat ' + y); } if (h && h.nilai !== null) o.hop = h.nilai; }
+      if (r) { o.kelas = r.kelas; o.peserta = r.peserta; o.sumber.push('Rendiklat ' + y); } if (h && h.nilai !== null) o.hopR = h.nilai; }
     var x = M && M[m];
     if (x && x.skor !== null && x.skor !== undefined) { o.skor = x.skor; o.sumber = o.sumber.filter(function (t) { return t !== 'Konman ' + y; }); o.sumber.push('skor resmi (tab ' + TAB + ')'); }
-    if (o.hop === null && adaK) {   // HOP tahun lalu dari realisasi indikator Tingkat Pelaksanaan Pembelajaran di Konman tahun itu
+    if (adaK) {   // HOP tahun lalu dari realisasi indikator Tingkat Pelaksanaan Pembelajaran di Konman tahun itu
       var itH = S.cache.konman[y].items.filter(function (it) { return /Tingkat Pelaksanaan Pembelajaran/i.test(it.namaAsli || it.nama); })[0], Bm = D.BULAN[m - 1];
       if (itH && /HOP/i.test(itH.satuan || '') && D.hasData(itH, Bm)) { o.hop = D.num(itH.real[Bm].v); if (o.sumber.indexOf('Konman ' + y) < 0) o.sumber.push('HOP dari Konman ' + y); }
     }
+    if (o.hop === null && o.hopR !== undefined) o.hop = o.hopR;   // HOP dari Konman (realisasi resmi) bila ada, agar kedua tahun sebanding
     if (x) { ['skor', 'kelas', 'peserta', 'hop'].forEach(function (k) { if (o[k] === null && x[k] !== null && x[k] !== undefined) { o[k] = x[k]; if (o.sumber.indexOf('isian manual') < 0) o.sumber.push('isian manual'); } }); }
     return o;
   }

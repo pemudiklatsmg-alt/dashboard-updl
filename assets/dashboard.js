@@ -1932,6 +1932,7 @@
   });
   window.addEventListener('afterprint', function () { var t = S.vtCetak; S.vtCetak = null; if (t) pilihTab(t); });
   function renderAll() {
+    if (!S.data) return;   // belum login / data belum dimuat (mis. layar diputar di halaman login)
     setTimeout(function () { if (window.innerWidth > 1000 && !document.body.classList.contains('pres')) try { renderChart(); } catch (e) { /* abaikan */ } }, 0);
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }

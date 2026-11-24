@@ -1367,6 +1367,13 @@ function onEdit(e) {
   } catch (x) { /* abaikan */ }
   try { var n = e.range.getSheet().getName(), o = {}; o['ubah_' + n] = String(Date.now()); o['ubahvia_' + n] = 'manual'; PropertiesService.getScriptProperties().setProperties(o); } catch (x) { /* abaikan */ }
 }
+/* Jalankan SEKALI dari editor Apps Script (pilih fungsi ini → Run) untuk memberi izin baca Google Drive.
+   Izin ini dibutuhkan untuk foto pegawai di Struktur Organisasi. Setelah itu Deploy → New version. */
+function izinkanAksesFoto() {
+  var nama = DriveApp.getRootFolder().getName();
+  Logger.log('Akses Google Drive aktif (' + nama + '). Lanjutkan: Deploy → Manage deployments → New version.');
+}
+
 /* Riwayat perubahan lengkap: setiap simpan lewat dashboard dan setiap edit manual di spreadsheet dicatat ke tab "Log Perubahan".
    Isi sandi tidak pernah dicatat. Disimpan maksimal ~6000 baris terbaru. */
 function catatUbah_(akun, lewat, tab, bagian, uraian) {
