@@ -42,7 +42,7 @@
   /* ---------- mode presentasi ---------- */
   /* Slide disusun otomatis: bagian sejenis yang pendek digabung, bagian dua-panel yang padat dipecah
      per panel, lalu tiap slide diskalakan (CSS zoom) agar mengisi layar. Batas baca: tidak lebih kecil dari ~80%. */
-  var KELOMPOK = [['rgk'], ['bulanan', 'indikator', 'maturity'], ['ringkasan', 'evaluasi', 'perbaikan', 'pengembangan'], ['isu', 'risiko', 'kri', 'fraud']];
+  var KELOMPOK = [['rgk'], ['bulanan', 'banding', 'indikator', 'maturity'], ['ringkasan', 'evaluasi', 'perbaikan', 'pengembangan'], ['isu', 'risiko', 'kri', 'fraud']];
   var MIN_BACA = 0.8, URUT = [];
   function el1(x) { x = x.split('#')[0]; return x === 'rgk' ? $('rgk') : bagian(x); }
   function slideEls(sl) { return sl.map(el1).filter(Boolean); }
