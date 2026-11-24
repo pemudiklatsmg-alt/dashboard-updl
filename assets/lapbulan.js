@@ -174,12 +174,12 @@
       var ana = x.v === null ? 'Realisasi ' + p.bl + ' belum diisi.' : 'Realisasi ' + p.bl + ' ' + (it.real[Bn].d || '–') + ' terhadap target ' + (it.target[Bn].d || '–') + ' (capaian ' + D.pct(x.v, 1) + ', ' + st[0].toLowerCase() + ')' +
         (vPrev !== null ? ', ' + (Math.abs(x.v - vPrev) < 0.0005 ? 'sama dengan' : x.v > vPrev ? 'naik dari' : 'turun dari') + ' ' + D.pct(vPrev, 1) + ' pada bulan sebelumnya' : '') + '.';
       var ms = K.months.slice(0, idxNow + 1);
-      h += '<div class="lb-ind"><h3>' + esc(a.labelNo(it)) + '. ' + esc(it.nama) + '</h3>' +
+      h += '<div class="lb-ind" data-baris="' + it.baris + '"><h3>' + esc(a.labelNo(it)) + '. ' + esc(it.nama) + '</h3>' +
         tabel([th('PIC', 16), th('Satuan', 16), th('Target Smt II', 16), th('Target ' + esc(p.bl), 16), th('Realisasi', 16), th('Status', 20)],
           ['<tr>' + td(esc(it.pic || '–')) + td(esc(it.satuan || '–')) + td(esc(it.target2 || '–')) + td(esc(it.target[Bn] ? it.target[Bn].d : '–')) + td(esc(D.hasData(it, Bn) ? it.real[Bn].d : '–')) + td(st[0] + (x.v === null ? '' : ' · ' + D.pct(x.v, 1)), { bg: st[1], fg: st[2] }) + '</tr>'], 'lb-kecil') +
         (ms.length > 1 ? grafikIndikator(it, ms, T) : '') +
-        '<p data-align="just"><b>Analisa:</b> ' + esc(ana) + ' ' + (it.ket && it.ket[Bn] ? esc(it.ket[Bn]) : kuning('jelaskan penyebab capaian bulan ini')) + '</p>' +
-        '<p data-align="just"><b>Action step:</b> ' + kuning(x.v !== null && x.v >= 0.9999 ? 'langkah mempertahankan capaian' : 'langkah perbaikan, PIC, dan tenggat') + '</p></div>';
+        '<p data-align="just" class="lb-ana"><b>Analisa:</b> ' + esc(ana) + ' ' + (it.ket && it.ket[Bn] ? esc(it.ket[Bn]) : kuning('jelaskan penyebab capaian bulan ini')) + '</p>' +
+        '<p data-align="just" class="lb-as"><b>Action step:</b> ' + kuning(x.v !== null && x.v >= 0.9999 ? 'langkah mempertahankan capaian' : 'langkah perbaikan, PIC, dan tenggat') + '</p></div>';
     });
     h += '</section>';
     // 5. kepatuhan + penutup
@@ -314,7 +314,7 @@
     w.innerHTML = '<div class="lb-bar"><div class="seg" role="group" aria-label="Jenis laporan"><button type="button" data-lbj="konman" aria-pressed="' + (L.jenis === 'konman') + '">Kontrak Manajemen</button><button type="button" data-lbj="risiko" aria-pressed="' + (L.jenis === 'risiko') + '">Manajemen Risiko</button></div>' +
       '<div class="lb-info"><b>' + esc(p.nama) + '</b> · Klik teks untuk menyunting. Bagian <mark>kuning</mark> perlu diisi; latar kuning hilang setelah diisi.</div>' +
       '<div class="lb-ttdpil">Tanda tangan: ' + cek('tl', 'TL EPMK') + cek('asman', 'Asman') + cek('mgr', 'Manajer') + '</div>' +
-      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button><button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
+      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button>' + (L.jenis === 'konman' ? '<button type="button" class="btn" data-lba="traj" title="PowerPoint Monthly Trajectory per indikator">PPT Trajectory</button><button type="button" class="btn" data-lba="pd" title="PowerPoint Performance Dialog">PPT Performance Dialog</button>' : '') + '<button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
       '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac3:#' + T.ac3 + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
   }
   function klik(e) {
@@ -324,6 +324,7 @@
     if (x === 'tutup') { $('lbWrap').hidden = true; document.body.classList.remove('lb-buka'); }
     if (x === 'ulang') susun();
     if (x === 'pdf') cetakPdf();
+    if ((x === 'traj' || x === 'pd') && window.DashPpt) { b.disabled = true; var t1 = b.textContent; b.textContent = 'Menyiapkan…'; window.DashPpt.unduh(x, $('lbWrap').querySelector('.lb-doc')).catch(function (er) { A().toast('PPT gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t1; }); }
     if (x === 'word') { b.disabled = true; var t0 = b.textContent; b.textContent = 'Menyiapkan…'; unduhWord().catch(function (er) { A().toast('Word gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t0; }); }
   }
   function namaFile(ext) { var p = per(); return 'Laporan ' + TEMA[L.jenis].nama + ' ' + p.nama + ' - UPDL Semarang.' + ext; }
