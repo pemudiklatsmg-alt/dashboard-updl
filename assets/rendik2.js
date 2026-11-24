@@ -43,9 +43,12 @@
         jp: angka(x[c.jp]), renc: angka(x[c.renc]), real: angka(x[c.real]), status: x[c.status], batal: x[c.batal],
         rab: angka(x[c.rab]), honor: angka(x[c.honor]), akom: angka(x[c.akom]), total: angka(x[c.total]), ruang: x[c.ruang], anggaran: x[c.anggaran] };
       if (!o.pS) o.pS = o.pM; if (!o.rS) o.rS = o.rM;
+      o.pAda = !!o.pM;   // P.Tgl kosong (mis. Penugasan, LDP, Pinjam/Sewa): jadwal memakai tanggal realisasi
+      if (!o.pAda) { o.pM = o.rM; o.pS = o.rS; }
       o.st = status(o);
+      if (o.st === 'Belum' && o.rS && o.rS < new Date()) o.st = 'Tanpa status';
       o.biaya = o.total !== null ? o.total : (o.honor !== null || o.akom !== null ? (o.honor || 0) + (o.akom || 0) : null);
-      o.geser = o.pM && o.rM && o.st !== 'Dibatalkan' ? selisihHari(o.pM, o.rM) : null;
+      o.geser = o.pAda && o.rM && o.st !== 'Dibatalkan' ? selisihHari(o.pM, o.rM) : null;
       return o;
     });
     return memo.list;
@@ -123,11 +126,11 @@
 
   /* ---------- Part 2a: realisasi per kategori + gabungan ---------- */
   function hitungKat(L, y, m) {
-    var o = { renc: 0, laks: 0, jalan: 0, jadwal: 0, tunda: 0, batal: 0, belum: 0, peserta: 0, pesertaRenc: 0, jp: 0, biaya: 0 };
+    var o = { tanpa: 0, renc: 0, laks: 0, jalan: 0, jadwal: 0, tunda: 0, batal: 0, belum: 0, peserta: 0, pesertaRenc: 0, jp: 0, biaya: 0 };
     L.forEach(function (r) {
       if (direncanakan(r, y, m)) {
         o.renc++;
-        if (r.st === 'Berlangsung') o.jalan++; else if (r.st === 'Terjadwal') o.jadwal++; else if (r.st === 'Ditunda') o.tunda++; else if (r.st === 'Dibatalkan') o.batal++; else if (r.st === 'Belum') o.belum++;
+        if (r.st === 'Berlangsung') o.jalan++; else if (r.st === 'Terjadwal') o.jadwal++; else if (r.st === 'Ditunda') o.tunda++; else if (r.st === 'Dibatalkan') o.batal++; else if (r.st === 'Belum') o.belum++; else if (r.st === 'Tanpa status') o.tanpa++;
       }
       if (terlaksana(r, y, m)) { o.laks++; o.peserta += r.real || 0; o.pesertaRenc += r.renc || 0; o.jp += r.jp || 0; o.biaya += r.biaya || 0; }
     });
@@ -143,13 +146,13 @@
     var tiles = tile('Kelas terlaksana', D.fmt(H.laks, 0) + '<small> / ' + D.fmt(H.renc, 0) + '</small>', pk === null ? 'belum ada rencana' : D.pct(pk, 0) + ' dari rencana s.d. ' + esc(bl), pk === null ? '' : pk >= .9 ? 'good' : pk >= .75 ? 'warn' : 'bad') +
       tile('Peserta', D.fmt(H.peserta, 0), pp === null ? '–' : D.pct(pp, 0) + ' dari rencana peserta kelas tsb.') +
       tile('Jam pelajaran', D.fmt(H.jp, 0) + '<small> JP</small>', 'kelas yang sudah selesai') +
-      tile('Belum jalan', D.fmt(H.jalan + H.jadwal + H.belum, 0), D.fmt(H.tunda, 0) + ' ditunda · ' + D.fmt(H.batal, 0) + ' batal');
+      tile('Belum jalan', D.fmt(H.jalan + H.jadwal + H.belum, 0), D.fmt(H.tunda, 0) + ' ditunda · ' + D.fmt(H.batal, 0) + ' batal' + (H.tanpa ? ' · ' + D.fmt(H.tanpa, 0) + ' tanpa status' : ''));
     var tb = KAT.map(function (k) { return [k[0], hitungKat(L.filter(function (r) { return r.kat === k[0]; }), y, m)]; }).filter(function (x) { return x[1].renc || x[1].laks; });
     var tot = hitungKat(L, y, m);
     var t = '<div class="tbl-wrap"><table class="tbl rd-kt"><thead><tr><th>Kategori</th><th class="r">Rencana</th><th class="r">Terlaksana</th><th class="r">%</th><th class="r hp-x">Belum jalan</th><th class="r hp-x hp-l">Ditunda</th><th class="r hp-x hp-l">Batal</th><th class="r">Peserta</th></tr></thead><tbody>' +
       tb.map(function (x) { var h = x[1], p = h.renc ? h.laks / h.renc : null; return '<tr class="click" data-rk-kat="' + esc(x[0]) + '"' + (st.kat === x[0] ? ' aria-current="true"' : '') + '><td><i class="rd-dot k' + noKat(x[0]) + '"></i>' + esc(nmKat(x[0])) + '</td><td class="r num">' + D.fmt(h.renc, 0) + '</td><td class="r num"><b>' + D.fmt(h.laks, 0) + '</b></td><td class="r num">' + (p === null ? '–' : D.pct(p, 0)) + '</td><td class="r num hp-x">' + D.fmt(h.jalan + h.jadwal + h.belum, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(h.tunda, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(h.batal, 0) + '</td><td class="r num">' + D.fmt(h.peserta, 0) + '</td></tr>'; }).join('') +
       '<tr class="rd-tot click" data-rk-kat=""><td>Gabungan</td><td class="r num">' + D.fmt(tot.renc, 0) + '</td><td class="r num"><b>' + D.fmt(tot.laks, 0) + '</b></td><td class="r num">' + (tot.renc ? D.pct(tot.laks / tot.renc, 0) : '–') + '</td><td class="r num hp-x">' + D.fmt(tot.jalan + tot.jadwal + tot.belum, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(tot.tunda, 0) + '</td><td class="r num hp-x hp-l">' + D.fmt(tot.batal, 0) + '</td><td class="r num">' + D.fmt(tot.peserta, 0) + '</td></tr></tbody></table></div>';
-    el.innerHTML = kepala('Realisasi per Kategori', 'Rencana dihitung dari tanggal rencana (P.Tgl), realisasi dari kelas berstatus Selesai (R.Tgl), kumulatif s.d. ' + esc(bl) + '.') + chips(L) +
+    el.innerHTML = kepala('Realisasi per Kategori', 'Rencana dihitung dari tanggal rencana (P.Tgl), realisasi dari kelas berstatus Selesai (R.Tgl), kumulatif s.d. ' + esc(bl) + '. Bila P.Tgl kosong, jadwal memakai tanggal realisasi.') + chips(L) +
       '<div class="rd-tiles">' + tiles + '</div>' +
       '<div class="rd-2"><div class="rd-c"><div class="sub-h">Kelas per bulan · ' + esc(st.kat ? nmKat(st.kat) : 'gabungan') + '</div>' + kolom12([{ n: 'Rencana', v: rencB, c: 'var(--bar-dim)' }, { n: 'Terlaksana', v: realB, c: 'var(--bar)' }], { sampai: m, label: 'Kelas rencana dan terlaksana per bulan' }) + '</div>' +
       '<div class="rd-c"><div class="sub-h">Per kategori s.d. ' + esc(bl) + '</div>' + t + '</div></div>' +
@@ -215,10 +218,10 @@
   /* ---------- Part 3: kualitas delivery ---------- */
   var BIN = [['Maju > 30 hari', -1e9, -31], ['Maju 8–30 hari', -30, -8], ['Maju 1–7 hari', -7, -1], ['Tepat jadwal', 0, 0], ['Mundur 1–7 hari', 1, 7], ['Mundur 8–30 hari', 8, 30], ['Mundur > 30 hari', 31, 1e9]];
   function mutu(L, y, m) {
-    var o = { renc: 0, dinilai: 0, tepat: 0, maju: 0, mundur: 0, sMaju: 0, sMundur: 0, batal: 0, tunda: 0, lewat: [], isi: 0, isiR: 0, tanpaReal: 0, bin: BIN.map(function () { return 0; }) };
+    var o = { semua: 0, renc: 0, dinilai: 0, tepat: 0, maju: 0, mundur: 0, sMaju: 0, sMundur: 0, batal: 0, tunda: 0, lewat: [], isi: 0, isiR: 0, tanpaReal: 0, bin: BIN.map(function () { return 0; }) };
     var kini = akhir(y, m), hariIni = new Date(); if (hariIni < kini) kini = hariIni;
     L.forEach(function (r) {
-      if (!direncanakan(r, y, m)) return; o.renc++;
+      if (!direncanakan(r, y, m)) return; o.semua++; if (!r.pAda) return; o.renc++;
       if (r.st === 'Dibatalkan') { o.batal++; return; }
       if (r.st === 'Ditunda') o.tunda++;
       if (r.geser !== null && (r.st === 'Selesai' || r.st === 'Berlangsung')) {
@@ -253,7 +256,7 @@
     var tabel = '<div class="tbl-wrap"><table class="tbl rd-kt"><thead><tr><th>Kategori</th><th class="r">Rencana</th><th class="r">Tepat</th><th class="r">Maju</th><th class="r">Mundur</th><th class="r hp-x">Batal/tunda</th><th class="r hp-x">Lewat jadwal</th><th class="r">Keterisian</th></tr></thead><tbody>' +
       tb.map(function (x) { var q = x[1]; return '<tr class="click" data-rk-kat="' + esc(x[0]) + '"' + (st.kat === x[0] ? ' aria-current="true"' : '') + '><td><i class="rd-dot k' + noKat(x[0]) + '"></i>' + esc(nmKat(x[0])) + '</td><td class="r num">' + D.fmt(q.renc, 0) + '</td><td class="r num"><b>' + (q.dinilai ? D.pct(q.tepat / q.dinilai, 0) : '–') + '</b></td><td class="r num">' + D.fmt(q.maju, 0) + '</td><td class="r num">' + D.fmt(q.mundur, 0) + '</td><td class="r num hp-x">' + D.fmt(q.batal + q.tunda, 0) + '</td><td class="r num hp-x">' + D.fmt(q.lewat.length, 0) + '</td><td class="r num">' + (q.isiR ? D.pct(q.isi / q.isiR, 0) : '–') + '</td></tr>'; }).join('') + '</tbody></table></div>';
     var geserBesar = F.filter(function (r) { return direncanakan(r, y, m) && r.geser && (r.st === 'Selesai' || r.st === 'Berlangsung'); }).sort(function (a, b) { return Math.abs(b.geser) - Math.abs(a.geser); });
-    el.innerHTML = kepala('Kualitas Delivery', 'Rencana (P.Tgl Mulai) dibanding realisasi (R.Tgl Mulai) untuk kelas yang direncanakan Januari s.d. ' + esc(bl) + ' ' + y + '.') + chips(L) +
+    el.innerHTML = kepala('Kualitas Delivery', 'Rencana (P.Tgl Mulai) dibanding realisasi (R.Tgl Mulai) untuk kelas yang direncanakan Januari s.d. ' + esc(bl) + ' ' + y + '. Hanya kelas yang tanggal rencananya (P.Tgl) terisi: ' + D.fmt(Q.renc, 0) + ' dari ' + D.fmt(Q.semua, 0) + ' kelas.') + chips(L) +
       '<div class="rd-tiles t5">' + tiles + '</div>' +
       '<div class="rd-2"><div class="rd-c"><div class="sub-h">Pergeseran jadwal mulai</div>' + hist + '</div>' +
       '<div class="rd-c"><div class="sub-h">Ketepatan per bulan rencana</div>' + kolom12([{ n: 'Tepat', v: sT, c: 'var(--good)' }, { n: 'Maju', v: sM, c: 'var(--k1)' }, { n: 'Mundur', v: sU, c: 'var(--warn)' }, { n: 'Batal/tunda', v: sB, c: 'var(--bad)' }], { tumpuk: true, sampai: m, label: 'Ketepatan jadwal per bulan' }) + '</div></div>' +
