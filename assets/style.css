@@ -1785,7 +1785,7 @@ body.top-nempel .tutup-atas { visibility: visible; }
 /* teks di atas latar aksen */
 .btn.primary, .seg button[aria-pressed="true"], html.glass .themebtn button[aria-pressed="true"], html.glass .seg button[aria-pressed="true"],
 html.glass .tabs button[aria-selected="true"], .av, .vtabs button[aria-selected="true"], .btn-p, html.glass .btn.btn-p, .btn.btn-p,
-.tg-fil .chip.on, html.glass .tg-fil .chip.on, .at-cara-l b, .nb-isi button[aria-selected="true"],
+.tg-fil .chip.on, html.glass .tg-fil .chip.on, .at-cara-l span > b:first-child, .nb-isi button[aria-selected="true"],
 .rgk-tile:hover::after, .card.click:hover::after, .ke-rinci:hover, tr.klik:hover td:last-child::after, .gx-klik:hover .gx-hv::after,
 .rk-row:hover::after, .ph-i:hover::after, .ph-i:hover em, .ph-i:focus-visible em, .sg-q li.klik:hover .kq-go { color: var(--on-accent) !important; }
 /* panah pilihan tahun/bulan ikut biru */
@@ -2824,3 +2824,7 @@ body.pres .panel[data-sorot]::after{display:none}
 body.pres .panel[data-sorot]::before{display:none}
 .anim-tunggu *,.anim-tunggu *::before,.anim-tunggu *::after{animation-play-state:paused!important}
 .lb-kembali{font-weight:600}
+/* Laporan bulanan: bilah atas rapi — baris 1: Kembali · jenis laporan · tombol unduh (kanan); baris 2: petunjuk · tanda tangan */
+.lb-kembali{order:1}.lb-bar .seg{order:2}.lb-aksi{order:3;margin-left:auto}
+.lb-info{order:4;flex:1 1 55%;font-size:12px}.lb-ttdpil{order:5;margin-left:auto}
+@media (max-width:700px){.lb-aksi{margin-left:0}.lb-info{flex-basis:100%}.lb-ttdpil{margin-left:0}}

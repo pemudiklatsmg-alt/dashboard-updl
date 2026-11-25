@@ -31,6 +31,7 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
    Pengecualian yang diminta: 23–25 Nov 2026 digabung jadi v2.6.
 7. Setiap rilis: naikkan parameter cache `?v=YYYYMMDDx` di `index.html`, push, lalu cek situs live sudah memakai versi baru.
 8. Bekerja efisien; kuota pemakaian pemilik terbatas.
+10. Jangan meninggalkan jejak AI di data, log, atau tampilan dashboard (mis. jangan menulis "Claude" di Log Perubahan).
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
@@ -61,5 +62,5 @@ _Butir bertanda ada di cabang `contoh-sorot`, menunggu "pasang"._
 
 ## Tertunda / ide
 - Data Kelas/Peserta 2025 untuk Pembanding Tahun Lalu (sudah ditawarkan).
-- Riwayat perubahan: tab "Log Perubahan" dibuat manual 25 Nov 2026 dan diisi ulang dari riwayat versi Drive + penanda data. Pencatatan otomatis (onEdit / simpan dashboard) belum terbukti jalan; cek saat ada edit berikutnya.
+- Riwayat perubahan: tab "Log Perubahan" dibuat 25 Nov 2026 dan diisi ulang dari riwayat versi Drive + penanda data. Pencatatan otomatis (onEdit / simpan dashboard) belum terbukti jalan; cek saat ada edit berikutnya.
 - Penyebaran survei ke pengguna.
