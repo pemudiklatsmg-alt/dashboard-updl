@@ -299,7 +299,7 @@
       w = document.createElement('div'); w.id = 'lbWrap'; w.className = 'lb-wrap'; w.hidden = true;
       document.body.appendChild(w);
       w.addEventListener('click', klik); w.addEventListener('input', function (e) {
-        var k = e.target.closest && e.target.closest('.kuning'); if (k) k.classList.toggle('terisi', teks(k.innerHTML) && teks(k.innerHTML) !== '[' + k.getAttribute('data-ph') + ']');
+        var ul = w.querySelector('[data-lba="ulang"]'); if (ul && e.target.closest && e.target.closest('.lb-doc')) ul.disabled = false; var k = e.target.closest && e.target.closest('.kuning'); if (k) k.classList.toggle('terisi', teks(k.innerHTML) && teks(k.innerHTML) !== '[' + k.getAttribute('data-ph') + ']');
       });
       w.addEventListener('change', function (e) { if (e.target.matches('[data-lbttd]')) { L.ttd = Array.prototype.filter.call(w.querySelectorAll('[data-lbttd]'), function (x) { return x.checked; }).map(function (x) { return x.value; }); susun(true); } });
     }
@@ -322,10 +322,18 @@
     w.innerHTML = '<div class="lb-bar"><button type="button" class="btn lb-kembali" data-lba="tutup">← Kembali ke dashboard</button><div class="seg" role="group" aria-label="Jenis laporan"><button type="button" data-lbj="konman" aria-pressed="' + (L.jenis === 'konman') + '">Kontrak Manajemen</button><button type="button" data-lbj="risiko" aria-pressed="' + (L.jenis === 'risiko') + '">Manajemen Risiko</button></div>' +
       '<div class="lb-info"><b>' + esc(p.nama) + '</b> · Klik teks untuk menyunting. Bagian <mark>kuning</mark> perlu diisi; latar kuning hilang setelah diisi.</div>' +
       '<div class="lb-ttdpil">Tanda tangan: ' + cek('tl', 'TL EPMK') + cek('asman', 'Asman') + cek('mgr', 'Manajer') + '</div>' +
-      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button>' + (L.jenis === 'konman' ? '<button type="button" class="btn" data-lba="traj" title="PowerPoint Monthly Trajectory per indikator">PPT Trajectory</button><button type="button" class="btn" data-lba="pd" title="PowerPoint Performance Dialog">PPT Performance Dialog</button>' : '') + '</div></div>' +
+      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" disabled title="Buang semua suntingan Anda dan kembalikan teks laporan seperti semula dari data">Kembalikan teks awal</button>' +
+        '<div class="lb-unduh"><button type="button" class="btn primary" data-lbu aria-expanded="false" aria-haspopup="true">Unduh ▾</button><div class="lb-menu" role="menu" hidden>' +
+        '<button type="button" role="menuitem" data-lba="word"><b>Word</b><small>Dokumen laporan, masih bisa disunting</small></button>' +
+        '<button type="button" role="menuitem" data-lba="pdf"><b>PDF</b><small>Laporan siap cetak / kirim</small></button>' +
+        (L.jenis === 'konman' ? '<button type="button" role="menuitem" data-lba="traj"><b>PowerPoint · Trajectory</b><small>Slide tren bulanan tiap indikator Konman</small></button><button type="button" role="menuitem" data-lba="pd"><b>PowerPoint · Performance Dialog</b><small>Slide bahan rapat kinerja bulanan</small></button>' : '') + '</div></div>' + '</div></div>' +
       '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac3:#' + T.ac3 + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
   }
   function klik(e) {
+    var u = e.target.closest('[data-lbu]'), m = $('lbWrap').querySelector('.lb-menu');
+    if (u) { m.hidden = !m.hidden; u.setAttribute('aria-expanded', !m.hidden); return; }
+    if (m && !m.hidden && !e.target.closest('.lb-menu')) { m.hidden = true; }
+    if (m && e.target.closest('.lb-menu [data-lba]')) { m.hidden = true; }
     var j = e.target.closest('[data-lbj]'); if (j) { L.jenis = j.getAttribute('data-lbj'); return susun(); }
     var b = e.target.closest('[data-lba]'); if (!b) return;
     var x = b.getAttribute('data-lba');

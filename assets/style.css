@@ -2833,3 +2833,10 @@ body.pres .panel[data-sorot]::before{display:none}
 .lb-kembali{order:1}.lb-bar .seg{order:2}.lb-aksi{order:3;margin-left:auto}
 .lb-info{order:4;flex:1 1 55%;font-size:12px}.lb-ttdpil{order:5;margin-left:auto}
 @media (max-width:700px){.lb-aksi{margin-left:0}.lb-info{flex-basis:100%}.lb-ttdpil{margin-left:0}}
+.lb-unduh{position:relative}
+.lb-menu{position:absolute;right:0;top:calc(100% + 5px);z-index:30;min-width:280px;background:var(--sheet);border:1px solid var(--line);border-radius:13px;box-shadow:0 13px 34px rgba(0,0,0,.18);padding:5px;display:grid}
+.lb-menu button{display:grid;gap:2px;text-align:left;border:0;background:none;font:inherit;color:var(--ink);padding:8px 13px;border-radius:8px;cursor:pointer}
+.lb-menu button:hover,.lb-menu button:focus-visible{background:var(--idle-bg);outline:none}
+.lb-menu small{color:var(--ink-2);font-size:12px}
+.lb-aksi .btn:disabled{opacity:.45;cursor:default}
+@media (max-width:700px){.lb-menu{right:auto;left:0}}
