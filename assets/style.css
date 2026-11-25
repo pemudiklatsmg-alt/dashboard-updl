@@ -2782,3 +2782,30 @@ body.lb-buka{overflow:hidden}
   .rd-gulir{max-height:300px}
   .rd-jt td:first-child{min-width:0}
 }
+/* Kinerja Unit: Indikator di kiri (2 baris), Kepatuhan + Banding Tahun Lalu bertumpuk di kanan */
+.pair-3{grid-template-rows:auto 1fr;align-items:stretch}
+.pair-3>.panel:first-child{grid-row:1 / span 2}
+.pair-3>#bandingPanel{grid-column:2;display:flex;flex-direction:column}
+.pair-3 .bd-wrap{grid-template-columns:minmax(0,1fr);gap:21px;flex:1 1 auto;grid-template-rows:1fr auto}
+.pair-3 .bd-kiri{display:flex;flex-direction:column;gap:13px;min-height:0}
+.pair-3 .bd-ind{margin-top:0;display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.pair-3 .bd-ind[open] .tbl-wrap{overflow:auto}
+.pair-3 .bd-ind thead th{position:sticky;top:0;background:var(--sheet);z-index:1}
+.pair-3 .bd-t td,.pair-3 .bd-t th{white-space:normal}
+@container (min-width:441px){.kepm-r{grid-template-columns:minmax(190px,3.4fr) repeat(12,minmax(16px,1fr)) 30px}}
+@media (max-width:1000px){.pair-3{grid-template-rows:none}.pair-3>.panel:first-child{grid-row:auto}.pair-3>#bandingPanel{grid-column:auto}}
+body.pres .pair.solo-0>#bandingPanel{display:none}
+/* Rekap Pembelajaran: grafik bergaya Ringkasan, pencarian kalender, tabel per judul */
+.rd-kol.nanti{opacity:.4}
+.rd-g .gx-ax{font-size:12px}.rd-g .gx-val{font-size:11px}.rd-g .gx-val.on{font-size:13px}
+.rd-lg-ghost{background:transparent!important;border:1.5px dashed var(--bar-dim)}
+.rd-cari{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px}
+.rd-cari input{flex:0 1 340px;min-width:0;border:1px solid var(--line);border-radius:999px;padding:8px 13px;font:inherit;font-size:13px;background:var(--sheet);color:var(--ink)}
+.rd-cari input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.rd-ke{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line);background:transparent;color:var(--accent);border-radius:999px;padding:1px 8px;cursor:pointer;margin-left:3px}
+.rd-d.redup{opacity:.35}
+.rd-gulir-k{max-height:300px}
+.rd-kj td:first-child{white-space:normal;min-width:12em}
+.rd-kembali{display:flex;justify-content:flex-end}
+.rd-kembali .btn{font-size:12px;padding:3px 13px}
+.rd-c>svg.rd-g{flex:none;height:auto;margin-top:0}

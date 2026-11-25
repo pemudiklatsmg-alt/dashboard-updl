@@ -63,17 +63,32 @@
       var B = D.BULAN[m - 1], lama = {};
       S.cache.konman[y0].items.forEach(function (it) { if (!it.isGroup && !it.pengurang && D.hasData(it, B)) lama[String(it.pendek || it.nama).toLowerCase()] = D.capaianItem(it, B); });
       var L = a.K().items.filter(function (it) { return !it.isGroup && !it.pengurang && lama[String(it.pendek || it.nama).toLowerCase()] !== undefined; });
-      if (L.length) ind = '<details class="bd-ind"><summary>Per indikator yang sama di kedua tahun · ' + L.length + '</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">' + y0 + '</th><th class="r">' + y1 + '</th><th class="r">Selisih</th></tr></thead><tbody>' + L.map(function (it) {
+      if (L.length) ind = '<details class="bd-ind" open><summary>Per indikator yang sama di kedua tahun · ' + L.length + '</summary><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">' + y0 + '</th><th class="r">' + y1 + '</th><th class="r">Selisih</th></tr></thead><tbody>' + L.map(function (it) {
         var v0 = lama[String(it.pendek || it.nama).toLowerCase()], v1 = D.hasData(it, B) ? D.capaianItem(it, B) : null;
         return '<tr><td>' + esc(it.pendek || it.nama) + '</td><td class="r num">' + (v0 === null ? '–' : D.pct(v0, 1)) + '</td><td class="r num">' + (v1 === null ? '–' : D.pct(v1, 1)) + '</td><td class="r">' + selisih(v1 === null ? null : v1 * 100, v0 === null ? null : v0 * 100, 1, false) + '</td></tr>';
       }).join('') + '</tbody></table></div></details>';
     }
-    el.innerHTML = kepala + '<div class="bd-wrap"><div class="tbl-wrap"><table class="tbl bd-t"><thead><tr><th>Ukuran</th><th class="r">' + y0 + '</th><th class="r">' + y1 + '</th><th class="r">Selisih</th></tr></thead><tbody>' + baris.map(function (b) {
+    el.innerHTML = kepala + '<div class="bd-wrap"><div class="bd-kiri"><div class="tbl-wrap"><table class="tbl bd-t"><thead><tr><th>Ukuran</th><th class="r">' + y0 + '</th><th class="r">' + y1 + '</th><th class="r">Selisih</th></tr></thead><tbody>' + baris.map(function (b) {
       return '<tr><td>' + b[0] + '</td><td class="r num">' + (b[1] === null ? '–' : D.fmt(b[1], b[3])) + '</td><td class="r num"><b>' + (b[2] === null ? '–' : D.fmt(b[2], b[3])) + '</b></td><td class="r">' + selisih(b[2], b[1], b[3], b[4]) + '</td></tr>';
-    }).join('') + '</tbody></table></div><div class="bd-chart"><div class="sub-h">Skor Kontrak Manajemen per bulan</div>' + garis(y0, y1, s0, s1) + '</div></div>' + ind +
+    }).join('') + '</tbody></table></div>' + ind + '</div><div class="bd-chart"><div class="sub-h">Skor Kontrak Manajemen per bulan</div>' + garis(y0, y1, s0, s1) + '</div></div>' +
       '<div class="note">Sumber ' + y0 + ': ' + esc(n0.sumber.join(', ') || '–') + '.</div>';
   }
-  document.addEventListener('dash:periode', function () { setTimeout(render, 0); });
-  document.addEventListener('dash:render', function () { setTimeout(render, 0); });
-  window.DashBanding = { render: render };
+  /* di Kinerja Unit, kartu ini bertumpuk di bawah Kepatuhan: tinggi daftar per indikator disesuaikan
+     agar kolom kanan sama tinggi dengan kartu Indikator Kinerja di kiri (tanpa ruang kosong) */
+  function sesuaikan() {
+    var el = document.getElementById('bandingPanel'), pr = el && el.closest('.pair-3');
+    var w = el && el.querySelector('.bd-ind[open] .tbl-wrap'); if (!pr || !w) return;
+    w.style.maxHeight = '';
+    if (window.innerWidth <= 1000 || el.hidden) return;
+    var kiri = pr.children[0], kep = pr.children[1];
+    kiri.style.alignSelf = 'start'; var tinggiKiri = kiri.offsetHeight; kiri.style.alignSelf = '';   // tinggi alami kartu kiri
+    var lebih = (kep.offsetHeight + el.offsetHeight + 14) - tinggiKiri;
+    if (lebih > 0) w.style.maxHeight = Math.max(150, w.offsetHeight - lebih) + 'px';
+  }
+  function renderLalu() { render(); window.requestAnimationFrame(sesuaikan); }
+  window.addEventListener('resize', function () { window.requestAnimationFrame(sesuaikan); });
+  document.addEventListener('toggle', function (e) { if (e.target.classList && e.target.classList.contains('bd-ind')) sesuaikan(); }, true);
+  document.addEventListener('dash:periode', function () { setTimeout(renderLalu, 0); });
+  document.addEventListener('dash:render', function () { setTimeout(renderLalu, 0); });
+  window.DashBanding = { render: renderLalu, sesuaikan: sesuaikan };
 })();
