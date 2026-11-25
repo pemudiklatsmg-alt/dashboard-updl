@@ -404,32 +404,32 @@
         if (v < 0.95) bawah.push(it); else if (v < 0.9999) hampir.push(it);
       });
       var pn = function (it) { return it.pendek; };
-      if (bawah.length) L.push({ c: 'bad', t: '<b>' + bawah.length + ' indikator</b> di bawah 95%: ' + namaSingkat(bawah, pn), go: 'indikator' });
-      if (hampir.length) L.push({ c: 'warn', t: '<b>' + hampir.length + ' indikator</b> hampir tercapai (95–99%): ' + namaSingkat(hampir, pn), go: 'indikator' });
+      if (bawah.length) L.push({ c: 'bad', t: '<b>' + bawah.length + ' indikator</b> di bawah 95%: ' + namaSingkat(bawah, pn), go: 'indikator', p: '#indList', n: bawah.length });
+      if (hampir.length) L.push({ c: 'warn', t: '<b>' + hampir.length + ' indikator</b> hampir tercapai (95–99%): ' + namaSingkat(hampir, pn), go: 'indikator', p: '#indList', n: hampir.length });
     }
     var asp = kepRows().filter(function (x) { var n = kepVal(x, Bn); return n !== null && n !== 0; });
-    if (asp.length) L.push({ c: 'bad', t: 'Pengurang kepatuhan <b>−' + D.fmt(pengurang(Bn), 2) + '</b>: ' + namaSingkat(asp, function (x) { return String(x['Aspek Kepatuhan']).trim(); }), go: 'indikator' });
+    if (asp.length) L.push({ c: 'bad', t: 'Pengurang kepatuhan <b>−' + D.fmt(pengurang(Bn), 2) + '</b>: ' + namaSingkat(asp, function (x) { return String(x['Aspek Kepatuhan']).trim(); }), go: 'indikator', p: '#kepList', n: asp.length });
     var kr = kesegaran().filter(function (x) { return x.kurang; });
     if (kr.length) L.push({ c: 'warn', t: 'Data ' + bl + ' belum diisi: <b>' + kr.map(function (x) { return esc(x.nama); }).join(', ') + '</b>', act: 'segar' });
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set()), nk = r.pakaiRencana || r.tanpaPeserta;
-    if (nk) L.push({ c: 'warn', t: '<b>' + nk + ' kelas</b> selesai belum ada realisasi peserta', act: 'kelas' });
+    if (nk) L.push({ c: 'warn', t: '<b>' + nk + ' kelas</b> selesai belum ada realisasi peserta', act: 'kelas', p: '#rkKat', n: nk });
     var tb = tlRows().filter(function (x) { return tlStatus(x) === 'Belum Dimulai'; }).length;
-    if (tb) L.push({ c: tb >= 5 ? 'bad' : 'warn', t: '<b>' + tb + ' perbaikan berkelanjutan</b> belum dimulai', act: 'tl' });
+    if (tb) L.push({ c: tb >= 5 ? 'bad' : 'warn', t: '<b>' + tb + ' perbaikan berkelanjutan</b> belum dimulai', act: 'tl', p: '#tlBody', n: tb });
     if (S.data.inovasi && S.data.inovasi.length) {
       var lw = inoRows().filter(function (x) { return x.w[1] === 'bad'; });
-      if (lw.length) L.push({ c: 'bad', t: '<b>' + lw.length + ' inovasi</b> lewat target, belum selesai: ' + namaSingkat(lw, function (x) { return x.r['Judul Inovasi']; }), act: 'ino' });
+      if (lw.length) L.push({ c: 'bad', t: '<b>' + lw.length + ' inovasi</b> lewat target, belum selesai: ' + namaSingkat(lw, function (x) { return x.r['Judul Inovasi']; }), act: 'ino', p: '#inoBody', n: lw.length });
     }
     if (S.data.konteks) {
       var pb = kPihak().filter(function (x) { return /tinggi/i.test(x.prio) && kStatus(x.st) !== 'good' && (x.pr === null || x.pr < 50); });
-      if (pb.length) L.push({ c: 'warn', t: '<b>' + pb.length + ' pihak berkepentingan</b> prioritas tinggi, progres &lt; 50%: ' + namaSingkat(pb, function (x) { return x.nama; }), act: 'pb' });
+      if (pb.length) L.push({ c: 'warn', t: '<b>' + pb.length + ' pihak berkepentingan</b> prioritas tinggi, progres &lt; 50%: ' + namaSingkat(pb, function (x) { return x.nama; }), act: 'pb', p: '#pbBody', n: pb.length });
     }
     var kriM = kriRows().filter(function (k) { var a = kriAkhir(k); return a && a.st === 'bad'; });
-    if (kriM.length) L.push({ c: 'bad', t: '<b>' + kriM.length + ' KRI merah</b>: ' + namaSingkat(kriM, function (k) { return k.kri; }), go: 'kri' });
+    if (kriM.length) L.push({ c: 'bad', t: '<b>' + kriM.length + ' KRI merah</b>: ' + namaSingkat(kriM, function (k) { return k.kri; }), go: 'kri', p: '#kriPanel', n: kriM.length });
     var G = fra() && fra().ringkas;
     if (G) {
       var resT = (G.res['Tinggi'] || 0) + (G.res['Sangat Tinggi'] || 0) + (G.res['Ekstrem'] || 0);
-      if (G.kejadian) L.push({ c: 'bad', t: '<b>' + G.kejadian + ' kejadian fraud</b> tercatat di Monev FRA', go: 'fraud' });
-      if (G.redflag || resT) L.push({ c: 'warn', t: 'FRA: ' + [G.redflag ? '<b>' + G.redflag + ' red flag</b> muncul' : '', resT ? '<b>' + resT + ' risiko</b> residual Tinggi ke atas' : ''].filter(Boolean).join(' · '), go: 'fraud' });
+      if (G.kejadian) L.push({ c: 'bad', t: '<b>' + G.kejadian + ' kejadian fraud</b> tercatat di Monev FRA', go: 'fraud', p: '#fraPanel', n: G.kejadian });
+      if (G.redflag || resT) L.push({ c: 'warn', t: 'FRA: ' + [G.redflag ? '<b>' + G.redflag + ' red flag</b> muncul' : '', resT ? '<b>' + resT + ' risiko</b> residual Tinggi ke atas' : ''].filter(Boolean).join(' · '), go: 'fraud', p: '#fraPanel', n: (G.redflag || 0) + resT });
     }
     return L.sort(function (a, b) { return (a.c === 'bad' ? 0 : 1) - (b.c === 'bad' ? 0 : 1); });
   }
@@ -447,8 +447,23 @@
     var b = el.querySelector('[data-ph="kecil"]'); if (b) { b.setAttribute('aria-expanded', m !== 'kecil'); b.title = m === 'kecil' ? 'Perbesar' : 'Perkecil'; }
     if (m === 'buka') el.classList.remove('kecil', 'tutup');
   }
+  /* Sorotan kartu: kartu yang butuh tindakan diberi label "N perlu perhatian" + garis tipis di pinggir kiri.
+     Memakai daftar yang sama dengan notifikasi "Perlu perhatian"; tampil untuk semua akun. */
+  function sorotKartu(L) {
+    Array.prototype.forEach.call(document.querySelectorAll('.panel[data-sorot]'), function (p) { p.removeAttribute('data-sorot'); p.removeAttribute('data-sorot-n'); });
+    var per = [];
+    L.forEach(function (x) {
+      if (!x.p) return; var el = document.querySelector(x.p); if (!el) return;
+      var pn = el.classList.contains('panel') ? el : el.closest('.panel'); if (!pn) return;
+      var o = per.filter(function (q) { return q.el === pn; })[0];
+      if (!o) { o = { el: pn, c: 'warn', n: 0 }; per.push(o); }
+      if (x.c === 'bad') o.c = 'bad'; o.n += x.n || 1;
+    });
+    per.forEach(function (o) { o.el.setAttribute('data-sorot', o.c); o.el.setAttribute('data-sorot-n', o.n + ' perlu perhatian'); });
+  }
   function renderPerhatian() {
     var el = $('perhatian'); if (!el) return;
+    try { sorotKartu(perhatian()); } catch (e) { /* abaikan */ }
     // akun Lihat: kartu "Perlu perhatian" dan lonceng tidak ditampilkan
     if (!admin()) { el.hidden = true; el.innerHTML = ''; var nbt = $('notifBtn'); if (nbt) nbt.hidden = true; return; }
     var L = perhatian(), bl = namaBulan(S.bulan) + ' ' + S.tahun, nb = L.filter(function (x) { return x.c === 'bad'; }).length;
@@ -1060,7 +1075,7 @@
       L.map(function (x) {
         var k = kStatus(x.st), w = x.pr === null ? 0 : Math.max(0, Math.min(100, x.pr));
         return '<button type="button" class="kx-pb" data-pb="' + esc(x.kode) + '"><span class="kx-n"><b>' + esc(x.nama) + '</b><small>' + esc([x.kat, x.pic].filter(Boolean).join(' · ')) + '</small></span>' +
-          '<span class="kx-bar"><span><i class="' + k + '" style="width:' + w + '%"></i></span><b class="num">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</b></span><span class="kx-st ' + k + '">' + esc(x.st) + '</span></button>';
+          '<span class="kx-bar"><span><i class="' + k + '" style="width:' + w + '%"></i></span><b class="num">' + (x.pr === null ? '–' : D.fmt(x.pr, 0) + '%') + '</b></span><span class="kx-st ' + k + '">' + esc(x.st) + '</span><span class="kx-go" aria-hidden="true">›</span></button>';
       }).join('') + '</div>' +
       '<button class="btn" type="button" data-act="pb">Lihat matriks lengkap →</button>';
   }

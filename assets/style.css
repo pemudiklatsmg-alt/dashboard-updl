@@ -2809,3 +2809,16 @@ body.pres .pair.solo-0>#bandingPanel{display:none}
 .rd-kembali{display:flex;justify-content:flex-end}
 .rd-kembali .btn{font-size:12px;padding:3px 13px}
 .rd-c>svg.rd-g{flex:none;height:auto;margin-top:0}
+/* Baris yang bisa diklik: panah penanda di ujung kanan */
+.kx-pb{grid-template-columns:minmax(0,1fr) minmax(90px,30%) auto 10px}
+.kx-go{color:var(--ink-3);font-size:18px;line-height:1;transition:transform .15s,color .15s}
+.kx-pb:hover .kx-go,.kx-pb:focus-visible .kx-go{color:var(--accent);transform:translateX(2px)}
+@media (max-width:700px){.kx-pb{grid-template-columns:minmax(0,1fr) auto 10px}.kx-pb .kx-go{grid-column:3;grid-row:1/span 2}}
+/* Sorotan kartu yang perlu perhatian */
+.panel[data-sorot]{position:relative}
+.panel[data-sorot]::after{content:"";position:absolute;left:-2px;top:21px;bottom:21px;width:4px;border-radius:4px;background:var(--warn);pointer-events:none}
+.panel[data-sorot="bad"]::after{background:var(--bad)}
+body.pres .panel[data-sorot]::after{display:none}
+.panel[data-sorot]::before{content:attr(data-sorot-n);position:absolute;top:-10px;left:21px;z-index:2;font:600 11px/1 var(--f-display,inherit);letter-spacing:.01em;padding:5px 8px 5px 18px;border-radius:999px;color:var(--warn);background:var(--sheet);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);background-image:radial-gradient(circle at 9px 50%,var(--warn) 3px,transparent 3.5px)}
+.panel[data-sorot="bad"]::before{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent);background-image:radial-gradient(circle at 9px 50%,var(--bad) 3px,transparent 3.5px)}
+body.pres .panel[data-sorot]::before{display:none}
