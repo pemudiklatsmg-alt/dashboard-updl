@@ -584,6 +584,17 @@
           }).join('') + '<span role="cell" class="mx">' + (a.maks || '–') + '</span></div>';
       }).join('') + '</div>' +
       '<div class="kepm-leg"><span><i class="good"></i>Patuh</span><span><i class="bad"></i>Ada pengurang (nilai)</span><span><i class="idle"></i>Belum diisi</span></div>';
+    // ringkasan tahun berjalan s.d. bulan terpilih
+    if (aspek.length) {
+      var penuh = 0, diisi = 0, totTh = 0, kena = 0;
+      for (var bi = 0; bi < S.bulan; bi++) {
+        var Bx2 = D.BULAN[bi], adaIsi = false, bersih = true;
+        aspek.forEach(function (a) { var v = kepVal(a.row, Bx2); if (v !== null) { adaIsi = true; totTh += Math.abs(v); if (v) bersih = false; } });
+        if (adaIsi) { diisi++; if (bersih) penuh++; }
+      }
+      aspek.forEach(function (a) { for (var bj = 0; bj < S.bulan; bj++) { if (kepVal(a.row, D.BULAN[bj])) { kena++; break; } } });
+      h += '<div class="kepm-sum"><div><b>' + penuh + '<small>/' + diisi + '</small></b><span>bulan patuh penuh</span></div><div><b>' + D.fmt(totTh, 2) + '</b><span>total pengurang s.d. ' + namaBulan(S.bulan) + '</span></div><div><b>' + kena + '<small>/' + aspek.length + '</small></b><span>aspek pernah ada pengurang</span></div></div>';
+    }
     $('kepList').innerHTML = h || '<div class="empty">Belum ada aspek kepatuhan untuk tahun ' + S.tahun + '.</div>';
     $('kepNote').innerHTML = isi ? 'Total pengurang ' + namaBulan(S.bulan) + ': <b>' + D.fmt(tot, 2) + '</b> (sudah dikurangkan dari Capaian Kinerja).' : 'Nilai kepatuhan ' + namaBulan(S.bulan) + ' belum diisi. Isi di ' + sheetLink('Google Sheets', 'Kepatuhan') + ' (0 = patuh).';
   }
