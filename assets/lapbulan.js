@@ -303,25 +303,33 @@
       });
       w.addEventListener('change', function (e) { if (e.target.matches('[data-lbttd]')) { L.ttd = Array.prototype.filter.call(w.querySelectorAll('[data-lbttd]'), function (x) { return x.checked; }).map(function (x) { return x.value; }); susun(true); } });
     }
+    if (w.hidden) { try { history.pushState({ updlLap: 1 }, ''); } catch (e) { /* abaikan */ } }
     w.hidden = false; document.body.classList.add('lb-buka'); susun();
   }
+  // tutup laporan; tombol Kembali memakai riwayat browser agar tombol back browser/HP juga kembali ke dashboard
+  function tutupLap(dariPop) {
+    var w = $('lbWrap'); if (!w || w.hidden) return;
+    if (!dariPop && history.state && history.state.updlLap) { history.back(); return; }
+    w.hidden = true; document.body.classList.remove('lb-buka');
+  }
+  window.addEventListener('popstate', function () { if (history.state && history.state.updlLap) return; tutupLap(true); });
   function susun(hanyaTtd) {
     var w = $('lbWrap'), p = per(), T = TEMA[L.jenis];
     if (hanyaTtd && w.querySelector('.lb-ttd')) { Array.prototype.forEach.call(w.querySelectorAll('.lb-ttd'), function (t) { t.outerHTML = ttd() || '<p></p>'; }); return; }
     var isi = '';
     try { isi = L.jenis === 'konman' ? laporanKonman() : laporanRisiko(); } catch (e) { isi = '<section class="lb-pg"><p>Laporan gagal disusun: ' + esc(e.message) + '</p></section>'; }
     var cek = function (k, t) { return '<label><input type="checkbox" data-lbttd value="' + k + '"' + (L.ttd.indexOf(k) >= 0 ? ' checked' : '') + '> ' + t + '</label>'; };
-    w.innerHTML = '<div class="lb-bar"><div class="seg" role="group" aria-label="Jenis laporan"><button type="button" data-lbj="konman" aria-pressed="' + (L.jenis === 'konman') + '">Kontrak Manajemen</button><button type="button" data-lbj="risiko" aria-pressed="' + (L.jenis === 'risiko') + '">Manajemen Risiko</button></div>' +
+    w.innerHTML = '<div class="lb-bar"><button type="button" class="btn lb-kembali" data-lba="tutup">← Kembali ke dashboard</button><div class="seg" role="group" aria-label="Jenis laporan"><button type="button" data-lbj="konman" aria-pressed="' + (L.jenis === 'konman') + '">Kontrak Manajemen</button><button type="button" data-lbj="risiko" aria-pressed="' + (L.jenis === 'risiko') + '">Manajemen Risiko</button></div>' +
       '<div class="lb-info"><b>' + esc(p.nama) + '</b> · Klik teks untuk menyunting. Bagian <mark>kuning</mark> perlu diisi; latar kuning hilang setelah diisi.</div>' +
       '<div class="lb-ttdpil">Tanda tangan: ' + cek('tl', 'TL EPMK') + cek('asman', 'Asman') + cek('mgr', 'Manajer') + '</div>' +
-      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button>' + (L.jenis === 'konman' ? '<button type="button" class="btn" data-lba="traj" title="PowerPoint Monthly Trajectory per indikator">PPT Trajectory</button><button type="button" class="btn" data-lba="pd" title="PowerPoint Performance Dialog">PPT Performance Dialog</button>' : '') + '<button type="button" class="btn" data-lba="tutup">Tutup</button></div></div>' +
+      '<div class="lb-aksi"><button type="button" class="btn" data-lba="ulang" title="Buang suntingan dan susun ulang dari data">Susun ulang</button><button type="button" class="btn primary" data-lba="word">Unduh Word</button><button type="button" class="btn primary" data-lba="pdf">Unduh PDF</button>' + (L.jenis === 'konman' ? '<button type="button" class="btn" data-lba="traj" title="PowerPoint Monthly Trajectory per indikator">PPT Trajectory</button><button type="button" class="btn" data-lba="pd" title="PowerPoint Performance Dialog">PPT Performance Dialog</button>' : '') + '</div></div>' +
       '<div class="lb-scroll"><article class="lb-doc" data-tema="' + L.jenis + '" style="--lb-ac:#' + T.ac + ';--lb-ac3:#' + T.ac3 + ';--lb-ac2:#' + T.ac2 + ';--lb-soft:#' + T.soft + '" contenteditable="true" spellcheck="false">' + isi + '</article></div>';
   }
   function klik(e) {
     var j = e.target.closest('[data-lbj]'); if (j) { L.jenis = j.getAttribute('data-lbj'); return susun(); }
     var b = e.target.closest('[data-lba]'); if (!b) return;
     var x = b.getAttribute('data-lba');
-    if (x === 'tutup') { $('lbWrap').hidden = true; document.body.classList.remove('lb-buka'); }
+    if (x === 'tutup') tutupLap();
     if (x === 'ulang') susun();
     if (x === 'pdf') cetakPdf();
     if ((x === 'traj' || x === 'pd') && window.DashPpt) { b.disabled = true; var t1 = b.textContent; b.textContent = 'Menyiapkan…'; window.DashPpt.unduh(x, $('lbWrap').querySelector('.lb-doc')).catch(function (er) { A().toast('PPT gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t1; }); }

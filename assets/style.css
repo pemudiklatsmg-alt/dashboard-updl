@@ -2823,3 +2823,4 @@ body.pres .panel[data-sorot]::after{display:none}
 .panel[data-sorot="bad"]::before{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent);background-image:radial-gradient(circle at 9px 50%,var(--bad) 3px,transparent 3.5px)}
 body.pres .panel[data-sorot]::before{display:none}
 .anim-tunggu *,.anim-tunggu *::before,.anim-tunggu *::after{animation-play-state:paused!important}
+.lb-kembali{font-weight:600}
