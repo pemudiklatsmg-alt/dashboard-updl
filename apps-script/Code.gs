@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 11;   // 11: tab Audit Internal & skor audit
+var VERSI = 12;   // 12: notulensi rapat (tab Notulen & Notulen Isi)
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -52,7 +52,8 @@ var TAB = {
   SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
   LOG: 'Log Login', AKUN: 'Akun Lihat', TUGASLAIN: 'Tugas Lain',
   SURVEI_TANYA: 'Survei Pertanyaan', SURVEI_JAWAB: 'Survei Jawaban',
-  AUDIT: 'Audit Internal', AUDITSKOR: 'Audit Internal - Skor'
+  AUDIT: 'Audit Internal', AUDITSKOR: 'Audit Internal - Skor',
+  NOTULEN: 'Notulen', NOTULEN_ISI: 'Notulen Isi'
 };
 var TAB_LAMA_ = { TINDAKLANJUT: 'Tindak Lanjut Evaluasi' };
 /* Pakai nama tab lama bila tab dengan nama baru belum ada (masa peralihan) */
@@ -581,6 +582,13 @@ function doPost(e) {
     if (req.aksi === 'surveiHasil') {
       if (sesi.peran !== 'admin') throw new Error('Hasil survei hanya untuk akun Admin.');
       return json_(hasilSurvei_());
+    }
+    if (req.aksi === 'notulenDaftar') return json_({ ok: true, daftar: daftarNotulen_() });
+    if (req.aksi === 'notulenBuka') return json_(bukaNotulen_(String(req.id || '')));
+    if (req.aksi === 'notulenSimpan' || req.aksi === 'notulenHapus') {
+      if (sesi.peran !== 'admin') throw new Error('Notulen hanya bisa dibuat atau diubah oleh akun Admin.');
+      var lkn = LockService.getScriptLock(); lkn.waitLock(25000);
+      try { return json_(req.aksi === 'notulenSimpan' ? simpanNotulen_(req, sesi.user) : hapusNotulen_(String(req.id || ''), sesi.user)); } finally { lkn.releaseLock(); }
     }
     if (req.aksi === 'riwayat') {
       if (sesi.peran !== 'admin') throw new Error('Riwayat perubahan hanya untuk akun Admin.');
@@ -1922,7 +1930,7 @@ function cekIzinDrive() { Logger.log(JSON.stringify(infoPerubahan_().file)); }
    Disimpan di tab "Tugas Lain" (dibuat otomatis). Hanya akun Admin yang bisa melihat dan mengubah.
    ====================================================================== */
 var TL_KOLOM_ = ['ID', 'Tanggal', 'Jenis', 'Uraian', 'PIC', 'Tenggat', 'Status', 'Catatan', 'Diubah', 'Oleh'];
-var TL_JENIS_ = ['Disposisi', 'Penugasan', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Lainnya'];
+var TL_JENIS_ = ['Disposisi', 'Penugasan', 'Bantuan', 'Koordinasi', 'Zoom / Rapat', 'Dinas', 'Diklat', 'Tindak Lanjut Rapat', 'Lainnya'];
 var TL_STATUS_ = ['Belum Dimulai', 'Proses', 'Selesai', 'Hold', 'Dibatalkan'];
 function tabTugasLain_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.TUGASLAIN);
@@ -2112,4 +2120,93 @@ function hasilSurvei_() {
   var daftar = Object.keys(resp).map(function (k) { return resp[k]; });
   return { ok: true, tanya: tanya, responden: daftar.length, jawaban: per, respon: daftar.slice(-300),
     terakhir: daftar.reduce(function (m, x) { return Math.max(m, x.waktu || 0); }, 0) };
+}
+
+
+/* ======================================================================
+   NOTULENSI RAPAT (form FR.SMT.019)
+   Tab "Notulen": satu baris per notulen (ringkasan untuk daftar riwayat).
+   Tab "Notulen Isi": isi lengkap (JSON, termasuk gambar) dipotong per 40.000 karakter.
+   Action item notulen disalin ke tab "Tugas Lain" (jenis "Tindak Lanjut Rapat") agar terpantau di Tugas Tim.
+   ====================================================================== */
+var NT_KOLOM_ = ['ID', 'Dibuat', 'Diubah', 'Oleh', 'Jenis Rapat', 'Judul', 'Tanggal', 'Waktu', 'Lokasi', 'Peserta', 'Note Taker', 'Status', 'Ringkasan', 'Action Items'];
+function tabNotulen_(isi) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), nm = isi ? TAB.NOTULEN_ISI : TAB.NOTULEN, sh = ss.getSheetByName(nm);
+  if (!sh) {
+    sh = ss.insertSheet(nm, ss.getSheets().length);
+    var h = isi ? ['ID Notulen', 'Bagian', 'Isi'] : NT_KOLOM_;
+    sh.getRange(1, 1, 1, h.length).setValues([h]).setFontWeight('bold').setBackground('#156082').setFontColor('#FFFFFF');
+    sh.setFrozenRows(1); sh.setTabColor('#156082');
+    if (isi) sh.setColumnWidth(3, 400);
+  }
+  return sh;
+}
+function ntTgl_(v) { var m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : ''; }
+function ntIso_(v) { return v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(v || ''); }
+function daftarNotulen_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.NOTULEN);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, NT_KOLOM_.length).getValues();
+  return v.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
+    var aksi = []; try { aksi = JSON.parse(r[13] || '[]'); } catch (e) { aksi = []; }
+    return { id: String(r[0]), dibuat: r[1] instanceof Date ? r[1].getTime() : r[1], diubah: r[2] instanceof Date ? r[2].getTime() : r[2], oleh: String(r[3]), jenis: String(r[4]), judul: String(r[5]),
+      tanggal: ntIso_(r[6]), waktu: String(r[7]), lokasi: String(r[8]), peserta: String(r[9]), noteTaker: String(r[10]), status: String(r[11]), ringkasan: String(r[12]), aksi: aksi };
+  }).sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)) || (b.diubah || 0) - (a.diubah || 0); });
+}
+function bukaNotulen_(id) {
+  var meta = daftarNotulen_().filter(function (x) { return x.id === id; })[0];
+  if (!meta) throw new Error('Notulen tidak ditemukan. Muat ulang daftar.');
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.NOTULEN_ISI), bag = [];
+  if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues().forEach(function (r) { if (String(r[0]) === id) bag.push([Number(r[1]), String(r[2])]); });
+  bag.sort(function (a, b) { return a[0] - b[0]; });
+  var isi = {}; try { isi = JSON.parse(bag.map(function (x) { return x[1]; }).join('') || '{}'); } catch (e) { isi = {}; }
+  isi.id = id; isi.meta = meta;
+  return { ok: true, notulen: isi };
+}
+/* salin action item ke tab Tugas Lain; status yang sudah diubah tim tidak ditimpa */
+function sinkronAksi_(id, d, user) {
+  var sh = tabTugasLain_(), n = sh.getLastRow(), v = n > 1 ? sh.getRange(2, 1, n - 1, 10).getValues() : [], baris = {};
+  v.forEach(function (r, i) { baris[String(r[0])] = i + 2; });
+  var pakai = {}, judul = String(d.judul || d.jenis || 'rapat').slice(0, 80);
+  (d.aksi || []).forEach(function (a) {
+    var teks = String(a.aksi || '').trim() || String(a.isu || '').trim(); if (!teks) return;
+    if (!a.tid) a.tid = 'NT' + Utilities.getUuid().slice(0, 6);
+    pakai[a.tid] = 1;
+    var isi = [a.tid, ntTgl_(d.tanggal) || new Date(), 'Tindak Lanjut Rapat', (teks + ' (rapat: ' + judul + ')').slice(0, 500), String(a.pic || '').trim().slice(0, 60), ntTgl_(a.tenggat),
+      null, ('Notulen ' + id + (a.isu ? ' · Isu: ' + a.isu : '')).slice(0, 500), new Date(), user];
+    var b = baris[a.tid];
+    if (b) { isi[6] = sh.getRange(b, 7).getValue() || 'Belum Dimulai'; sh.getRange(b, 1, 1, 10).setValues([isi]); }
+    else { isi[6] = 'Belum Dimulai'; sh.getRange(sh.getLastRow() + 1, 1, 1, 10).setValues([isi]); }
+  });
+  // action item yang dihapus dari notulen: tugasnya ditandai Dibatalkan
+  v.forEach(function (r, i) { if (/^NT/.test(String(r[0])) && String(r[7]).indexOf('Notulen ' + id) === 0 && !pakai[String(r[0])] && String(r[6]) !== 'Dibatalkan') sh.getRange(i + 2, 7).setValue('Dibatalkan'); });
+}
+function simpanNotulen_(req, user) {
+  var d = req.data || {}, sh = tabNotulen_(false), shI = tabNotulen_(true), now = new Date();
+  if (!String(d.tanggal || '').trim()) throw new Error('Tanggal rapat wajib diisi.');
+  var id = String(d.id || '').trim() || 'NT-' + Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyyMMdd') + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
+  d.id = id;
+  sinkronAksi_(id, d, user);
+  var n = sh.getLastRow(), ids = n > 1 ? sh.getRange(2, 1, n - 1, 2).getValues() : [], baris = -1, dibuat = now;
+  ids.forEach(function (r, i) { if (String(r[0]) === id) { baris = i + 2; dibuat = r[1] || now; } });
+  var aksiRingkas = (d.aksi || []).map(function (a) { return { tid: a.tid, isu: String(a.isu || '').slice(0, 200), aksi: String(a.aksi || '').slice(0, 300), pic: a.pic || '', tenggat: a.tenggat || '' }; });
+  var meta = [id, dibuat, now, user, String(d.jenis || ''), String(d.judul || '').slice(0, 200), ntTgl_(d.tanggal), String(d.waktu || ''), String(d.lokasi || ''), String(d.peserta || '').slice(0, 500),
+    String(d.noteTaker || ''), String(d.status || 'Draf'), String(d.ringkasan || '').slice(0, 1000), JSON.stringify(aksiRingkas).slice(0, 45000)];
+  if (baris > 0) sh.getRange(baris, 1, 1, meta.length).setValues([meta]); else sh.getRange(sh.getLastRow() + 1, 1, 1, meta.length).setValues([meta]);
+  // isi lengkap: hapus potongan lama, tulis ulang
+  var nI = shI.getLastRow();
+  if (nI > 1) { var vI = shI.getRange(2, 1, nI - 1, 1).getValues(); for (var i = vI.length - 1; i >= 0; i--) if (String(vI[i][0]) === id) shI.deleteRow(i + 2); }
+  var json = JSON.stringify(d), pot = [], UK = 40000;
+  for (var k = 0; k * UK < json.length; k++) pot.push([id, k + 1, json.slice(k * UK, (k + 1) * UK)]);
+  if (pot.length) shI.getRange(shI.getLastRow() + 1, 1, pot.length, 3).setValues(pot);
+  SpreadsheetApp.flush();
+  catatUbah_(user, 'dashboard', TAB.NOTULEN, baris > 0 ? 'Ubah notulen' : 'Notulen baru', (d.judul || id) + ' · ' + (d.aksi || []).length + ' action item');
+  return { ok: true, id: id, aksi: d.aksi || [], daftar: daftarNotulen_(), tugasLain: bacaTugasLain_() };
+}
+function hapusNotulen_(id, user) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.NOTULEN), shI = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.NOTULEN_ISI);
+  [sh, shI].forEach(function (t) { if (!t || t.getLastRow() < 2) return; var v = t.getRange(2, 1, t.getLastRow() - 1, 1).getValues(); for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === id) t.deleteRow(i + 2); });
+  sinkronAksi_(id, { aksi: [] }, user);
+  catatUbah_(user, 'dashboard', TAB.NOTULEN, 'Hapus notulen', id);
+  return { ok: true, daftar: daftarNotulen_(), tugasLain: bacaTugasLain_() };
 }
