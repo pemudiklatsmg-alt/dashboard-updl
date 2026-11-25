@@ -2638,7 +2638,7 @@ body.lb-buka{overflow:hidden}
 .bd-g{width:100%;height:auto;display:block}
 .bd-ind{margin-top:13px}.bd-ind summary{cursor:pointer;font-weight:600;padding:8px 0}
 @media (max-width:1000px){.bd-wrap{grid-template-columns:1fr}}
-@media (max-width:600px){.bd-chart{display:none}.bd-t td:first-child{white-space:normal}}
+@media (max-width:600px){.bd-t td:first-child{white-space:normal}.bd-hv text{font-size:15px}.bd-lbl{font-size:16px}.bd-g text:not(.bd-lbl){font-size:15px}}
 
 /* ===== Rendiklat rinci: per kategori, kalender, biaya, kualitas delivery ===== */
 :root{--k1:#2f5fb3;--k2:#c8641e;--k3:#0f8f78;--k4:#8a4fbf;--k5:#b8336a;--k6:#6f7d1c}
@@ -2824,6 +2824,11 @@ body.pres .panel[data-sorot]::after{display:none}
 body.pres .panel[data-sorot]::before{display:none}
 .anim-tunggu *,.anim-tunggu *::before,.anim-tunggu *::after{animation-play-state:paused!important}
 .lb-kembali{font-weight:600}
+/* Banding: angka bulan lain — muncul saat kursor (laptop), samar terus (HP / layar sentuh) */
+.bd-hv text{font-size:10px;opacity:0;transition:opacity .15s;pointer-events:none}
+.bd-hv rect{cursor:default}
+@media (hover:hover){.bd-hv:hover text{opacity:1}}
+@media (hover:none){.bd-hv text{opacity:.4}}
 /* Laporan bulanan: bilah atas rapi — baris 1: Kembali · jenis laporan · tombol unduh (kanan); baris 2: petunjuk · tanda tangan */
 .lb-kembali{order:1}.lb-bar .seg{order:2}.lb-aksi{order:3;margin-left:auto}
 .lb-info{order:4;flex:1 1 55%;font-size:12px}.lb-ttdpil{order:5;margin-left:auto}

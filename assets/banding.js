@@ -51,7 +51,17 @@
       if (a1 !== null) lbl += tulis(a1, 'var(--accent)', atas1, true);
       if (a0 !== null) lbl += tulis(a0, 'var(--ink-2)', !atas1, false);
     }
-    return '<svg class="bd-g" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Skor Kontrak Manajemen per bulan ' + y0 + ' dan ' + y1 + '">' + g + jalur(s0, 'var(--ink-2)', true) + jalur(s1, 'var(--accent)', false) + lbl + '</svg>' +
+    // bulan lain: angka muncul saat kursor di atas bulan itu (laptop); di HP tampil samar terus
+    var lain = '';
+    for (var i = 0; i < 12; i++) {
+      if (i === k) continue;
+      var v0 = s0[i], v1 = s1[i]; if (v0 === null && v1 === null) continue;
+      var naik = v0 === null || v1 === null || v1 >= v0, ux = X(i), an = ux > W - 30 ? 'end' : ux < pl + 20 ? 'start' : 'middle';
+      var tl = function (v, w, diAtas) { var y = Math.max(pt - 1, Math.min(pt + ih + 4, Y(v) + (diAtas ? -7 : 13))); return '<text x="' + ux.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + an + '" fill="' + w + '">' + D.fmt(v, 1) + '</text>'; };
+      lain += '<g class="bd-hv"><rect x="' + (ux - iw / 22).toFixed(1) + '" y="0" width="' + (iw / 11).toFixed(1) + '" height="' + (pt + ih) + '" fill="transparent"/>' +
+        (v1 !== null ? tl(v1, 'var(--accent)', naik) : '') + (v0 !== null ? tl(v0, 'var(--ink-2)', !naik) : '') + '</g>';
+    }
+    return '<svg class="bd-g" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Skor Kontrak Manajemen per bulan ' + y0 + ' dan ' + y1 + '">' + g + jalur(s0, 'var(--ink-2)', true) + jalur(s1, 'var(--accent)', false) + lbl + lain + '</svg>' +
       '<div class="legend"><span><i style="background:var(--accent)"></i>' + y1 + '</span><span><i style="background:var(--ink-2)"></i>' + y0 + ' (putus-putus)</span></div>';
   }
   function render() {
