@@ -34,15 +34,15 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
-_Butir bertanda [contoh] ada di cabang `contoh-sorot`, menunggu "pasang"._
-- 25 Nov 2026 [contoh]: Laporan bulanan punya tombol "← Kembali ke dashboard"; tombol back browser menutup laporan.
-- 25 Nov 2026 [contoh]: Menu "Cetak ringkasan" dan "Export Excel" digabung jadi satu menu "Unduh / Cetak" (PDF atau Excel).
-- 25 Nov 2026 [contoh]: Sorotan "Perlu perhatian" pada kartu hanya untuk akun Admin, tanpa angka, hanya masalah mendesak:
+_Butir bertanda ada di cabang `contoh-sorot`, menunggu "pasang"._
+- 25 Nov 2026: Laporan bulanan punya tombol "← Kembali ke dashboard"; tombol back browser menutup laporan.
+- 25 Nov 2026: Menu "Cetak ringkasan" dan "Export Excel" digabung jadi satu menu "Unduh / Cetak" (PDF atau Excel).
+- 25 Nov 2026: Sorotan "Perlu perhatian" pada kartu hanya untuk akun Admin, tanpa angka, hanya masalah mendesak:
   indikator Konman < 95%, pengurang kepatuhan, KRI merah, kejadian fraud, inovasi lewat target,
   perbaikan berkelanjutan belum dimulai ≥ 5. Hal administratif tidak disorot.
-- 25 Nov 2026 [contoh]: Animasi grafik (garis, batang, cincin, donat) diputar ulang setiap tab dibuka; menunggu sampai kartu terlihat
+- 25 Nov 2026: Animasi grafik (garis, batang, cincin, donat) diputar ulang setiap tab dibuka; menunggu sampai kartu terlihat
   (`assets/anim.js`).
-- 25 Nov 2026 [contoh]: Grafik Banding Tahun Lalu menampilkan angka hanya di bulan terpilih.
+- 25 Nov 2026: Grafik Banding Tahun Lalu menampilkan angka hanya di bulan terpilih.
 - 25 Nov 2026: Rekap Pembelajaran: pencarian judul di Kalender, grafik bergaya Ringkasan, tabel per judul saat satu kategori
   dipilih; Banding Tahun Lalu diletakkan di bawah Kepatuhan.
 - Maturity Level tetap menu sendiri (klien akan menambah datanya).
