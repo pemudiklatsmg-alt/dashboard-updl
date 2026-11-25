@@ -53,7 +53,7 @@
     '.nt-ed img{max-width:100%;height:auto;display:block;margin:5px auto;border-radius:2px}.nt-ed .nt-kartu{margin:8px 0;text-align:center}.nt-ed .nt-kartu img{border:1px solid #ddd}.nt-ed figcaption{font-size:9pt;color:#555;font-style:italic;margin-top:3px}' +
     '.nt-tbl{width:100%;border-collapse:collapse;margin:5px 0 8px}.nt-tbl th,.nt-tbl td{border:1px solid var(--nt-g);padding:3px 7px;vertical-align:top;text-align:left;min-width:40px}.nt-tbl th{background:var(--nt-b);color:#fff;font-weight:700}.nt-tbl tbody tr:nth-child(odd) td{background:#EAF6FC}' +
     '.nt-ak{width:100%;border-collapse:collapse;margin:3px 0 0}.nt-ak th{background:var(--nt-b);color:#fff;font-weight:700;border:1px solid var(--nt-g);padding:5px 7px;text-align:center}.nt-ak td{border:1px solid var(--nt-g);padding:3px 7px;vertical-align:top}.nt-ak tbody tr:nth-child(odd) td{background:var(--nt-s)}' +
-    '.nt-ak .no{width:30px;text-align:center}.nt-ak .pic{width:100px;text-align:center}.nt-ak .tg{width:100px;text-align:center}.nt-ak textarea,.nt-ak input{width:100%;border:0;background:transparent;font:inherit;color:inherit;resize:none;outline:none;padding:2px 0;overflow:hidden;field-sizing:content;min-height:22px}' +
+    '.nt-ak .no{width:30px;text-align:center}.nt-ak .pic{width:130px;text-align:center}.nt-picw{position:relative;display:block;border-radius:3px}.nt-picv{display:block;padding:2px 13px 2px 0;font-size:10pt;line-height:1.3;word-break:break-word}.nt-picv::after{content:\"\\25BE\";position:absolute;right:0;top:2px;color:#398F98}.nt-picw select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.nt-picw:focus-within{background:#FFFBD6}.nt-ak .pic input{margin-top:3px;border-bottom:1px dashed #9AD2D8}.nt-ak .tg{width:100px;text-align:center}.nt-ak textarea,.nt-ak input{width:100%;border:0;background:transparent;font:inherit;color:inherit;resize:none;outline:none;padding:2px 0;overflow:hidden;field-sizing:content;min-height:22px}' +
     '.nt-ak textarea:focus,.nt-ak input:focus{background:#FFFBD6}.nt-ak .x{width:26px;padding:0;text-align:center;background:#fff!important;border:0}.nt-ak .x button{border:0;background:none;color:#B3261E;font-size:16px;cursor:pointer;padding:5px}' +
     '.nt-ak .tk{display:block;font-size:8.5pt;color:#555;margin-top:2px}.nt-ak .tk b{font-weight:600}' +
     '.nt-ttd{display:grid;grid-template-columns:1fr 1fr;margin:21px 0 0}.nt-ttd>div:last-child{text-align:center;display:grid;gap:5px}.nt-ttd .sp{height:55px}.nt-ttd [contenteditable=true]{outline:none;border-radius:2px}.nt-ttd [contenteditable=true]:focus{background:#FFFBD6}' +
@@ -61,6 +61,20 @@
     '.nt-ft{margin-top:34px;font-size:8pt;line-height:1.35;color:#333}' +
     '@media (max-width:700px){.nt-doc{padding:21px 13px 13px;font-size:10.5pt;border-radius:0}.nt-mom{font-size:9.5pt}.nt-mom .t{font-size:15pt}.nt-mom col:nth-child(1){width:23%!important}.nt-mom col:nth-child(2){width:22%!important}.nt-mom col:nth-child(3){width:23%!important}.nt-mom .k{white-space:normal}.nt-mom .k i{display:none}.nt-ed{text-align:left}.nt-ed{padding-left:13px}.nt-ak .pic,.nt-ak .tg{width:74px}}';
   function pasangCss() { if ($('ntCss')) return; var s = document.createElement('style'); s.id = 'ntCss'; s.textContent = CSS_DOK; document.head.appendChild(s); }
+
+  /* PIC action item: tim EPMK, pegawai dari Data - Pegawai, atau "Lainnya" (tulis sendiri, mis. PIC di luar UPDL Semarang) */
+  function daftarPegawai() {
+    var o = A().S.data && A().S.data.org, L = ((o && o.pegawai) || []).map(function (r) { return String(r[0] || '').trim(); }).filter(Boolean);
+    return L.filter(function (n, i) { return L.indexOf(n) === i; }).sort(function (a, b) { return a.localeCompare(b, 'id'); });
+  }
+  function picSel(v) {
+    v = String(v || ''); var peg = daftarPegawai(), ada = !v || PIC.indexOf(v) >= 0 || peg.indexOf(v) >= 0;
+    var op = function (n) { return '<option' + (n === v ? ' selected' : '') + '>' + esc(n) + '</option>'; };
+    return '<span class="nt-picw"><span class="nt-picv">' + esc(!v ? 'Pilih PIC' : ada ? v : 'Lainnya') + '</span><select data-ak="picPil" aria-label="PIC"><option value=""' + (v ? '' : ' selected') + '>Pilih PIC</option><optgroup label="Tim / jabatan">' + PIC.map(op).join('') + '</optgroup>' +
+      (peg.length ? '<optgroup label="Pegawai UPDL Semarang">' + peg.map(op).join('') + '</optgroup>' : '') +
+      '<option value="__lain"' + (ada ? '' : ' selected') + '>Lainnya (tulis sendiri)…</option></select></span>' +
+      '<input data-ak="pic" placeholder="Nama / unit PIC" value="' + esc(ada ? '' : v) + '"' + (ada ? ' hidden' : '') + '>';
+  }
 
   /* ---------- isi dokumen (sunting = true untuk Admin) ---------- */
   function docHtml(d, ed) {
@@ -72,7 +86,7 @@
       var tk = t ? '<span class="tk">Tugas Tim: <b>' + esc(t.status) + '</b></span>' : '';
       if (!ed) return '<tr><td class="no">' + (i + 1) + '</td><td>' + esc(a.isu || '') + '</td><td>' + esc(a.aksi || '') + tk + '</td><td class="pic">' + esc(a.pic || '') + '</td><td class="tg">' + esc(tglPendek(a.tenggat)) + '</td></tr>';
       return '<tr data-i="' + i + '"><td class="no">' + (i + 1) + '</td><td><textarea rows="1" data-ak="isu" placeholder="Isu">' + esc(a.isu || '') + '</textarea></td><td><textarea rows="1" data-ak="aksi" placeholder="Action item">' + esc(a.aksi || '') + '</textarea>' + tk + '</td>' +
-        '<td class="pic"><input data-ak="pic" list="ntPic" placeholder="PIC" value="' + esc(a.pic || '') + '"></td><td class="tg"><input type="date" data-ak="tenggat" value="' + esc(a.tenggat || '') + '"></td><td class="x"><button type="button" data-nta="hapusAksi" title="Hapus baris" aria-label="Hapus baris">×</button></td></tr>';
+        '<td class="pic">' + picSel(a.pic) + '</td><td class="tg"><input type="date" data-ak="tenggat" value="' + esc(a.tenggat || '') + '"></td><td class="x"><button type="button" data-nta="hapusAksi" title="Hapus baris" aria-label="Hapus baris">×</button></td></tr>';
     }).join('');
     return '<article class="nt-doc">' +
       '<header class="nt-hd"><img src="assets/pln.png" alt="PLN"><div><span>FORMULIR</span><span>NOTULA RAPAT INTERNAL EKSTERNAL</span><span>PT PLN (PERSERO) UPDL SEMARANG</span></div></header>' +
@@ -196,7 +210,6 @@
       (N.pulih ? '<div class="nt-pulih">Draf yang belum disimpan dipulihkan dari perangkat ini. <button type="button" class="btn" data-nta="buangDraf">Buang draf</button></div>' : '') +
       (ed ? '<div class="nt-meta"><label>Nama rapat<input data-ntk="judul" value="' + esc(d.judul || '') + '" placeholder="mis. Performance Dialog November 2026"></label><label>Jenis rapat<select data-ntk="jenis">' + JENIS.map(function (j) { return '<option' + (j === d.jenis ? ' selected' : '') + '>' + esc(j) + '</option>'; }).join('') + '</select></label></div>' : '') +
       docHtml(d, ed) + '</div>' +
-      (ed ? '<datalist id="ntPic">' + PIC.map(function (p) { return '<option value="' + esc(p) + '">'; }).join('') + '</datalist>' : '') +
       '<div class="nt-imgpop" hidden>' + ['33', '50', '75', '100'].map(function (p) { return '<button type="button" data-ntw="' + p + '">' + p + '%</button>'; }).join('') + '<button type="button" data-ntw="hapus" class="nt-del">Hapus</button></div>';
   }
   function tandai() {
@@ -206,6 +219,12 @@
   function ketik(e) {
     var t = e.target, d = N.cur; if (!d || N.mode !== 'edit') { if (t.matches('[data-ntq]')) { N.q = t.value; riwayatList(); } return; }
     if (t.matches('[data-ntk]')) { d[t.getAttribute('data-ntk')] = t.value; if (t.getAttribute('data-ntk') === 'tanggal') segarTtd(); if (t.getAttribute('data-ntk') === 'judul') $('ntWrap').querySelector('.nt-judul b').textContent = t.value || 'Notulen baru'; }
+    else if (t.matches('[data-ak="picPil"]')) {
+      var a = d.aksi[+t.closest('tr').getAttribute('data-i')], ip = t.parentNode.querySelector('[data-ak="pic"]');
+      t.parentNode.querySelector('.nt-picv').textContent = t.value === '__lain' ? 'Lainnya' : t.value || 'Pilih PIC';
+      ip = t.closest('td').querySelector('[data-ak="pic"]');
+      if (t.value === '__lain') { a.pic = ip.value; ip.hidden = false; ip.focus(); } else { a.pic = t.value; ip.hidden = true; ip.value = ''; }
+    }
     else if (t.matches('[data-ak]')) { d.aksi[+t.closest('tr').getAttribute('data-i')][t.getAttribute('data-ak')] = t.value; }
     else if (t.closest('.nt-ed')) { var f = t.closest('.nt-ed'); d.html[f.getAttribute('data-ntf')] = f.innerHTML; if (f.getAttribute('data-ntf') !== 'dok') N.murni = false; }
     else if (t.closest('[data-ntt]')) { var s = t.closest('[data-ntt]'); d.ttd[s.getAttribute('data-ntt')] = s.textContent.trim(); }
