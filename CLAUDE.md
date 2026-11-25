@@ -35,6 +35,7 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
+- 25 Nov 2026: Menu baru "Perbaikan Berkelanjutan" (kartu Perbaikan dipindah dari Evaluasi + kartu Audit Internal). Data dari tab "Audit Internal" (satu baris per temuan NC/OFI) dan "Audit Internal - Skor" (skor per elemen). Temuan audit juga disalin ke tab Perbaikan Berkelanjutan dengan Sumber = Audit Internal. Hasil audit ISO lain ditambahkan ke tab yang sama. Apps Script VERSI 11 (deployment versi 29).
 _Butir bertanda ada di cabang `contoh-sorot`, menunggu "pasang"._
 - 25 Nov 2026: Laporan bulanan punya tombol "← Kembali ke dashboard"; tombol back browser menutup laporan.
 - 25 Nov 2026: Menu "Cetak ringkasan" dan "Export Excel" digabung jadi satu menu "Unduh / Cetak" (PDF atau Excel).
