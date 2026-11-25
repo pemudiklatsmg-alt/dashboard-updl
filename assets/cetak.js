@@ -9,11 +9,11 @@
 
   var BAG = [
     { k: ['bulanan'], n: 'Capaian Kinerja per Bulan' }, { k: ['indikator'], n: 'Indikator Kinerja & Kepatuhan' }, { k: ['maturity'], n: 'Maturity Level' },
-{ k: ['ringkasan', 'pemb-grafik'], n: 'Rekap Pembelajaran' }, { k: ['evaluasi', 'eval-grafik'], n: 'Evaluasi Pembelajaran' }, { k: ['perbaikan'], n: 'Perbaikan Berkelanjutan' },
+{ k: ['ringkasan', 'pemb-grafik'], n: 'Rekap Pembelajaran' }, { k: ['evaluasi', 'eval-grafik'], n: 'Evaluasi Pembelajaran' }, { k: ['perbaikan'], n: 'Perbaikan Berkelanjutan' }, { k: ['audit'], n: 'Audit Internal' },
     { k: ['pengembangan'], n: 'Pengembangan Pegawai & Inovasi' }, { k: ['isu'], n: 'Isu & Pihak Berkepentingan' },
     { k: ['risiko'], n: 'Peta Risiko' }, { k: ['kri'], n: 'Key Risk Indicator' }, { k: ['fraud'], n: 'Risiko Fraud (FRA)' }
   ];
-  var TAB = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik', 'perbaikan'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var TAB = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik'], evaluasi: ['evaluasi', 'eval-grafik'], perbaikan: ['perbaikan', 'audit'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
 
   function salin(el) {
     var c = el.cloneNode(true); c.hidden = false; c.removeAttribute('id');
@@ -150,7 +150,7 @@
   }
   function openCetak() {
     if (!A.S.data) return;
-    var nama = { semua: 'Semua bagian', ringkasan: 'Ringkasan', kinerja: 'Kinerja Unit', maturity: 'Maturity Level', pembelajaran: 'Rekap Pembelajaran', evaluasi: 'Evaluasi', sdm: 'SDM & Inovasi', risiko: 'Risiko & Mutu', tugas: 'Tugas Tim EPMK' }[A.S.vt || 'semua'];
+    var nama = { semua: 'Semua bagian', ringkasan: 'Ringkasan', kinerja: 'Kinerja Unit', maturity: 'Maturity Level', pembelajaran: 'Rekap Pembelajaran', evaluasi: 'Evaluasi', perbaikan: 'Perbaikan Berkelanjutan', sdm: 'SDM & Inovasi', risiko: 'Risiko & Mutu', tugas: 'Tugas Tim EPMK' }[A.S.vt || 'semua'];
     var pil = function (k, j, d, on) { return '<label class="cp-opt"><input type="radio" name="cpJenis" value="' + k + '"' + (on ? ' checked' : '') + '><span><b>' + j + '</b><small>' + d + '</small></span></label>'; };
     A.openModal('<div class="modal-h"><div><div class="desc">A4 tegak · ' + A.namaBulan(A.S.bulan) + ' ' + A.S.tahun + '</div><h3>Unduh / Cetak</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="cp-opts">' + pil('ringkas', 'Ringkas 1 halaman', 'Capaian, tren, 6 angka kunci, perlu perhatian, indikator di bawah target. Cocok untuk pimpinan.', true) +

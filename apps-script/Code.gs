@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 10;   // 6.1: isi PIC & Status otomatis, impor komentar EL2
+var VERSI = 11;   // 11: tab Audit Internal & skor audit
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -51,7 +51,8 @@ var TAB = {
   CC: 'Data - C&C EL2',
   SERT: 'Data - Sertifikat', ORG: 'Data - Pegawai', ALIHDAYA: 'Data - Alih Daya', IDP: 'Data - IDP', INOVASI: 'Data - Inovasi',
   LOG: 'Log Login', AKUN: 'Akun Lihat', TUGASLAIN: 'Tugas Lain',
-  SURVEI_TANYA: 'Survei Pertanyaan', SURVEI_JAWAB: 'Survei Jawaban'
+  SURVEI_TANYA: 'Survei Pertanyaan', SURVEI_JAWAB: 'Survei Jawaban',
+  AUDIT: 'Audit Internal', AUDITSKOR: 'Audit Internal - Skor'
 };
 var TAB_LAMA_ = { TINDAKLANJUT: 'Tindak Lanjut Evaluasi' };
 /* Pakai nama tab lama bila tab dengan nama baru belum ada (masa peralihan) */
@@ -212,6 +213,10 @@ function buildData_() {
   out.tindaklanjut = TL.rows; out.warnings = out.warnings.concat(TL.warnings || []);
   // Pembanding tahun lalu (isi manual, opsional): Tahun | Bulan | Skor Konman | Kelas Selesai | Peserta | HOP
   try { var shP = ss.getSheetByName(TAB.PEMBANDING); out.pembanding = shP && shP.getLastRow() > 1 ? clean_(shP.getRange(1, 1, shP.getLastRow(), Math.min(shP.getLastColumn(), 12)).getValues()) : []; } catch (e) { out.pembanding = []; }
+  // Audit internal (isi manual dari LHA): daftar temuan + skor per elemen (PP 50/2012, Perpol 7/2019, dst.)
+  ['AUDIT', 'AUDITSKOR'].forEach(function (k) {
+    try { var sh = ss.getSheetByName(TAB[k]); out[k === 'AUDIT' ? 'audit' : 'auditSkor'] = sh && sh.getLastRow() > 1 ? clean_(sh.getRange(1, 1, sh.getLastRow(), Math.min(sh.getLastColumn(), 30)).getValues()) : []; } catch (e) { out[k === 'AUDIT' ? 'audit' : 'auditSkor'] = []; }
+  });
   out.meta.tabPerbaikan = TAB.TINDAKLANJUT;
   out.meta.sumberEval = { kepuasan: cfg.EL1_ID ? 'file DOC 1 di Drive (EL1_ID)' : TAB.KEPUASAN, cc: cfg.EL2_ID ? 'file DOC 2 di Drive (EL2_ID)' : TAB.CC };
   out.meta.links.el1 = cfg.EL1_ID ? 'https://docs.google.com/spreadsheets/d/' + String(cfg.EL1_ID).trim() + '/edit' : '';

@@ -423,6 +423,7 @@
       var pb = kPihak().filter(function (x) { return /tinggi/i.test(x.prio) && kStatus(x.st) !== 'good' && (x.pr === null || x.pr < 50); });
       if (pb.length) L.push({ c: 'warn', t: '<b>' + pb.length + ' pihak berkepentingan</b> prioritas tinggi, progres &lt; 50%: ' + namaSingkat(pb, function (x) { return x.nama; }), act: 'pb', p: '#pbBody', n: pb.length });
     }
+    if (window.DashAudit) { var au = window.DashAudit.ringkas(); if (au && au.lewat) L.push({ c: 'bad', t: '<b>' + au.lewat + ' temuan audit</b> lewat tenggat, belum selesai', go: 'audit', p: '#auditBody', n: au.lewat }); else if (au && au.ncBuka) L.push({ c: 'warn', t: '<b>' + au.ncBuka + ' ketidaksesuaian audit</b> belum terverifikasi efektif', go: 'audit', p: '#auditBody', n: au.ncBuka }); }
     var kriM = kriRows().filter(function (k) { var a = kriAkhir(k); return a && a.st === 'bad'; });
     if (kriM.length) L.push({ c: 'bad', t: '<b>' + kriM.length + ' KRI merah</b>: ' + namaSingkat(kriM, function (k) { return k.kri; }), go: 'kri', p: '#kriPanel', n: kriM.length });
     var G = fra() && fra().ringkas;
@@ -636,6 +637,7 @@
     }).join('');
     $('tlBody').innerHTML = '<div class="tl-top">' + donut(seg.slice(0, 3).map(function (s) { return { n: c[s[0]], c: s[1], t: s[0] }; }), perlu ? D.fmt(c['Selesai'] / perlu * 100, 0) + '%' : '–', 'tuntas') +
       '<div class="tl-sum">' + seg.map(function (s) { return '<div><b class="num ' + s[1] + '">' + c[s[0]] + '</b><span>' + s[2] + '</span></div>'; }).join('') + '</div></div>' +
+      (function () { var sb = {}; R.forEach(function (r) { var k = String(r['Sumber'] || '').trim() || 'Lainnya'; sb[k] = (sb[k] || 0) + 1; }); var ks = Object.keys(sb).sort(function (a, b) { return sb[b] - sb[a]; }); return ks.length > 1 ? '<div class="tl-sumber"><span class="desc">Sumber:</span>' + ks.map(function (k) { return '<span class="tl-sb"><b class="num">' + sb[k] + '</b> ' + esc(k) + '</span>'; }).join('') + '</div>' : ''; })() +
       '<div class="sub-h">Per PIC · masukan yang perlu tindakan</div><div class="bars">' + bars + '</div>' +
       '<div class="legend"><span><i style="background:var(--good)"></i>Selesai</span><span><i style="background:var(--warn)"></i>Proses</span><span><i style="background:var(--bad)"></i>Belum dimulai</span></div>' +
       '<div class="note">Persen tuntas = (Selesai + Sudah Dilaporkan) ÷ ' + D.fmt(perlu, 0) + ' masukan yang perlu tindakan (selain OFI).</div>' +
@@ -1592,7 +1594,7 @@
     petir: '<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/>'
   };
   function ikon(n) { return IKON[n] ? '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + IKON[n] + '</svg>' : ''; }
-  var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'],
+  var IKON_PANEL = [[/Capaian Kinerja per Bulan/, 'grafik'], [/^Indikator Kinerja/, 'target'], [/^Maturity/, 'lapis'], [/^Kepatuhan/, 'perisai'], [/^Perbaikan/, 'ulang'], [/^Audit Internal/, 'perisai'],
     [/^Pengembangan Pegawai/, 'orang'], [/^Pengembangan Inovasi/, 'lampu'], [/^Isu/, 'bumi'], [/^Pihak/, 'grup'], [/^Peta Risiko/, 'peta'], [/^Key Risk/, 'meter'], [/^Risiko Fraud/, 'waspada']];
   function pasangHoverKet(pn) {
     if (!pn || pn.dataset.kunciKet) return; pn.dataset.kunciKet = 1; {
@@ -1785,7 +1787,7 @@
 
   /* ---------- navigasi samping (laptop) ---------- */
   var NAV = [['ringkasan', 'Ringkasan', 'rumah', 'Gambaran bulan ini'], ['kinerja', 'Kinerja Unit', 'target', 'Konman, indikator, kepatuhan'], ['maturity', 'Maturity Level', 'tangga', 'Proses bisnis & key element'], ['pembelajaran', 'Rekap Pembelajaran', 'toga', 'Kelas, peserta, HOP'],
-    ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, ROTI, Sertifikat'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
+    ['evaluasi', 'Evaluasi', 'senyum', 'Level 1–4, ROTI, Sertifikat'], ['perbaikan', 'Perbaikan Berkelanjutan', 'ulang', 'Tindak lanjut & audit internal'], ['sdm', 'SDM & Inovasi', 'lampu', 'IDP dan inovasi'], ['risiko', 'Risiko & Mutu', 'perisai', 'Isu, risiko, KRI, FRA']];
   function renderSidenav() {
     var el = $('sidenav'); if (!el) return;
     el.hidden = false; document.body.classList.add('ada-side');
@@ -1802,7 +1804,7 @@
   }
 
   /* ---------- tampilan bertab + halaman Ringkasan ---------- */
-  var VT = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik', 'rendik-kat', 'rendik-kal', 'rendik-biaya', 'rendik-mutu'], evaluasi: ['evaluasi', 'eval-grafik', 'perbaikan'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
+  var VT = { kinerja: ['bulanan', 'banding', 'indikator'], maturity: ['maturity'], pembelajaran: ['ringkasan', 'pemb-grafik', 'rendik-kat', 'rendik-kal', 'rendik-biaya', 'rendik-mutu'], evaluasi: ['evaluasi', 'eval-grafik'], perbaikan: ['perbaikan', 'audit'], sdm: ['pengembangan'], risiko: ['isu', 'risiko', 'kri', 'fraud'] };
   var VT_KEY = 'updl_tab';
   try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* abaikan */ }
   function tabDari(bagian) { for (var k in VT) if (VT[k].indexOf(bagian) >= 0) return k; return null; }
@@ -1955,7 +1957,7 @@
     var gagal = [];
     try { pasangIkonPanel(); } catch (e) { /* abaikan */ }
     [['Navigasi', renderSidenav], ['Ringkasan', renderRingkasan], ['Tugas', function () { if (S.vt === 'tugas') renderTugas(); }], ['Perlu perhatian', renderPerhatian], ['Kartu utama', renderKpis], ['Evaluasi', renderMinis], ['Grafik bulanan', renderChart], ['Analisis capaian', renderCapSide], ['Indikator', renderInd], ['Kepatuhan', renderKep],
-     ['Tindak lanjut', renderTL], ['Banding tahun lalu', function () { if (window.DashBanding) window.DashBanding.render(); }], ['Rendiklat rinci', function () { if (window.DashRendik) window.DashRendik.render(); }], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg], ['Grafik tren', function () { if (window.DashApp.renderGrafik) window.DashApp.renderGrafik(); }]].forEach(function (x) {
+     ['Tindak lanjut', renderTL], ['Audit internal', function () { if (window.DashAudit) window.DashAudit.render(); }], ['Banding tahun lalu', function () { if (window.DashBanding) window.DashBanding.render(); }], ['Rendiklat rinci', function () { if (window.DashRendik) window.DashRendik.render(); }], ['Maturity', renderMl], ['IDP', renderIdp], ['Inovasi', renderIno], ['Peta risiko', renderRisk], ['KRI', renderKri], ['FRA', renderFra], ['Isu', renderIsu], ['Pihak berkepentingan', renderPihak], ['Struktur organisasi', renderOrg], ['Grafik tren', function () { if (window.DashApp.renderGrafik) window.DashApp.renderGrafik(); }]].forEach(function (x) {
       try { x[1](); } catch (e) { gagal.push(x[0]); if (window.console) console.error(x[0], e); }
     });
     var w = $('warn'), id = 'warnRender', ada = $(id);

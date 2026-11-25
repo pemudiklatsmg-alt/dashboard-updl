@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261125l">
+<link rel="stylesheet" href="assets/style.css?v=20261125m">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -95,6 +95,7 @@
     <button type="button" role="tab" data-vt="maturity">Maturity</button>
     <button type="button" role="tab" data-vt="pembelajaran">Pembelajaran</button>
     <button type="button" role="tab" data-vt="evaluasi">Evaluasi</button>
+    <button type="button" role="tab" data-vt="perbaikan">Perbaikan</button>
     <button type="button" role="tab" data-vt="sdm">SDM &amp; Inovasi</button>
     <button type="button" role="tab" data-vt="risiko">Risiko &amp; Mutu</button>
     <button type="button" role="tab" data-vt="tugas" class="adm">Tugas Tim<b class="vt-badge" id="vtTugasN" hidden></b></button>
@@ -168,6 +169,13 @@
       <div><h2>Perbaikan Berkelanjutan</h2><div class="desc" id="tlDesc">Status komentar &amp; temuan</div></div>
     </div>
     <div id="tlBody" class="tl-body"></div>
+  </section>
+
+  <section class="panel ai-panel" data-bagian="audit" aria-label="Audit internal">
+    <div class="panel-h">
+      <div><h2>Audit Internal</h2><div class="desc" id="auditDesc">Temuan &amp; tindak lanjut audit internal</div></div>
+    </div>
+    <div id="auditBody" class="ai-body"></div>
   </section>
 
   <section class="pair" aria-label="Pengembangan pegawai dan inovasi" data-bagian="pengembangan">
@@ -259,28 +267,29 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261125l"></script>
-<script src="assets/common.js?v=20261125l"></script>
-<script src="assets/genie.js?v=20261125l"></script>
-<script src="assets/dashboard.js?v=20261125l"></script>
-<script src="assets/input.js?v=20261125l"></script>
-<script src="assets/laporan.js?v=20261125l"></script>
-<script src="assets/export.js?v=20261125l"></script>
-<script src="assets/fitur.js?v=20261125l"></script>
-<script src="assets/cetak.js?v=20261125l"></script>
-<script src="assets/pengaturan.js?v=20261125l"></script>
-<script src="assets/grafik.js?v=20261125l"></script>
-<script src="assets/versi.js?v=20261125l"></script>
-  <script src="assets/navbawah.js?v=20261125l"></script>
-<script src="assets/tugaslain.js?v=20261125l"></script>
-<script src="assets/lapbulan.js?v=20261125l"></script>
-<script src="assets/pptbulan.js?v=20261125l"></script>
-<script src="assets/riwayat.js?v=20261125l"></script>
-<script src="assets/banding.js?v=20261125l"></script>
-<script src="assets/rendik2.js?v=20261125l"></script>
-<script src="assets/survei.js?v=20261125l"></script>
-<script src="assets/anim.js?v=20261125l"></script>
-<script src="assets/upgrade.js?v=20261125l"></script>
+<script src="config.js?v=20261125m"></script>
+<script src="assets/common.js?v=20261125m"></script>
+<script src="assets/genie.js?v=20261125m"></script>
+<script src="assets/dashboard.js?v=20261125m"></script>
+<script src="assets/input.js?v=20261125m"></script>
+<script src="assets/laporan.js?v=20261125m"></script>
+<script src="assets/export.js?v=20261125m"></script>
+<script src="assets/fitur.js?v=20261125m"></script>
+<script src="assets/cetak.js?v=20261125m"></script>
+<script src="assets/pengaturan.js?v=20261125m"></script>
+<script src="assets/grafik.js?v=20261125m"></script>
+<script src="assets/versi.js?v=20261125m"></script>
+  <script src="assets/navbawah.js?v=20261125m"></script>
+<script src="assets/tugaslain.js?v=20261125m"></script>
+<script src="assets/lapbulan.js?v=20261125m"></script>
+<script src="assets/pptbulan.js?v=20261125m"></script>
+<script src="assets/riwayat.js?v=20261125m"></script>
+<script src="assets/banding.js?v=20261125m"></script>
+<script src="assets/rendik2.js?v=20261125m"></script>
+<script src="assets/survei.js?v=20261125m"></script>
+<script src="assets/audit.js?v=20261125m"></script>
+<script src="assets/anim.js?v=20261125m"></script>
+<script src="assets/upgrade.js?v=20261125m"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -361,6 +370,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261125l"></script>
+<script src="assets/panduan.js?v=20261125m"></script>
 </body>
 </html>
