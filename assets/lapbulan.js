@@ -340,8 +340,26 @@
     if (x === 'tutup') tutupLap();
     if (x === 'ulang') susun();
     if (x === 'pdf') cetakPdf();
-    if ((x === 'traj' || x === 'pd') && window.DashPpt) { b.disabled = true; var t1 = b.textContent; b.textContent = 'Menyiapkan…'; window.DashPpt.unduh(x, $('lbWrap').querySelector('.lb-doc')).catch(function (er) { A().toast('PPT gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t1; }); }
+    if ((x === 'traj' || x === 'pd') && window.DashPpt) return pratinjauPpt(x);
     if (x === 'word') { b.disabled = true; var t0 = b.textContent; b.textContent = 'Menyiapkan…'; unduhWord().catch(function (er) { A().toast('Word gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = t0; }); }
+  }
+  /* Pratinjau PowerPoint: semua slide digambar di layar dulu; unduh setelah dicek */
+  function pratinjauPpt(x) {
+    var w = $('lbWrap'), doc = w.querySelector('.lb-doc'), nama = x === 'traj' ? 'Monthly Trajectory' : 'Performance Dialog';
+    var o = document.createElement('div'); o.className = 'pp-wrap'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Pratinjau ' + nama);
+    o.innerHTML = '<div class="pp-bar"><button type="button" class="btn" data-pp="tutup">← Kembali ke laporan</button><div class="pp-j"><b>Pratinjau PowerPoint · ' + nama + '</b><span class="pp-n">Menyiapkan slide…</span></div><button type="button" class="btn primary" data-pp="unduh" disabled>Unduh PPT</button></div><div class="pp-isi"></div>';
+    w.appendChild(o);
+    window.DashPpt.pratinjau(x, doc).then(function (r) {
+      o.querySelector('.pp-isi').innerHTML = r.html;
+      o.querySelector('.pp-n').textContent = r.n + ' slide · bagian berlatar kuning masih perlu diisi di laporan';
+      o.querySelector('[data-pp="unduh"]').disabled = false;
+    }).catch(function (er) { o.querySelector('.pp-n').textContent = 'Pratinjau gagal: ' + er.message; });
+    o.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pp]'); if (!b) return;
+      if (b.getAttribute('data-pp') === 'tutup') { o.remove(); return; }
+      b.disabled = true; b.textContent = 'Menyiapkan…';
+      window.DashPpt.unduh(x, doc).catch(function (er) { A().toast('PPT gagal dibuat: ' + er.message, 7000); }).then(function () { b.disabled = false; b.textContent = 'Unduh PPT'; });
+    });
   }
   function namaFile(ext) { var p = per(); return 'Laporan ' + TEMA[L.jenis].nama + ' ' + p.nama + ' - UPDL Semarang.' + ext; }
 

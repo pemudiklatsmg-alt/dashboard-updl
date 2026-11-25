@@ -2840,3 +2840,13 @@ body.pres .panel[data-sorot]::before{display:none}
 .lb-menu small{color:var(--ink-2);font-size:12px}
 .lb-aksi .btn:disabled{opacity:.45;cursor:default}
 @media (max-width:700px){.lb-menu{right:auto;left:0}}
+/* Pratinjau PowerPoint (Laporan bulanan) */
+.pp-wrap{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:var(--bg)}
+.pp-bar{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:8px max(13px,env(safe-area-inset-right,0px)) 8px max(13px,env(safe-area-inset-left,0px));padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--sheet);border-bottom:1px solid var(--line);color:var(--ink)}
+.pp-j{flex:1;min-width:0;display:grid;gap:2px}.pp-j b{font-size:14px}.pp-n{font-size:12px;color:var(--ink-2)}
+.pp-isi{flex:1;overflow:auto;padding:21px 13px 34px;display:grid;gap:21px;justify-items:center;align-content:start}
+.pp-f{margin:0;width:min(1000px,100%);display:grid;gap:5px}.pp-f figcaption{font-size:12px;color:var(--ink-2);text-align:center}
+.pp-sl{position:relative;width:100%;aspect-ratio:13.333/7.5;background:#fff center/cover no-repeat;box-shadow:0 8px 21px rgba(0,0,0,.14);border-radius:5px;overflow:hidden;container-type:inline-size;font-family:Arial,Helvetica,sans-serif;color:#222;color-scheme:light}
+.pp-el{position:absolute;box-sizing:border-box;margin:0}
+.pp-tx{display:flex;flex-direction:column;overflow:visible;line-height:1.2}
+.pp-tb{border-collapse:collapse;table-layout:fixed;line-height:1.2}.pp-tb td{border:1px solid var(--bd);overflow-wrap:anywhere}

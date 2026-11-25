@@ -162,7 +162,82 @@
     return pres.writeFile({ fileName: 'Performance Dialog ' + bl + ' - UPDL Semarang.pptx' });
   }
 
+  /* ---------------- PRATINJAU ----------------
+     Perekam tiruan PptxGenJS: fungsi trajectory/performance yang sama dijalankan, tetapi setiap addText/addTable/…
+     dicatat lalu digambar ulang sebagai HTML. Jadi pratinjau selalu sama dengan isi file yang akan diunduh. */
+  function Rekam() { this.slides = []; }
+  Rekam.prototype.addSlide = function () {
+    var s = { el: [], bg: null }, o = {
+      addImage: function (p) { s.el.push(['img', p]); }, addText: function (t, p) { s.el.push(['txt', t, p || {}]); },
+      addShape: function (k, p) { s.el.push(['shp', k, p || {}]); }, addTable: function (r, p) { s.el.push(['tbl', r, p || {}]); },
+      addChart: function (k, d, p) { s.el.push(['cht', d, p || {}]); }
+    };
+    Object.defineProperty(o, 'background', { set: function (v) { s.bg = v; } });
+    this.slides.push(s); return o;
+  };
+  Rekam.prototype.writeFile = function () { return Promise.resolve(this.slides); };
+  var W = 13.333, H = 7.5;
+  function e(t) { return String(t === null || t === undefined ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function kotakCss(o) { return 'left:' + (o.x / W * 100) + '%;top:' + (o.y / H * 100) + '%;width:' + (o.w / W * 100) + '%;height:' + ((o.h || 0) / H * 100) + '%;'; }
+  function fz(pt) { return 'font-size:calc(' + (pt || 12) + ' * 100cqw / 960);'; }
+  function warna(c) { return c ? '#' + c : 'inherit'; }
+  function runs(t, base) {
+    if (!Array.isArray(t)) return e(t).replace(/\n/g, '<br>');
+    return t.map(function (r) {
+      var o = r.options || {}, st = (o.bold ? 'font-weight:700;' : '') + (o.color ? 'color:#' + o.color + ';' : '') + (o.highlight ? 'background:#' + o.highlight + ';' : '') + (o.fontSize ? fz(o.fontSize) : '');
+      return '<span style="' + st + '">' + e(r.text) + '</span>' + (o.breakLine ? '<br>' : '');
+    }).join('');
+  }
+  function sel(c, def, mg) {
+    var o = {}, t = c; if (c && typeof c === 'object' && !Array.isArray(c)) { o = c.options || {}; t = c.text; }
+    var st = 'padding:' + mg.map(function (m) { return 'calc(' + m + ' * 100cqw / 960)'; }).join(' ') + ';text-align:' + (o.align || 'left') + ';vertical-align:' + (o.valign === 'middle' ? 'middle' : o.valign === 'bottom' ? 'bottom' : def.valign === 'middle' ? 'middle' : 'top') + ';' +
+      (o.fill && o.fill.color ? 'background:#' + o.fill.color + ';' : '') + (o.bold ? 'font-weight:700;' : '') + (o.color ? 'color:#' + o.color + ';' : '') + (o.fontSize ? fz(o.fontSize) : '');
+    return '<td style="' + st + '">' + runs(t) + '</td>';
+  }
+  function grafik(d, o) {
+    var w = o.w * 72, h = o.h * 72, top = (o.showTitle ? 22 : 6) + (o.showLegend ? 16 : 0), bot = 18, ih = h - top - bot, n = d[0].labels.length, gw = (w - 20) / n;
+    var mx = 0; d.forEach(function (s) { s.values.forEach(function (v) { if (v !== null && v > mx) mx = v; }); }); if (!mx) mx = 1;
+    var bw = gw * 0.62 / d.length, cs = o.chartColors || ['4472C4', 'E8433A'], g = '';
+    if (o.showTitle) g += '<text x="' + w / 2 + '" y="15" text-anchor="middle" font-size="' + (o.titleFontSize || 12) + '" fill="#333">' + e(o.title) + '</text>';
+    if (o.showLegend) d.forEach(function (s, i) { var lx = w / 2 - 70 + i * 90; g += '<rect x="' + lx + '" y="' + (top - 13) + '" width="8" height="8" fill="#' + cs[i] + '"/><text x="' + (lx + 12) + '" y="' + (top - 6) + '" font-size="9" fill="#444">' + e(s.name) + '</text>'; });
+    d[0].labels.forEach(function (l, j) {
+      var x0 = 10 + j * gw + gw * 0.19;
+      d.forEach(function (s, i) {
+        var v = s.values[j]; if (v === null || v === undefined) return;
+        var bh = Math.max(0, ih * 0.9 * v / mx), x = x0 + i * bw, y = top + ih - bh;
+        g += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw - 1).toFixed(1) + '" height="' + bh.toFixed(1) + '" fill="#' + cs[i] + '"/>';
+        g += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 2).toFixed(1) + '" text-anchor="middle" font-size="7" fill="#444">' + D.fmt(v, v % 1 ? 2 : 0) + '</text>';
+      });
+      g += '<text x="' + (10 + j * gw + gw / 2).toFixed(1) + '" y="' + (h - 5) + '" text-anchor="middle" font-size="9" fill="#555">' + e(l) + '</text>';
+    });
+    g += '<line x1="10" x2="' + (w - 10) + '" y1="' + (top + ih) + '" y2="' + (top + ih) + '" stroke="#BFC6D4" stroke-width=".75"/>';
+    return '<svg class="pp-el" style="' + kotakCss(o) + '" viewBox="0 0 ' + w + ' ' + h + '" font-family="Arial">' + g + '</svg>';
+  }
+  function gambarSlide(s) {
+    var h = '';
+    s.el.forEach(function (x) {
+      var k = x[0], o = x[k === 'img' ? 1 : 2];
+      if (k === 'img') h += '<img class="pp-el" alt="" src="' + e(o.path) + '" style="' + kotakCss(o) + '">';
+      else if (k === 'txt') {
+        var jv = o.valign === 'middle' ? 'center' : o.valign === 'bottom' ? 'flex-end' : 'flex-start';
+        h += '<div class="pp-el pp-tx" style="' + kotakCss(o) + 'justify-content:' + jv + ';text-align:' + (o.align === 'justify' ? 'justify' : o.align || 'left') + ';' + fz(o.fontSize) + 'color:' + warna(o.color) + ';' + (o.bold ? 'font-weight:700;' : '') + (o.lineSpacingMultiple ? 'line-height:' + o.lineSpacingMultiple + ';' : '') + '"><div>' + runs(x[1]) + '</div></div>';
+      } else if (k === 'shp') {
+        if (x[1] === 'line') h += '<div class="pp-el" style="' + kotakCss(o) + 'border-top:' + (((o.line || {}).width || 1) / 72 / W * 100) + 'cqw solid #' + ((o.line || {}).color || '000') + ';"></div>';
+        else h += '<div class="pp-el" style="' + kotakCss(o) + 'border-radius:50%;background:#' + ((o.fill || {}).color || 'ccc') + ';box-shadow:inset 0 0 0 1px #' + ((o.line || {}).color || 'ccc') + ';"></div>';
+      } else if (k === 'tbl') {
+        var cw = o.colW || [], mg = o.margin || [2, 3, 2, 3];
+        h += '<table class="pp-el pp-tb" style="' + kotakCss(o).replace(/height:[^;]*;/, '') + fz(o.fontSize) + 'color:#' + (o.color || '222') + ';--bd:#' + ((o.border || {}).color || 'ccc') + ';"><colgroup>' + cw.map(function (c) { return '<col style="width:' + (c / o.w * 100) + '%">'; }).join('') + '</colgroup>' +
+          x[1].map(function (r) { return '<tr' + (o.rowH ? ' style="height:calc(' + (o.rowH * 72) + ' * 100cqw / 960)"' : '') + '>' + r.map(function (c) { return sel(c, o, mg); }).join('') + '</tr>'; }).join('') + '</table>';
+      } else if (k === 'cht') h += grafik(x[1], o);
+    });
+    return '<div class="pp-sl"' + (s.bg && s.bg.path ? ' style="background-image:url(\'' + e(s.bg.path) + '\')"' : '') + '>' + h + '</div>';
+  }
+
   window.DashPpt = {
+    pratinjau: function (jenis, doc) {
+      if (!A().konmanAda(A().B())) return Promise.reject(new Error('realisasi Konman bulan ini belum diisi'));
+      return (jenis === 'traj' ? trajectory(Rekam, doc) : performance(Rekam, doc)).then(function (sl) { return { n: sl.length, html: sl.map(function (x, i) { return '<figure class="pp-f">' + gambarSlide(x) + '<figcaption>Slide ' + (i + 1) + '</figcaption></figure>'; }).join('') }; });
+    },
     unduh: function (jenis, doc) {
       if (!A().konmanAda(A().B())) return Promise.reject(new Error('realisasi Konman bulan ini belum diisi'));
       return muat().then(function (P) { return jenis === 'traj' ? trajectory(P, doc) : performance(P, doc); }).then(function () { A().toast('PowerPoint terunduh. Bagian berlatar kuning masih perlu diisi.', 6000); });
