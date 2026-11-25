@@ -35,14 +35,23 @@
     var pct = b ? ' (' + (d >= 0 ? '+' : '−') + D.fmt(Math.abs(d / b * 100), 1) + '%)' : '';
     return '<span class="bd-d ' + c + '">' + (c === 'idle' ? '=' : d > 0 ? '▲ ' : '▼ ') + (c === 'idle' ? '' : D.fmt(Math.abs(d), des)) + (persenAman ? pct : '') + '</span>';
   }
-  function garis(y0, y1, s0, s1) {
+  function garis(y0, y1, s0, s1, m) {
     var W = 560, H = 160, pl = 30, pr = 8, pt = 13, pb = 21, iw = W - pl - pr, ih = H - pt - pb, semua = s0.concat(s1).filter(function (v) { return v !== null; });
     if (!semua.length) return '';
     var lo = Math.min.apply(null, semua.concat([100])) * 0.97, hi = Math.max.apply(null, semua.concat([100])) * 1.02, X = function (i) { return pl + iw * i / 11; }, Y = function (v) { return pt + ih - ih * (v - lo) / (hi - lo); };
     var jalur = function (s, w, dash) { var p = '', on = false; s.forEach(function (v, i) { if (v === null) { on = false; return; } p += (on ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); on = true; }); return '<path d="' + p + '" fill="none" stroke="' + w + '" stroke-width="2"' + (dash ? ' stroke-dasharray="5 5"' : '') + ' stroke-linejoin="round"/>' + s.map(function (v, i) { return v === null ? '' : '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="3" fill="' + w + '"><title>' + BL3[i] + ': ' + D.fmt(v, 2) + '</title></circle>'; }).join(''); };
     var g = '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(100) + '" y2="' + Y(100) + '" stroke="var(--line)" stroke-dasharray="3 3"/><text x="' + (pl - 5) + '" y="' + (Y(100) + 3) + '" font-size="10" text-anchor="end" fill="var(--ink-2)">100</text>';
-    g += BL3.map(function (b, i) { return '<text x="' + X(i) + '" y="' + (H - 5) + '" font-size="10" text-anchor="middle" fill="var(--ink-2)">' + b + '</text>'; }).join('');
-    return '<svg class="bd-g" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Skor Kontrak Manajemen per bulan ' + y0 + ' dan ' + y1 + '">' + g + jalur(s0, 'var(--ink-2)', true) + jalur(s1, 'var(--accent)', false) + '</svg>' +
+    g += BL3.map(function (b, i) { var on = m && i === m - 1; return '<text x="' + X(i) + '" y="' + (H - 5) + '" font-size="10" text-anchor="middle" fill="var(' + (on ? '--ink' : '--ink-2') + ')"' + (on ? ' font-weight="700"' : '') + '>' + b + '</text>'; }).join('');
+    // angka hanya di bulan terpilih (kedua tahun) agar grafik tetap bersih; bulan lain lewat kursor (title)
+    var k = m ? m - 1 : -1, a0 = k >= 0 ? s0[k] : null, a1 = k >= 0 ? s1[k] : null, lbl = '';
+    if (k >= 0 && (a0 !== null || a1 !== null)) {
+      g = '<rect class="gx-selcol" x="' + (X(k) - 15).toFixed(1) + '" y="' + (pt - 8) + '" width="30" height="' + (ih + 10) + '" rx="6"/>' + g;
+      var atas1 = a0 === null || a1 === null || a1 >= a0, ax = X(k) > W - 40 ? 'end' : 'middle', tx = ax === 'end' ? X(k) + 6 : X(k);
+      var tulis = function (v, w, diAtas, tebal) { var y = Y(v) + (diAtas ? -8 : 15); y = Math.max(pt - 1, Math.min(pt + ih + 4, y)); return '<text x="' + tx.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="11" text-anchor="' + ax + '" fill="' + w + '"' + (tebal ? ' font-weight="700"' : '') + ' class="bd-lbl">' + D.fmt(v, 2) + '</text>'; };
+      if (a1 !== null) lbl += tulis(a1, 'var(--accent)', atas1, true);
+      if (a0 !== null) lbl += tulis(a0, 'var(--ink-2)', !atas1, false);
+    }
+    return '<svg class="bd-g" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Skor Kontrak Manajemen per bulan ' + y0 + ' dan ' + y1 + '">' + g + jalur(s0, 'var(--ink-2)', true) + jalur(s1, 'var(--accent)', false) + lbl + '</svg>' +
       '<div class="legend"><span><i style="background:var(--accent)"></i>' + y1 + '</span><span><i style="background:var(--ink-2)"></i>' + y0 + ' (putus-putus)</span></div>';
   }
   function render() {
@@ -70,7 +79,7 @@
     }
     el.innerHTML = kepala + '<div class="bd-wrap"><div class="bd-kiri"><div class="tbl-wrap"><table class="tbl bd-t"><thead><tr><th>Ukuran</th><th class="r">' + y0 + '</th><th class="r">' + y1 + '</th><th class="r">Selisih</th></tr></thead><tbody>' + baris.map(function (b) {
       return '<tr><td>' + b[0] + '</td><td class="r num">' + (b[1] === null ? '–' : D.fmt(b[1], b[3])) + '</td><td class="r num"><b>' + (b[2] === null ? '–' : D.fmt(b[2], b[3])) + '</b></td><td class="r">' + selisih(b[2], b[1], b[3], b[4]) + '</td></tr>';
-    }).join('') + '</tbody></table></div>' + ind + '</div><div class="bd-chart"><div class="sub-h">Skor Kontrak Manajemen per bulan</div>' + garis(y0, y1, s0, s1) + '</div></div>' +
+    }).join('') + '</tbody></table></div>' + ind + '</div><div class="bd-chart"><div class="sub-h">Skor Kontrak Manajemen per bulan</div>' + garis(y0, y1, s0, s1, m) + '</div></div>' +
       '<div class="note">Sumber ' + y0 + ': ' + esc(n0.sumber.join(', ') || '–') + '.</div>';
   }
   /* di Kinerja Unit, kartu ini bertumpuk di bawah Kepatuhan: tinggi daftar per indikator disesuaikan

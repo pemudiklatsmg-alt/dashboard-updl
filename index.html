@@ -9,7 +9,7 @@
 <script>(function(){var h=document.documentElement;h.classList.add("glass");try{var t=localStorage.getItem("dash-tema");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=20261125d">
+<link rel="stylesheet" href="assets/style.css?v=20261125f">
 </head>
 <body>
 <div class="tutup-atas" aria-hidden="true"></div>
@@ -71,14 +71,14 @@
       <span class="themebtn" role="group" aria-label="Tampilan terang atau gelap"><button type="button" data-th="light" aria-pressed="false">Terang</button><button type="button" data-th="dark" aria-pressed="false">Gelap</button></span></div>
     <div class="msep"></div>
     <button class="mi adm" role="menuitem" type="button" id="presBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M10 8.5v4l3.5-2z"/></svg>Mode presentasi<span class="mhint">layar penuh</span></button>
-    <button class="mi adm" role="menuitem" type="button" id="printBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Cetak ringkasan / PDF<span class="mhint">1 halaman</span></button>
+    <button class="mi adm" role="menuitem" type="button" id="printBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg>Unduh / Cetak<span class="mhint">PDF atau Excel</span></button>
     <button class="mi adm" role="menuitem" type="button" id="lapBulanBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Laporan bulanan</button>
     <div class="msep"></div>
     <div class="mcap">Data</div>
     <button class="mi adm" role="menuitem" type="button" data-act="segar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Status data per sumber</button>
     <button class="mi" role="menuitem" type="button" id="refreshBtn" title="Ambil data terbaru dari Google Sheets"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Muat ulang<span class="mhint">otomatis tiap 5 mnt</span></button>
     <button class="mi adm" role="menuitem" type="button" data-vt="pengaturan" id="aturBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Pengaturan</button>
-    <button class="mi adm" role="menuitem" type="button" id="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export Excel</button>
+    <button class="mi adm" hidden role="menuitem" type="button" id="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export Excel</button>
     <button class="mi adm" role="menuitem" type="button" id="logBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Ringkasan login<span class="mhint">30 hari</span></button>
     <button class="mi adm" role="menuitem" type="button" id="rwBtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Riwayat perubahan</button>
     <a class="mi adm" role="menuitem" id="sheetBtn" href="https://docs.google.com/spreadsheets/d/1HQ1pwmlDMaITmeioEMxauu75SRYpOkuDYxBrn7yAEtg/edit" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/></svg>Buka Google Sheets<span class="mhint">↗</span></a>
@@ -248,7 +248,7 @@
 <!-- Export -->
 <div class="modal" id="exportModal" hidden role="dialog" aria-modal="true" aria-labelledby="exportTitle">
   <div class="modal-c">
-    <div class="modal-h"><h3 id="exportTitle">Export Laporan ke Excel</h3><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
+    <div class="modal-h"><h3 id="exportTitle">Unduh Excel</h3><button class="x" type="button" data-tutup aria-label="Tutup">×</button></div>
     <div class="dest">Periode mengikuti pilihan di atas: <b class="per"></b> (angka kumulatif s.d. bulan ini). Ganti Tahun atau Bulan di header untuk periode lain.</div>
     <div class="field"><label>Isi laporan (satu sheet per pilihan)</label><div class="chk" id="expChk"></div></div>
     <div class="field"><label>Nama file</label><div class="fname" id="expName"></div></div>
@@ -259,28 +259,28 @@
 
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261125d"></script>
-<script src="assets/common.js?v=20261125d"></script>
-<script src="assets/genie.js?v=20261125d"></script>
-<script src="assets/dashboard.js?v=20261125d"></script>
-<script src="assets/input.js?v=20261125d"></script>
-<script src="assets/laporan.js?v=20261125d"></script>
-<script src="assets/export.js?v=20261125d"></script>
-<script src="assets/fitur.js?v=20261125d"></script>
-<script src="assets/cetak.js?v=20261125d"></script>
-<script src="assets/pengaturan.js?v=20261125d"></script>
-<script src="assets/grafik.js?v=20261125d"></script>
-<script src="assets/versi.js?v=20261125d"></script>
-  <script src="assets/navbawah.js?v=20261125d"></script>
-<script src="assets/tugaslain.js?v=20261125d"></script>
-<script src="assets/lapbulan.js?v=20261125d"></script>
-<script src="assets/pptbulan.js?v=20261125d"></script>
-<script src="assets/riwayat.js?v=20261125d"></script>
-<script src="assets/banding.js?v=20261125d"></script>
-<script src="assets/rendik2.js?v=20261125d"></script>
-<script src="assets/survei.js?v=20261125d"></script>
-<script src="assets/anim.js?v=20261125d"></script>
-<script src="assets/upgrade.js?v=20261125d"></script>
+<script src="config.js?v=20261125f"></script>
+<script src="assets/common.js?v=20261125f"></script>
+<script src="assets/genie.js?v=20261125f"></script>
+<script src="assets/dashboard.js?v=20261125f"></script>
+<script src="assets/input.js?v=20261125f"></script>
+<script src="assets/laporan.js?v=20261125f"></script>
+<script src="assets/export.js?v=20261125f"></script>
+<script src="assets/fitur.js?v=20261125f"></script>
+<script src="assets/cetak.js?v=20261125f"></script>
+<script src="assets/pengaturan.js?v=20261125f"></script>
+<script src="assets/grafik.js?v=20261125f"></script>
+<script src="assets/versi.js?v=20261125f"></script>
+  <script src="assets/navbawah.js?v=20261125f"></script>
+<script src="assets/tugaslain.js?v=20261125f"></script>
+<script src="assets/lapbulan.js?v=20261125f"></script>
+<script src="assets/pptbulan.js?v=20261125f"></script>
+<script src="assets/riwayat.js?v=20261125f"></script>
+<script src="assets/banding.js?v=20261125f"></script>
+<script src="assets/rendik2.js?v=20261125f"></script>
+<script src="assets/survei.js?v=20261125f"></script>
+<script src="assets/anim.js?v=20261125f"></script>
+<script src="assets/upgrade.js?v=20261125f"></script>
 <template id="guideTpl"><nav class="gnav"><a href="#g1">Cara kerja</a><a href="#g2">Siapa mengisi apa</a><a href="#g3">Jadwal</a><a href="#g4">Format isian</a><a href="#g5">Lakukan &amp; hindari</a><a href="#g7">Memakai dashboard</a><a href="#g6" class="adm">Pengaturan</a></nav>
 
  <section class="g-sec" id="g1"><h4><span class="no">1</span>Cara kerja dalam 4 langkah</h4>
@@ -361,6 +361,6 @@
   </div>
  </section>
 </template>
-<script src="assets/panduan.js?v=20261125d"></script>
+<script src="assets/panduan.js?v=20261125f"></script>
 </body>
 </html>

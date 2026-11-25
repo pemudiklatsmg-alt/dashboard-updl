@@ -152,16 +152,24 @@
     if (!A.S.data) return;
     var nama = { semua: 'Semua bagian', ringkasan: 'Ringkasan', kinerja: 'Kinerja Unit', maturity: 'Maturity Level', pembelajaran: 'Rekap Pembelajaran', evaluasi: 'Evaluasi', sdm: 'SDM & Inovasi', risiko: 'Risiko & Mutu', tugas: 'Tugas Tim EPMK' }[A.S.vt || 'semua'];
     var pil = function (k, j, d, on) { return '<label class="cp-opt"><input type="radio" name="cpJenis" value="' + k + '"' + (on ? ' checked' : '') + '><span><b>' + j + '</b><small>' + d + '</small></span></label>'; };
-    A.openModal('<div class="modal-h"><div><div class="desc">A4 tegak · ' + A.namaBulan(A.S.bulan) + ' ' + A.S.tahun + '</div><h3>Cetak / Simpan PDF</h3></div><button class="btn" data-close>Tutup</button></div>' +
+    A.openModal('<div class="modal-h"><div><div class="desc">A4 tegak · ' + A.namaBulan(A.S.bulan) + ' ' + A.S.tahun + '</div><h3>Unduh / Cetak</h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="cp-opts">' + pil('ringkas', 'Ringkas 1 halaman', 'Capaian, tren, 6 angka kunci, perlu perhatian, indikator di bawah target. Cocok untuk pimpinan.', true) +
       pil('lengkap', 'Lengkap per bagian', 'Halaman ringkas + tiap bagian; bagian pendek digabung agar tidak ada ruang kosong. Cocok untuk arsip & rapat.') +
-      pil('ini', 'Halaman yang sedang dibuka', 'Hanya bagian: ' + esc(nama) + '.') + '</div>' + (window.DashLap ? DashLap.opsiHtml('cp') : '') +
+      pil('ini', 'Halaman yang sedang dibuka', 'Hanya bagian: ' + esc(nama) + '.') + pil('excel', 'Excel (data)', 'Tabel angka per bagian, satu sheet per pilihan. Cocok untuk diolah lagi.') + '</div>' + (window.DashLap ? DashLap.opsiHtml('cp') : '') +
       '<div class="cp-aksi"><button class="btn primary" type="button" id="cpGo">Cetak / Simpan PDF</button></div>' +
       '<p class="note">Di jendela cetak, pilih <b>Simpan sebagai PDF</b> (Safari: tombol PDF di kiri bawah → Simpan sebagai PDF). Agar lebih rapi, matikan pilihan <b>Header dan footer</b> bila tersedia.</p>', 'cetak');
   }
+  // tombol & opsi tanda tangan mengikuti pilihan PDF / Excel
+  document.addEventListener('change', function (e) {
+    if (!e.target.matches || !e.target.matches('input[name="cpJenis"]')) return;
+    var x = e.target.value === 'excel', g = document.getElementById('cpGo'), m = g && g.closest('.modal');
+    if (g) g.textContent = x ? 'Lanjut pilih isi Excel →' : 'Cetak / Simpan PDF';
+    if (m) Array.prototype.forEach.call(m.querySelectorAll('.cp-opts ~ *:not(.cp-aksi)'), function (n) { n.hidden = x; });
+  });
   document.addEventListener('click', function (e) {
     var g = e.target.closest && e.target.closest('#cpGo'); if (!g) return;
     var r = document.querySelector('input[name="cpJenis"]:checked'), j = r ? r.value : 'ringkas';
+    if (j === 'excel') { var mx = document.querySelector('.modal [data-close]'); if (mx) mx.click(); var eb = document.getElementById('exportBtn'); setTimeout(function () { if (eb) eb.click(); }, 250); return; }
     if (window.DashLap) DashLap.baca(g.closest('.modal'));
     var m = document.querySelector('.modal [data-close]'); if (m) m.click();
     setTimeout(function () { cetak(j); }, 200);
