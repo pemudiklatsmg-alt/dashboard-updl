@@ -61,5 +61,5 @@ _Butir bertanda ada di cabang `contoh-sorot`, menunggu "pasang"._
 
 ## Tertunda / ide
 - Data Kelas/Peserta 2025 untuk Pembanding Tahun Lalu (sudah ditawarkan).
-- Riwayat perubahan: uji satu kali edit manual di Google Sheets agar tercatat.
+- Riwayat perubahan: tab "Log Perubahan" dibuat manual 25 Nov 2026 dan diisi ulang dari riwayat versi Drive + penanda data. Pencatatan otomatis (onEdit / simpan dashboard) belum terbukti jalan; cek saat ada edit berikutnya.
 - Penyebaran survei ke pengguna.

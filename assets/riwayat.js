@@ -15,7 +15,7 @@
     var badan = tampil.map(function (r) {
       var d = new Date(r.t), h = isNaN(d) ? '' : d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), sep = '';
       if (h !== hari) { hari = h; sep = '<tr class="rw-hari"><td colspan="5">' + esc(h) + '</td></tr>'; }
-      return sep + '<tr><td class="num">' + esc(isNaN(d) ? '' : d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })) + '</td><td><b>' + esc(r.tab) + '</b>' + (r.b ? '<div class="desc">' + esc(r.b) + '</div>' : '') + '</td><td class="rw-u">' + esc(r.u || '–') + '</td><td>' + esc(r.a) + '</td><td><span class="pill ' + (r.l === 'dashboard' ? 'good' : 'warn') + '">' + (r.l === 'dashboard' ? 'Dashboard' : 'Edit manual') + '</span></td></tr>';
+      return sep + '<tr><td class="num">' + esc(isNaN(d) ? '' : d.getHours() + d.getMinutes() + d.getSeconds() === 0 ? '–' : d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })) + '</td><td><b>' + esc(r.tab) + '</b>' + (r.b ? '<div class="desc">' + esc(r.b) + '</div>' : '') + '</td><td class="rw-u">' + esc(r.u || '–') + '</td><td>' + esc(r.a) + '</td><td><span class="pill ' + (r.l === 'dashboard' ? 'good' : r.l === 'manual' ? 'warn' : 'idle') + '">' + esc({ dashboard: 'Dashboard', manual: 'Edit manual', 'riwayat Drive': 'Riwayat Drive', impor: 'Impor data', sistem: 'Sistem' }[r.l] || r.l || 'Edit manual') + '</span></td></tr>';
     }).join('');
     var el = document.getElementById('rwIsi'); if (!el) return;
     el.innerHTML = (L.length ? '<div class="tbl-wrap"><table class="tbl rw-t"><thead><tr><th>Jam</th><th>Tab · bagian</th><th>Perubahan</th><th>Akun</th><th>Lewat</th></tr></thead><tbody>' + badan + '</tbody></table></div>' +
@@ -30,7 +30,7 @@
     A().openModal(kepala('Semua simpan lewat dashboard dan edit manual di Google Sheets · ' + (d.total || 0) + ' tercatat') +
       '<div class="rw-fil"><input type="search" id="rwQ" placeholder="Cari akun, tab, atau isi perubahan" value="' + esc(R.q) + '">' +
       '<select id="rwTab"><option value="">Semua tab</option>' + opt + '</select>' +
-      '<select id="rwLewat"><option value="">Dashboard & manual</option><option value="dashboard"' + (R.lewat === 'dashboard' ? ' selected' : '') + '>Lewat dashboard</option><option value="manual"' + (R.lewat === 'manual' ? ' selected' : '') + '>Edit manual</option></select><span class="desc" id="rwN"></span></div>' +
+      '<select id="rwLewat"><option value="">Semua sumber</option><option value="dashboard"' + (R.lewat === 'dashboard' ? ' selected' : '') + '>Lewat dashboard</option><option value="manual"' + (R.lewat === 'manual' ? ' selected' : '') + '>Edit manual</option></select><span class="desc" id="rwN"></span></div>' +
       '<div id="rwIsi"></div><div class="note">Data lengkap ada di ' + A().sheetLink('Google Sheets', 'Log Perubahan') + '. Edit manual oleh akun Google di luar organisasi bisa tercatat tanpa nama akun. Isi sandi tidak pernah dicatat.</div>', 'wide');
     isi();
   }
