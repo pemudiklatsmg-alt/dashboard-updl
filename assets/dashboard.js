@@ -447,19 +447,22 @@
     var b = el.querySelector('[data-ph="kecil"]'); if (b) { b.setAttribute('aria-expanded', m !== 'kecil'); b.title = m === 'kecil' ? 'Perbesar' : 'Perkecil'; }
     if (m === 'buka') el.classList.remove('kecil', 'tutup');
   }
-  /* Sorotan kartu: kartu yang butuh tindakan diberi label "N perlu perhatian" + garis tipis di pinggir kiri.
-     Memakai daftar yang sama dengan notifikasi "Perlu perhatian"; tampil untuk semua akun. */
+  /* Sorotan kartu (khusus Admin): hanya kartu dengan masalah kinerja/risiko yang mendesak (merah) diberi label
+     "Perlu perhatian" + garis tipis di pinggir kiri: indikator Konman < 95%, pengurang kepatuhan, KRI merah,
+     kejadian fraud, inovasi lewat target, perbaikan berkelanjutan belum dimulai >= 5. Hal administratif
+     (data belum diisi, kelas tanpa peserta) dan yang masih wajar berjalan tidak disorot. */
   function sorotKartu(L) {
     Array.prototype.forEach.call(document.querySelectorAll('.panel[data-sorot]'), function (p) { p.removeAttribute('data-sorot'); p.removeAttribute('data-sorot-n'); });
     var per = [];
     L.forEach(function (x) {
-      if (!x.p) return; var el = document.querySelector(x.p); if (!el) return;
+      if (!x.p || x.c !== 'bad') return; var el = document.querySelector(x.p); if (!el) return;
       var pn = el.classList.contains('panel') ? el : el.closest('.panel'); if (!pn) return;
       var o = per.filter(function (q) { return q.el === pn; })[0];
       if (!o) { o = { el: pn, c: 'warn', n: 0 }; per.push(o); }
       if (x.c === 'bad') o.c = 'bad'; o.n += x.n || 1;
     });
-    per.forEach(function (o) { o.el.setAttribute('data-sorot', o.c); o.el.setAttribute('data-sorot-n', o.n + ' perlu perhatian'); });
+    if (!admin()) return;
+    per.forEach(function (o) { o.el.setAttribute('data-sorot', o.c); o.el.setAttribute('data-sorot-n', 'Perlu perhatian'); });
   }
   function renderPerhatian() {
     var el = $('perhatian'); if (!el) return;

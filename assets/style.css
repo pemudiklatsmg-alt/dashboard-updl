@@ -2822,3 +2822,4 @@ body.pres .panel[data-sorot]::after{display:none}
 .panel[data-sorot]::before{content:attr(data-sorot-n);position:absolute;top:-10px;left:21px;z-index:2;font:600 11px/1 var(--f-display,inherit);letter-spacing:.01em;padding:5px 8px 5px 18px;border-radius:999px;color:var(--warn);background:var(--sheet);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);background-image:radial-gradient(circle at 9px 50%,var(--warn) 3px,transparent 3.5px)}
 .panel[data-sorot="bad"]::before{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent);background-image:radial-gradient(circle at 9px 50%,var(--bad) 3px,transparent 3.5px)}
 body.pres .panel[data-sorot]::before{display:none}
+.anim-tunggu *,.anim-tunggu *::before,.anim-tunggu *::after{animation-play-state:paused!important}
