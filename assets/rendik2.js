@@ -252,9 +252,9 @@
     el.innerHTML = kepala('Kalender Pembelajaran', (ren ? 'Jadwal rencana (P.Tgl)' : 'Jadwal realisasi (R.Tgl), tanpa kelas batal') + ' · ' + D.fmt(n, 0) + ' kelas di ' + esc(A().namaBulan(m)) + ' ' + y + '. Angka di tiap tanggal = jumlah kelas per kategori; klik tanggal atau judul untuk rinciannya.',
       '<div class="rd-kn"><div class="seg" role="group" aria-label="Jenis jadwal"><button type="button" data-rk-mode="rencana" aria-pressed="' + ren + '">Rencana</button><button type="button" data-rk-mode="realisasi" aria-pressed="' + !ren + '">Realisasi</button></div>' +
       '<div class="rd-nav"><button type="button" class="btn" data-rk-bln="-1" aria-label="Bulan sebelumnya"' + (m <= 1 ? ' disabled' : '') + '>‹</button><b>' + BL3[m - 1] + ' ' + y + '</b><button type="button" class="btn" data-rk-bln="1" aria-label="Bulan berikutnya"' + (m >= 12 ? ' disabled' : '') + '>›</button></div></div>') +
-      chips(L) + '<div class="rd-cari"><input type="search" id="rkCari" placeholder="Cari judul pembelajaran…" aria-label="Cari judul pembelajaran" value="' + esc(st.cari) + '" autocomplete="off">' +
+      '<div class="rd-filt">' + chips(L) + '<div class="rd-cari' + (st.cari || st.cariBuka ? ' buka' : '') + '"><button type="button" class="rd-cbtn" data-rk-cbuka aria-label="Cari judul pembelajaran" title="Cari judul pembelajaran"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input type="search" id="rkCari" placeholder="Cari judul pembelajaran…" aria-label="Cari judul pembelajaran" value="' + esc(st.cari) + '" autocomplete="off">' +
       (q ? '<span class="desc">' + (n ? D.fmt(n, 0) + ' kelas cocok di ' + BL3[m - 1] : 'Tidak ada di ' + BL3[m - 1]) + (Object.keys(lain).length ? ' · juga ada di: ' + Object.keys(lain).map(Number).sort(function (a, b) { return a - b; }).map(function (mb) { return '<button type="button" class="rd-ke" data-rk-ke="' + mb + '">' + BL3[mb - 1] + ' (' + lain[mb] + ')</button>'; }).join(' ') : '') + '</span>' : '') +
-      '</div><div class="rd-cal"><div class="rd-hh">' + HARI.map(function (h) { return '<div>' + h + '</div>'; }).join('') + '</div><div class="rd-grid">' + sel + '</div></div><div class="legend">' + leg + '</div>' +
+      '</div></div><div class="rd-cal"><div class="rd-hh">' + HARI.map(function (h) { return '<div>' + h + '</div>'; }).join('') + '</div><div class="rd-grid">' + sel + '</div></div><div class="legend">' + leg + '</div>' +
       daftarJudul(grup, urutG, m);
     el._hari = hari; el._grup = grup; el._urutG = urutG;
   }
@@ -374,6 +374,19 @@
     st.cari = e.target.value; var pos = e.target.selectionStart;
     renderKal(semua());
     var c = document.getElementById('rkCari'); if (c) { c.focus(); try { c.setSelectionRange(pos, pos); } catch (x) { /* abaikan */ } }
+  });
+  // tombol kaca pembesar: buka kolom pencarian; kolom kosong yang ditinggalkan kembali jadi tombol
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-rk-cbuka]'); if (!b) return;
+    st.cariBuka = true; b.parentNode.classList.add('buka'); var c = document.getElementById('rkCari'); if (c) c.focus();
+  });
+  document.addEventListener('focusout', function (e) {
+    if (!e.target || e.target.id !== 'rkCari' || e.target.value) return;
+    var w = e.target.parentNode; setTimeout(function () { if (document.activeElement && document.activeElement.id === 'rkCari') return; st.cariBuka = false; if (w) w.classList.remove('buka'); }, 120);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !e.target || e.target.id !== 'rkCari') return;
+    if (e.target.value) { e.target.value = ''; st.cari = ''; renderKal(semua()); } st.cariBuka = false; var c = document.getElementById('rkCari'); if (c) { c.parentNode.classList.remove('buka'); c.blur(); }
   });
   document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-rk-hari],[data-rk-bin]')) { e.preventDefault(); e.target.click(); } });
   document.addEventListener('dash:periode', function () { st.kb = null; setTimeout(render, 0); });

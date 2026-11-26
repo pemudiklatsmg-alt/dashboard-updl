@@ -2979,8 +2979,19 @@ body.pres .panel[data-sorot]::before{display:none}
 .nt-uf{color:var(--warn)!important;font-weight:600}
 
 /* ---------- Baris judul tabel: warna latar sendiri (padat) agar tidak tumpang tindih saat digulir ---------- */
-:root { --th-bg: #e8f1f9; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --th-bg: #202b45; } }
-:root[data-theme="dark"] { --th-bg: #202b45; }
+:root { --th-bg: #f1f3f7; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --th-bg: #1d253b; } }
+:root[data-theme="dark"] { --th-bg: #1d253b; }
 body :is(.tbl, .etbl, .m-gulir table, .bd-ind, .ai-gulir table) thead th,
 body :is(.tbl, .etbl) > tr:first-child > th { background: var(--th-bg) !important; z-index: 2; box-shadow: inset 0 -1px 0 var(--line); }
+
+/* ---------- Kalender Pembelajaran: pencarian ringkas (ikon → kolom) ---------- */
+.rd-filt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px}
+.rd-filt .rd-chips{margin:0}
+.rd-cari .rd-cbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:999px;border:1px solid color-mix(in srgb,var(--ink) 22%,transparent);background:color-mix(in srgb,var(--ink) 5%,var(--sheet));color:var(--ink);cursor:pointer;transition:background .15s}
+.rd-cari .rd-cbtn:hover{background:color-mix(in srgb,var(--accent) 14%,var(--sheet))}
+.rd-cari:not(.buka) input,.rd-cari.buka .rd-cbtn{display:none}
+.rd-cari.buka{flex:1 1 100%}
+.rd-cari input{border-color:color-mix(in srgb,var(--ink) 22%,transparent);background:color-mix(in srgb,var(--ink) 4%,var(--sheet));padding-left:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='6.5' fill='none' stroke='%23888' stroke-width='2'/%3E%3Cpath d='M16 16l4.5 4.5' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px 50%;background-size:15px}
+.rd-cari.buka input{animation:rdCari .18s ease-out}
+@keyframes rdCari{from{opacity:0;transform:scaleX(.6);transform-origin:left}to{opacity:1;transform:none}}
