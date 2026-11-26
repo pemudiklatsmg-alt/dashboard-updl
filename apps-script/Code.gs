@@ -28,7 +28,7 @@
  * ==========================================================================
  */
 
-var VERSI = 12;   // 12: notulensi rapat (tab Notulen & Notulen Isi)
+var VERSI = 13;   // 13: penanda notulen diubah setelah Final; 12: notulensi rapat (tab Notulen & Notulen Isi)
 var BULAN_ = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
 
 var TAB = {
@@ -2129,7 +2129,7 @@ function hasilSurvei_() {
    Tab "Notulen Isi": isi lengkap (JSON, termasuk gambar) dipotong per 40.000 karakter.
    Action item notulen disalin ke tab "Tugas Lain" (jenis "Tindak Lanjut Rapat") agar terpantau di Tugas Tim.
    ====================================================================== */
-var NT_KOLOM_ = ['ID', 'Dibuat', 'Diubah', 'Oleh', 'Jenis Rapat', 'Judul', 'Tanggal', 'Waktu', 'Lokasi', 'Peserta', 'Note Taker', 'Status', 'Ringkasan', 'Action Items'];
+var NT_KOLOM_ = ['ID', 'Dibuat', 'Diubah', 'Oleh', 'Jenis Rapat', 'Judul', 'Tanggal', 'Waktu', 'Lokasi', 'Peserta', 'Note Taker', 'Status', 'Ringkasan', 'Action Items', 'Diubah Setelah Final'];
 function tabNotulen_(isi) {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), nm = isi ? TAB.NOTULEN_ISI : TAB.NOTULEN, sh = ss.getSheetByName(nm);
   if (!sh) {
@@ -2139,6 +2139,8 @@ function tabNotulen_(isi) {
     sh.setFrozenRows(1); sh.setTabColor('#156082');
     if (isi) sh.setColumnWidth(3, 400);
   }
+  if (!isi && String(sh.getRange(1, NT_KOLOM_.length).getValue()) !== NT_KOLOM_[NT_KOLOM_.length - 1])
+    sh.getRange(1, NT_KOLOM_.length).setValue(NT_KOLOM_[NT_KOLOM_.length - 1]).setFontWeight('bold').setBackground('#156082').setFontColor('#FFFFFF');
   return sh;
 }
 function ntTgl_(v) { var m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : ''; }
@@ -2150,7 +2152,7 @@ function daftarNotulen_() {
   return v.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
     var aksi = []; try { aksi = JSON.parse(r[13] || '[]'); } catch (e) { aksi = []; }
     return { id: String(r[0]), dibuat: r[1] instanceof Date ? r[1].getTime() : r[1], diubah: r[2] instanceof Date ? r[2].getTime() : r[2], oleh: String(r[3]), jenis: String(r[4]), judul: String(r[5]),
-      tanggal: ntIso_(r[6]), waktu: String(r[7]), lokasi: String(r[8]), peserta: String(r[9]), noteTaker: String(r[10]), status: String(r[11]), ringkasan: String(r[12]), aksi: aksi };
+      tanggal: ntIso_(r[6]), waktu: String(r[7]), lokasi: String(r[8]), peserta: String(r[9]), noteTaker: String(r[10]), status: String(r[11]), ringkasan: String(r[12]), aksi: aksi, ubahFinal: String(r[14] || '') };
   }).sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)) || (b.diubah || 0) - (a.diubah || 0); });
 }
 function bukaNotulen_(id) {
@@ -2187,11 +2189,11 @@ function simpanNotulen_(req, user) {
   var id = String(d.id || '').trim() || 'NT-' + Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyyMMdd') + '-' + Utilities.getUuid().slice(0, 4).toUpperCase();
   d.id = id;
   sinkronAksi_(id, d, user);
-  var n = sh.getLastRow(), ids = n > 1 ? sh.getRange(2, 1, n - 1, 2).getValues() : [], baris = -1, dibuat = now;
-  ids.forEach(function (r, i) { if (String(r[0]) === id) { baris = i + 2; dibuat = r[1] || now; } });
+  var n = sh.getLastRow(), ids = n > 1 ? sh.getRange(2, 1, n - 1, NT_KOLOM_.length).getValues() : [], baris = -1, dibuat = now, ubahFinal = '';
+  ids.forEach(function (r, i) { if (String(r[0]) === id) { baris = i + 2; dibuat = r[1] || now; ubahFinal = String(r[14] || ''); if (String(r[11]) === 'Final') ubahFinal = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy HH.mm') + ' · ' + user; } });
   var aksiRingkas = (d.aksi || []).map(function (a) { return { tid: a.tid, isu: String(a.isu || '').slice(0, 200), aksi: String(a.aksi || '').slice(0, 300), pic: a.pic || '', tenggat: a.tenggat || '' }; });
   var meta = [id, dibuat, now, user, String(d.jenis || ''), String(d.judul || '').slice(0, 200), ntTgl_(d.tanggal), String(d.waktu || ''), String(d.lokasi || ''), String(d.peserta || '').slice(0, 500),
-    String(d.noteTaker || ''), String(d.status || 'Draf'), String(d.ringkasan || '').slice(0, 1000), JSON.stringify(aksiRingkas).slice(0, 45000)];
+    String(d.noteTaker || ''), String(d.status || 'Draf'), String(d.ringkasan || '').slice(0, 1000), JSON.stringify(aksiRingkas).slice(0, 45000), ubahFinal];
   if (baris > 0) sh.getRange(baris, 1, 1, meta.length).setValues([meta]); else sh.getRange(sh.getLastRow() + 1, 1, 1, meta.length).setValues([meta]);
   // isi lengkap: hapus potongan lama, tulis ulang
   var nI = shI.getLastRow();
@@ -2200,7 +2202,7 @@ function simpanNotulen_(req, user) {
   for (var k = 0; k * UK < json.length; k++) pot.push([id, k + 1, json.slice(k * UK, (k + 1) * UK)]);
   if (pot.length) shI.getRange(shI.getLastRow() + 1, 1, pot.length, 3).setValues(pot);
   SpreadsheetApp.flush();
-  catatUbah_(user, 'dashboard', TAB.NOTULEN, baris > 0 ? 'Ubah notulen' : 'Notulen baru', (d.judul || id) + ' · ' + (d.aksi || []).length + ' action item');
+  catatUbah_(user, 'dashboard', TAB.NOTULEN, baris > 0 ? (ubahFinal && ids.some(function (r) { return String(r[0]) === id && String(r[11]) === 'Final'; }) ? 'Ubah notulen setelah Final' : 'Ubah notulen') : 'Notulen baru', (d.judul || id) + ' · ' + (d.aksi || []).length + ' action item');
   return { ok: true, id: id, aksi: d.aksi || [], daftar: daftarNotulen_(), tugasLain: bacaTugasLain_() };
 }
 function hapusNotulen_(id, user) {

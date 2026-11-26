@@ -2932,9 +2932,9 @@ body.pres .panel[data-sorot]::before{display:none}
   --good: inherit; --warn: inherit; --bad: inherit; --good-soft: inherit; --warn-soft: inherit; --bad-soft: inherit;
   --accent: inherit; --accent-soft: inherit; --bar: inherit; --bar-dim: inherit; --track: inherit; --idle-bg: inherit; --hover: inherit;
   color: var(--ink) !important;
-  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #e6f2fb 0%, #f2f8fd 55%, #ffffff 100%) !important;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent) !important;
-  box-shadow: 0 13px 34px rgba(10,61,122,.10) !important; }
+  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #cfe5f7 0%, #e0eefa 55%, #f1f7fd 100%) !important;
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, transparent) !important;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent), 0 13px 34px rgba(10,61,122,.18) !important; }
 :root:not([data-theme="dark"]) :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.mini-sum div, .tbl-wrap, .btn, .lbox, .chip, .seg, input, select) { background: rgba(255,255,255,.72) !important; color: var(--ink); border-color: var(--line) !important; }
 :root:not([data-theme="dark"]) :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.warnbox, .note, .empty) { background: var(--warn-soft) !important; border-color: color-mix(in srgb, var(--warn) 40%, transparent) !important; color: var(--ink) !important; }
 :root:not([data-theme="dark"]) .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
@@ -2947,9 +2947,9 @@ body.pres .panel[data-sorot]::before{display:none}
   --good: inherit; --warn: inherit; --bad: inherit; --good-soft: inherit; --warn-soft: inherit; --bad-soft: inherit;
   --accent: inherit; --accent-soft: inherit; --bar: inherit; --bar-dim: inherit; --track: inherit; --idle-bg: inherit; --hover: inherit;
   color: var(--ink) !important;
-  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #e6f2fb 0%, #f2f8fd 55%, #ffffff 100%) !important;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent) !important;
-  box-shadow: 0 13px 34px rgba(10,61,122,.10) !important; }
+  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #cfe5f7 0%, #e0eefa 55%, #f1f7fd 100%) !important;
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, transparent) !important;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent), 0 13px 34px rgba(10,61,122,.18) !important; }
 :root[data-theme="light"] :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.mini-sum div, .tbl-wrap, .btn, .lbox, .chip, .seg, input, select) { background: rgba(255,255,255,.72) !important; color: var(--ink); border-color: var(--line) !important; }
 :root[data-theme="light"] :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.warnbox, .note, .empty) { background: var(--warn-soft) !important; border-color: color-mix(in srgb, var(--warn) 40%, transparent) !important; color: var(--ink) !important; }
 :root[data-theme="light"] .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
@@ -2975,3 +2975,5 @@ body.pres .panel[data-sorot]::before{display:none}
 .nt-float.nt-min .nt-bar{cursor:pointer;flex-wrap:nowrap;border-bottom:0}
 .nt-float.nt-min .nt-bar>:not(.nt-judul):not(.nt-win){display:none}
 .nt-float.nt-min .nt-win [data-ntwin=min]{display:none}
+
+.nt-uf{color:var(--warn)!important;font-weight:600}

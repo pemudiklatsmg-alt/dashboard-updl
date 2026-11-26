@@ -211,6 +211,7 @@
       return '<button type="button" class="nt-item" data-nto="' + esc(n.id) + '"><span class="nt-tg"><b>' + (d ? d.getDate() : '–') + '</b><small>' + (d ? BLN[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear() : '') + '</small></span>' +
         '<span class="nt-it"><b>' + esc(n.judul || n.jenis || 'Notulen') + '</b><small>' + esc([n.jenis, n.waktu, n.lokasi].filter(Boolean).join(' · ')) + '</small>' + (n.ringkasan ? '<small class="rk">' + esc(n.ringkasan) + '</small>' : '') + '</span>' +
         '<span class="nt-st"><em class="nt-chip ' + (n.status === 'Final' ? 'fin' : 'drf') + '">' + esc(n.status || 'Draf') + '</em>' +
+        (n.ubahFinal ? '<small class="nt-uf" title="' + esc('Diubah setelah Final: ' + n.ubahFinal) + '">Diubah setelah Final · ' + esc(n.ubahFinal.split(' ')[0]) + '</small>' : '') +
         (n.aksi && n.aksi.length ? '<small class="' + (lewat ? 'bad' : tb.length ? 'warn' : '') + '">' + (admin() ? (tb.length ? tb.length + ' tindak lanjut terbuka' + (lewat ? ' · ' + lewat + ' lewat' : '') : 'Tindak lanjut selesai') : n.aksi.length + ' action item') + '</small>' : '') + '</span></button>';
     };
     w.innerHTML = '<div class="lb-bar nt-bar">' + WIN + '<button type="button" class="btn" data-nta="tutup">← Kembali ke dashboard</button><div class="nt-judul"><b>Riwayat Notulen</b><small>' + (L ? L.length + ' notulen rapat' : 'Memuat…') + '</small></div>' +
@@ -244,7 +245,8 @@
   }
   function editor() {
     var w = wrap(), d = N.cur, ed = admin(), m = d.meta || {};
-    var info = d.id ? (d.status || 'Draf') + ' · ' + (m.diubah ? 'diubah ' + new Date(m.diubah).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + (m.oleh ? ' oleh ' + m.oleh : '') : d.id) : 'Belum disimpan';
+    var info = d.id ? (d.status || 'Draf') + ' · ' + (m.diubah ? 'diubah ' + new Date(m.diubah).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + (m.oleh ? ' oleh ' + m.oleh : '') : d.id) +
+      (m.ubahFinal ? ' · diubah setelah Final ' + m.ubahFinal : '') : 'Belum disimpan';
     var tb = function (a, t, h, x) { return '<button type="button" ' + (x || 'data-ntc') + '="' + a + '" title="' + esc(t) + '" aria-label="' + esc(t) + '">' + h + '</button>'; };
     w.innerHTML = '<div class="lb-bar nt-bar">' + WIN + '<button type="button" class="btn" data-nta="kembali">← Riwayat</button><div class="nt-judul"><b>' + esc(d.judul || (d.id ? d.jenis : 'Notulen baru')) + '</b><small data-ntinfo>' + esc(info) + '</small></div>' +
       (ed ? '<div class="seg" role="group" aria-label="Status notulen">' + ['Draf', 'Final'].map(function (s) { return '<button type="button" data-nts="' + s + '" aria-pressed="' + (d.status === s) + '">' + s + '</button>'; }).join('') + '</div>' : '') +
@@ -482,7 +484,8 @@
     api({ aksi: 'notulenSimpan', data: kirim }).then(function (r) {
       var lamaId = d.id; d.id = r.id; d.aksi = r.aksi && r.aksi.length ? r.aksi : d.aksi.filter(function (a) { return String(a.aksi || a.isu || '').trim(); });
       if (!d.aksi.length) d.aksi = [{ isu: '', aksi: '', pic: '', tenggat: '' }];
-      d.meta = { diubah: Date.now(), oleh: user() };
+      var mb = (r.daftar || []).filter(function (x) { return x.id === r.id; })[0];
+      d.meta = mb || { diubah: Date.now(), oleh: user() };
       if (r.daftar) N.daftar = r.daftar;
       if (r.tugasLain && A().S.data) { A().S.data.tugasLain = r.tugasLain; try { A().renderTugas(); } catch (e) { /* abaikan */ } }
       lsSet(drafKey(lamaId), null); lsSet(drafKey(d.id), null); N.ubah = false; N.pulih = false;
