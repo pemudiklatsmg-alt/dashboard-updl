@@ -2955,3 +2955,23 @@ body.pres .panel[data-sorot]::before{display:none}
 :root[data-theme="light"] .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
 :root[data-theme="light"] .rgk-hero.rgk-hero.good .rgk-big { color: var(--good); } :root[data-theme="light"] .rgk-hero.rgk-hero.warn .rgk-big { color: var(--warn); } :root[data-theme="light"] .rgk-hero.rgk-hero.bad .rgk-big { color: var(--bad); }
 :root[data-theme="light"] .rgk-hero.click::after { border-color: var(--line); color: var(--ink-2); }
+
+/* ---------- Notulensi: jendela mengambang (layar lebar) ---------- */
+.nt-wrap:not(.nt-float) .nt-win{display:none}
+.nt-win{order:5;display:inline-flex;gap:3px;margin-left:5px}
+.nt-win button{width:30px;height:30px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--ink-2,var(--ink));cursor:pointer}
+.nt-win button:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.nt-win button[data-ntwin=tutup]:hover{background:var(--bad,#d33);color:#fff}
+.nt-float{inset:auto 21px 21px auto;width:min(880px,calc(100vw - 42px));height:min(780px,calc(100vh - 42px));min-width:560px;min-height:300px;z-index:48;border:1px solid var(--line);border-radius:13px;overflow:hidden;resize:both;box-shadow:0 21px 55px rgba(10,14,26,.28),0 3px 8px rgba(10,14,26,.12)}
+.nt-float .nt-bar{cursor:grab;padding-top:8px;user-select:none}
+.nt-float .nt-bar :is(button,input,select,.seg,.lb-aksi){cursor:pointer;user-select:auto}
+.nt-float.nt-geser{opacity:.94}.nt-float.nt-geser .nt-bar{cursor:grabbing}
+.nt-float .nt-bar>.btn[data-nta=tutup]{display:none}
+.nt-float .nt-imgpop{z-index:49}
+.nt-float.nt-max{inset:8px!important;width:auto!important;height:auto!important;resize:none;border-radius:13px}
+.nt-float.nt-max .nt-bar{cursor:default}
+.nt-float.nt-min{inset:auto 21px 21px auto!important;width:340px!important;height:auto!important;min-width:0;min-height:0;resize:none}
+.nt-float.nt-min>:not(.nt-bar){display:none!important}
+.nt-float.nt-min .nt-bar{cursor:pointer;flex-wrap:nowrap;border-bottom:0}
+.nt-float.nt-min .nt-bar>:not(.nt-judul):not(.nt-win){display:none}
+.nt-float.nt-min .nt-win [data-ntwin=min]{display:none}

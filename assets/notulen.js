@@ -105,12 +105,61 @@
   }
 
   /* ---------- kerangka layar ---------- */
+  /* Di layar lebar notulen tampil sebagai jendela mengambang (bisa digeser, diubah ukuran, diperkecil),
+     jadi dashboard di belakangnya tetap bisa dipakai. Di ponsel tetap layar penuh. */
+  var WKEY = 'updl.ntJendela';
+  var ik = function (d) { return '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; };
+  var WIN = '<div class="nt-win" role="group" aria-label="Jendela notulen">' +
+    '<button type="button" data-ntwin="min" title="Perkecil" aria-label="Perkecil">' + ik('M3.5 11.5h9') + '</button>' +
+    '<button type="button" data-ntwin="max" title="Perbesar / kembalikan" aria-label="Perbesar atau kembalikan">' + ik('M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9') + '</button>' +
+    '<button type="button" data-ntwin="tutup" title="Tutup" aria-label="Tutup">' + ik('M4 4l8 8M12 4l-8 8') + '</button></div>';
+  function apung() { return window.innerWidth > 700; }
+  function jendela() {
+    var w = $('ntWrap'); if (!w) return;
+    var f = apung(), st = N.win || 'float';
+    w.classList.toggle('nt-float', f); w.classList.toggle('nt-max', f && st === 'max'); w.classList.toggle('nt-min', f && st === 'min');
+    document.body.classList.toggle('lb-buka', !w.hidden && (!f || st === 'max'));
+    var g = lsGet(WKEY);
+    if (f && st === 'float' && g) {
+      var lw = Math.min(g.w || 880, window.innerWidth - 16), lh = Math.min(g.h || 760, window.innerHeight - 16);
+      w.style.width = lw + 'px'; w.style.height = lh + 'px';
+      if (g.x !== undefined) { w.style.left = Math.max(8, Math.min(g.x, window.innerWidth - lw - 8)) + 'px'; w.style.top = Math.max(8, Math.min(g.y, window.innerHeight - 60)) + 'px'; w.style.right = w.style.bottom = 'auto'; }
+    } else if (!(f && st === 'float')) { w.style.cssText = ''; }
+  }
+  function simpanJendela(w) {
+    if (!apung() || (N.win || 'float') !== 'float' || w.hidden) return;
+    var r = w.getBoundingClientRect(), g = lsGet(WKEY) || {};
+    g.w = Math.round(r.width); g.h = Math.round(r.height); if (w.style.left && w.style.left !== 'auto') { g.x = Math.round(r.left); g.y = Math.round(r.top); }
+    lsSet(WKEY, g);
+  }
+  function geser(w) {
+    w.addEventListener('pointerdown', function (e) {
+      if (!apung() || (N.win || 'float') !== 'float' || e.button !== 0) return;
+      var bar = e.target.closest('.nt-bar'); if (!bar || e.target.closest('button,input,select,textarea,a,.seg,.lb-aksi,.nt-win')) return;
+      var r = w.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+      w.style.left = r.left + 'px'; w.style.top = r.top + 'px'; w.style.right = w.style.bottom = 'auto';
+      w.classList.add('nt-geser'); try { bar.setPointerCapture(e.pointerId); } catch (x) { /* abaikan */ }
+      var gerak = function (m) { w.style.left = Math.max(8 - r.width + 120, Math.min(m.clientX - dx, window.innerWidth - 120)) + 'px'; w.style.top = Math.max(8, Math.min(m.clientY - dy, window.innerHeight - 48)) + 'px'; };
+      var lepas = function () { bar.removeEventListener('pointermove', gerak); bar.removeEventListener('pointerup', lepas); bar.removeEventListener('pointercancel', lepas); w.classList.remove('nt-geser'); simpanJendela(w); };
+      bar.addEventListener('pointermove', gerak); bar.addEventListener('pointerup', lepas); bar.addEventListener('pointercancel', lepas);
+      e.preventDefault();
+    });
+    w.addEventListener('dblclick', function (e) { var bar = e.target.closest('.nt-bar'); if (!apung() || !bar || e.target.closest('button,input,select,.seg,.lb-aksi')) return; aturJendela(N.win === 'max' ? 'float' : 'max'); });
+    if (window.ResizeObserver) { var t; new ResizeObserver(function () { clearTimeout(t); t = setTimeout(function () { simpanJendela(w); }, 300); }).observe(w); }
+    window.addEventListener('resize', function () { if (!w.hidden) jendela(); });
+  }
+  function aturJendela(st) {
+    var w = $('ntWrap'); if (st === 'tutup') { if (N.ubah) A().toast('Perubahan disimpan sebagai draf di perangkat ini.'); return tutup(); }
+    if (st === 'max' && N.win === 'max') st = 'float';
+    N.win = st; jendela();
+    if (st !== 'min') { var g = w.querySelector('.lb-scroll'); if (g) g.scrollTop = g.scrollTop; }
+  }
   function wrap() {
     var w = $('ntWrap'); if (w) return w;
     pasangCss();
     w = document.createElement('div'); w.id = 'ntWrap'; w.className = 'lb-wrap nt-wrap'; w.hidden = true; document.body.appendChild(w);
     w.addEventListener('click', klik); w.addEventListener('input', ketik); w.addEventListener('change', ganti);
-    w.addEventListener('paste', tempel); w.addEventListener('drop', jatuh); w.addEventListener('dragover', function (e) { if (e.target.closest && e.target.closest('.nt-ed')) e.preventDefault(); });
+    geser(w); w.addEventListener('paste', tempel); w.addEventListener('drop', jatuh); w.addEventListener('dragover', function (e) { if (e.target.closest && e.target.closest('.nt-ed')) e.preventDefault(); });
     document.addEventListener('selectionchange', function () {
       var s = window.getSelection(); if (!s.rangeCount || w.hidden) return;
       var n = s.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentNode), ed = el && el.closest && el.closest('.nt-ed[contenteditable=true]');
@@ -121,21 +170,25 @@
   }
   function buka(mode) {
     var w = wrap();
-    if (w.hidden) { try { history.pushState({ updlNt: 1 }, ''); } catch (e) { /* abaikan */ } }
-    w.hidden = false; document.body.classList.add('lb-buka');
+    if (w.hidden && !apung()) { try { history.pushState({ updlNt: 1 }, ''); } catch (e) { /* abaikan */ } }
+    if (N.win === 'min') N.win = 'float';
+    w.hidden = false; jendela();
     if (mode === 'baru') return bukaEditor(null);
     riwayat(); muatDaftar();
   }
   function tutup(dariPop) {
     var w = $('ntWrap'); if (!w || w.hidden) return;
-    if (!dariPop && history.state && history.state.updlNt) { history.go(history.state.updlNt === 2 ? -2 : -1); return; }
+    if (!dariPop && !apung() && history.state && history.state.updlNt) { history.go(history.state.updlNt === 2 ? -2 : -1); return; }
     w.hidden = true; document.body.classList.remove('lb-buka'); N.mode = 'riwayat';
   }
   window.addEventListener('popstate', function () {
+    if (apung()) return; // jendela mengambang tidak memakai riwayat browser
     var s = history.state;
     if (!s || !s.updlNt) return tutup(true);
     if (s.updlNt === 1 && N.mode === 'edit') { N.mode = 'riwayat'; riwayat(); }
   });
+
+  function keRiwayat() { if (!apung()) return history.back(); N.mode = 'riwayat'; riwayat(); muatDaftar(); }
 
   /* ---------- riwayat ---------- */
   function muatDaftar() {
@@ -160,7 +213,7 @@
         '<span class="nt-st"><em class="nt-chip ' + (n.status === 'Final' ? 'fin' : 'drf') + '">' + esc(n.status || 'Draf') + '</em>' +
         (n.aksi && n.aksi.length ? '<small class="' + (lewat ? 'bad' : tb.length ? 'warn' : '') + '">' + (admin() ? (tb.length ? tb.length + ' tindak lanjut terbuka' + (lewat ? ' · ' + lewat + ' lewat' : '') : 'Tindak lanjut selesai') : n.aksi.length + ' action item') + '</small>' : '') + '</span></button>';
     };
-    w.innerHTML = '<div class="lb-bar nt-bar"><button type="button" class="btn" data-nta="tutup">← Kembali ke dashboard</button><div class="nt-judul"><b>Riwayat Notulen</b><small>' + (L ? L.length + ' notulen rapat' : 'Memuat…') + '</small></div>' +
+    w.innerHTML = '<div class="lb-bar nt-bar">' + WIN + '<button type="button" class="btn" data-nta="tutup">← Kembali ke dashboard</button><div class="nt-judul"><b>Riwayat Notulen</b><small>' + (L ? L.length + ' notulen rapat' : 'Memuat…') + '</small></div>' +
       '<div class="lb-aksi">' + (admin() ? '<button type="button" class="btn primary" data-nta="baru">+ Buat Notulen Baru</button>' : '') + '</div></div>' +
       '<div class="lb-scroll"><div class="nt-rw">' +
       '<div class="rw-fil"><input type="search" data-ntq placeholder="Cari judul, agenda, peserta, action item…" value="' + esc(N.q) + '"><select data-ntfj>' + opt('', 'Semua jenis rapat', N.fj) + JENIS.map(function (j) { return opt(j, j, N.fj); }).join('') + '</select>' +
@@ -174,25 +227,26 @@
   /* ---------- editor / tampilan baca ---------- */
   function bukaEditor(id) {
     var w = wrap(); N.mode = 'edit'; N.ubah = false; N.murni = !id;
-    try { if (!history.state || history.state.updlNt !== 2) history.pushState({ updlNt: 2 }, ''); } catch (e) { /* abaikan */ }
+    if (!apung()) { try { if (!history.state || history.state.updlNt !== 2) history.pushState({ updlNt: 2 }, ''); } catch (e) { /* abaikan */ } }
+    if (N.win === 'min') { N.win = 'float'; jendela(); }
     if (!id) {
       var dr = admin() && lsGet(drafKey(''));
       N.cur = dr && dr.d ? dr.d : baru('Rapat Internal'); N.pulih = !!(dr && dr.d); N.murni = !N.pulih;
       return editor();
     }
-    w.innerHTML = '<div class="lb-bar nt-bar"><button type="button" class="btn" data-nta="kembali">← Riwayat</button><div class="nt-judul"><b>Membuka notulen…</b></div></div><div class="lb-scroll"></div>';
+    w.innerHTML = '<div class="lb-bar nt-bar">' + WIN + '<button type="button" class="btn" data-nta="kembali">← Riwayat</button><div class="nt-judul"><b>Membuka notulen…</b></div></div><div class="lb-scroll"></div>';
     api({ aksi: 'notulenBuka', id: id }).then(function (r) {
       var d = r.notulen || {}; d.html = d.html || {}; d.ttd = d.ttd || {}; d.aksi = d.aksi || [];
       var dr = admin() && lsGet(drafKey(id));
       N.pulih = !!(dr && dr.d && dr.t > (d.meta && d.meta.diubah || 0)); N.cur = N.pulih ? dr.d : d; N.cur.meta = d.meta;
       if (N.mode === 'edit') editor();
-    }).catch(function (e) { A().toast('Notulen gagal dibuka: ' + e.message, 6000); history.back(); });
+    }).catch(function (e) { A().toast('Notulen gagal dibuka: ' + e.message, 6000); keRiwayat(); });
   }
   function editor() {
     var w = wrap(), d = N.cur, ed = admin(), m = d.meta || {};
     var info = d.id ? (d.status || 'Draf') + ' · ' + (m.diubah ? 'diubah ' + new Date(m.diubah).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + (m.oleh ? ' oleh ' + m.oleh : '') : d.id) : 'Belum disimpan';
     var tb = function (a, t, h, x) { return '<button type="button" ' + (x || 'data-ntc') + '="' + a + '" title="' + esc(t) + '" aria-label="' + esc(t) + '">' + h + '</button>'; };
-    w.innerHTML = '<div class="lb-bar nt-bar"><button type="button" class="btn" data-nta="kembali">← Riwayat</button><div class="nt-judul"><b>' + esc(d.judul || (d.id ? d.jenis : 'Notulen baru')) + '</b><small data-ntinfo>' + esc(info) + '</small></div>' +
+    w.innerHTML = '<div class="lb-bar nt-bar">' + WIN + '<button type="button" class="btn" data-nta="kembali">← Riwayat</button><div class="nt-judul"><b>' + esc(d.judul || (d.id ? d.jenis : 'Notulen baru')) + '</b><small data-ntinfo>' + esc(info) + '</small></div>' +
       (ed ? '<div class="seg" role="group" aria-label="Status notulen">' + ['Draf', 'Final'].map(function (s) { return '<button type="button" data-nts="' + s + '" aria-pressed="' + (d.status === s) + '">' + s + '</button>'; }).join('') + '</div>' : '') +
       '<div class="lb-aksi">' + (ed ? '<button type="button" class="btn primary" data-nta="simpan">Simpan</button>' : '') +
       '<div class="lb-unduh"><button type="button" class="btn' + (ed ? '' : ' primary') + '" data-ntu aria-expanded="false" aria-haspopup="true">Unduh ▾</button><div class="lb-menu" role="menu" hidden>' +
@@ -441,13 +495,15 @@
     var d = N.cur; if (!d.id || !window.confirm('Hapus notulen "' + (d.judul || d.id) + '"? Action item terkait di Tugas Tim ditandai Dibatalkan.')) return;
     api({ aksi: 'notulenHapus', id: d.id }).then(function (r) {
       N.daftar = r.daftar || []; if (r.tugasLain && A().S.data) A().S.data.tugasLain = r.tugasLain; lsSet(drafKey(d.id), null); N.ubah = false;
-      A().toast('Notulen dihapus.'); history.back();
+      A().toast('Notulen dihapus.'); keRiwayat();
     }).catch(function (e) { A().toast('Gagal menghapus: ' + e.message, 7000); });
   }
 
   /* ---------- klik ---------- */
   function klik(e) {
     var t = e.target, w = $('ntWrap');
+    var wn = t.closest('[data-ntwin]'); if (wn) return aturJendela(wn.getAttribute('data-ntwin'));
+    if (w.classList.contains('nt-min') && t.closest('.nt-bar')) return aturJendela('float');
     var u = t.closest('[data-ntu],[data-nta="std"]'), menu = u && u.parentNode.querySelector('.lb-menu');
     Array.prototype.forEach.call(w.querySelectorAll('.lb-menu'), function (m) { if (m !== menu && !m.contains(t)) m.hidden = true; });
     if (u) { menu.hidden = !menu.hidden; u.setAttribute('aria-expanded', !menu.hidden); return; }
@@ -466,7 +522,7 @@
     var b = t.closest('[data-nta]'); if (!b) return;
     var a = b.getAttribute('data-nta');
     if (a === 'tutup') tutup();
-    if (a === 'kembali') { if (N.ubah) A().toast('Perubahan disimpan sebagai draf di perangkat ini.'); history.back(); }
+    if (a === 'kembali') { if (N.ubah) A().toast('Perubahan disimpan sebagai draf di perangkat ini.'); keRiwayat(); }
     if (a === 'baru') bukaEditor(null);
     if (a === 'simpan') simpan(b);
     if (a === 'hapus') hapus();
