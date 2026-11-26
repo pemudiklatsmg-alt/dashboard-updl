@@ -35,6 +35,7 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
+- 26 Nov 2026: Konman: capaian per indikator = kolom PENCAPAIAN (AD–AL), dibatasi maks. 110%. Kolom PENYESUAIAN dihapus pemilik dari sheet dan tidak dipakai lagi. Total skor = akumulasi kolom SKOR (AM–AU, dibulatkan 2 desimal) dikurangi pengurang kepatuhan.
 - 25 Nov 2026: Menu Notulensi (sidebar, di atas Data live; menu ☰ di HP): Buat Notulen Baru (Admin) & Riwayat Notulen (Admin & Lihat). Format FR.SMT.019 persis (templat `assets/notulen/FR.SMT.019.docx`, diisi JSZip untuk Word; PDF lewat dialog cetak). Bisa sisip tabel, gambar, kartu dashboard (html2canvas), teks standar, templat per jenis rapat. Action item otomatis jadi tugas di tab "Tugas Lain" (jenis Tindak Lanjut Rapat; dihapus dari notulen → Dibatalkan). PIC dipilih dari Data - Pegawai atau "Lainnya" (tulis sendiri). Data di tab "Notulen" & "Notulen Isi". Apps Script VERSI 12.
 - 25 Nov 2026: Menu baru "Perbaikan Berkelanjutan" (kartu Perbaikan dipindah dari Evaluasi + kartu Audit Internal). Data dari tab "Audit Internal" (satu baris per temuan NC/OFI) dan "Audit Internal - Skor" (skor per elemen). Temuan audit juga disalin ke tab Perbaikan Berkelanjutan dengan Sumber = Audit Internal. Hasil audit ISO lain ditambahkan ke tab yang sama. Apps Script VERSI 11 (deployment versi 29).
 _Butir bertanda ada di cabang `contoh-sorot`, menunggu "pasang"._

@@ -38,7 +38,7 @@
     if (V.length < 3) return { months: [], items: [] };
     var h1 = V[0], h2 = V[1], ff = [], last = '';
     for (var c = 0; c < h1.length; c++) { var t = String(h1[c] || '').trim().toUpperCase(); if (t) last = t; ff.push(last); }
-    var col = { target: {}, real: {}, skor: {}, ket: {}, capai: {}, sesuai: {} };
+    var col = { target: {}, real: {}, skor: {}, ket: {}, capai: {} };
     for (c = 0; c < h1.length; c++) {
       var a = String(h1[c] || '').trim().toUpperCase(), b = String(h2[c] || '').trim().toUpperCase(), f = ff[c];
       BULAN.forEach(function (B) {
@@ -47,7 +47,6 @@
         if (a === 'SKOR ' + B) col.skor[B] = c;
         if (a === 'KET ' + B) col.ket[B] = c;
         if (f.indexOf('PENCAPAIAN') === 0 && b === B) col.capai[B] = c;
-        if (f.indexOf('PENYESUAIAN') === 0 && b === B) col.sesuai[B] = c;
       });
     }
     function idx(name) { for (var i = 0; i < h1.length; i++) if (String(h1[i]).trim().toUpperCase() === name) return i; return -1; }
@@ -65,17 +64,16 @@
         pendek: String(row[cPendek] || nama).replace(/^[a-z]\.\s*/, '').trim(),
         pic: row[cPic] || '', polaritas: row[cPol], formula: row[cFor] || '', satuan: row[cSat] || '',
         bobot1: row[cB1], bobot2: row[cB2], target1: disp[cT1] || row[cT1], target2: disp[cT2] || row[cT2],
-        target: {}, real: {}, skor: {}, ket: {}, capai: {}, sesuai: {}, children: []
+        target: {}, real: {}, skor: {}, ket: {}, capai: {}, children: []
       };
       it.pengurang = /max/i.test(String(row[cB1] || '') + String(row[cB2] || ''));
       it.maksPengurang = it.pengurang ? Math.abs(num(String(row[cB2] || row[cB1]).replace(/[^0-9.,]/g, '')) || 0) : null;
       months.forEach(function (B) {
         it.target[B] = { v: row[col.target[B]], d: disp[col.target[B]] };
         it.real[B] = { v: row[col.real[B]], d: disp[col.real[B]] };
-        it.skor[B] = num(row[col.skor[B]]);
+        var sk = num(row[col.skor[B]]); it.skor[B] = sk === null ? null : Math.round(sk * 100) / 100;   // skor dibulatkan 2 desimal, sama dengan tampilan sheet
         it.ket[B] = col.ket[B] !== undefined ? row[col.ket[B]] : '';
         it.capai[B] = col.capai[B] !== undefined ? num(row[col.capai[B]]) : null;
-        it.sesuai[B] = col.sesuai[B] !== undefined ? num(row[col.sesuai[B]]) : null;
       });
       if (no !== null) { it.level = 0; parent = it; items.push(it); }
       else if (parent) { it.level = 1; it.parent = parent; parent.children.push(it); items.push(it); }
@@ -97,9 +95,8 @@
       });
       return any && w ? s / w : null;
     }
-    var v = it.sesuai[B];
-    if (v === null || v === undefined) v = it.capai[B];
-    return v;
+    var v = it.capai[B];   // kolom PENCAPAIAN (AD–AL), dibatasi maksimal 110%
+    return v === null || v === undefined ? v : Math.min(v, 1.1);
   }
 
   function hasData(it, B) {

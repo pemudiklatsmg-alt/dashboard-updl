@@ -56,7 +56,7 @@
       if (D.hasData(it, Bn)) any = true;
       if (it.skor[Bn] !== null && it.skor[Bn] !== undefined) s += it.skor[Bn];
     });
-    return any ? s - pengurang(Bn) : null;
+    return any ? Math.round((s - pengurang(Bn)) * 100) / 100 : null;   // akumulasi kolom SKOR (2 desimal) dikurangi pengurang kepatuhan
   }
   function pegawai(y, m) {
     var r = D.rows(S.data.pegawai).filter(function (x) { return String(x['Tahun']).trim() === String(y) && String(x['Bulan']).trim().toUpperCase() === D.BULAN[m - 1]; })[0];
