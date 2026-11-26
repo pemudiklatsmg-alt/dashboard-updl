@@ -6,7 +6,7 @@
   var $ = function (id) { return document.getElementById(id); }, esc = D.esc;
   var BL = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
   var BLN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-  var METODE = { ICT: 'Klasikal (ICT)', DL: 'Digital Learning (DL)', BL: 'Blended (BL)', SL: 'Self Learning (SL)', IHT: 'In-House Training (IHT)', HL: 'Hybrid (HL)', '': 'Belum diisi' };
+  var METODE = { ICT: 'In Class Training (ICT)', DL: 'Digital Learning (DL)', BL: 'Blended Learning (BL)', SL: 'Self Learning (SL)', IHT: 'In House Training (IHT)', HL: 'Hybrid Learning (HL)', '': 'Belum diisi' };
   var G = { pembMode: 'kelas' };
 
   /* ---------- pembuat grafik (SVG, mengikuti warna tema) ---------- */
