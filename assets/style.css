@@ -2955,3 +2955,14 @@ body.pres .panel[data-sorot]::before{display:none}
 :root[data-theme="light"] .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
 :root[data-theme="light"] .rgk-hero.rgk-hero.good .rgk-big { color: var(--good); } :root[data-theme="light"] .rgk-hero.rgk-hero.warn .rgk-big { color: var(--warn); } :root[data-theme="light"] .rgk-hero.rgk-hero.bad .rgk-big { color: var(--bad); }
 :root[data-theme="light"] .rgk-hero.click::after { border-color: var(--line); color: var(--ink-2); }
+
+/* ===== Kamus istilah ===== */
+.ist { text-decoration: underline dotted color-mix(in srgb, currentColor 55%, transparent); text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: help; }
+.ist-pop { position: fixed; z-index: 120; max-width: min(320px, calc(100vw - 16px)); display: grid; gap: 5px; padding: 13px; border-radius: 13px; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); box-shadow: 0 13px 34px rgba(0,0,0,.18); font-size: 13px; line-height: 1.45; }
+.ist-pop b { font-size: 14px; } .ist-pop span { color: var(--ink-2); }
+.ist-pop button { justify-self: start; margin-top: 3px; border: 0; background: none; color: var(--accent); font: 600 13px/1 var(--f-body); padding: 5px 0; cursor: pointer; }
+.ist-cari { width: 100%; font: inherit; font-size: 14px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); color: var(--ink); margin: 0 0 13px; }
+.ist-g { margin-bottom: 13px; } .ist-g dl { margin: 5px 0 0; display: grid; grid-template-columns: minmax(130px, 34%) minmax(0, 1fr); gap: 8px 13px; }
+.ist-g dt { font-weight: 600; font-size: 14px; } .ist-g dd { margin: 0; font-size: 14px; color: var(--ink-2); }
+@media (max-width: 600px) { .ist-g dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .ist-g dd { margin-bottom: 8px; } }
