@@ -2923,3 +2923,35 @@ body.pres .panel[data-sorot]::before{display:none}
 .nt-popl{overflow:auto;padding:8px 13px 21px}.nt-popg{display:grid;gap:3px;margin-top:8px}.nt-popg>b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:5px 8px}
 .nt-popg button{font:inherit;font-size:14px;text-align:left;border:0;background:none;color:var(--ink);padding:8px;border-radius:8px;cursor:pointer}.nt-popg button:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
 @media (max-width:700px){.nt-meta{grid-template-columns:1fr}.nt-item{grid-template-columns:46px minmax(0,1fr)}.nt-st{grid-column:2;justify-items:start;text-align:left;display:flex;gap:8px;align-items:center}.nt-scroll{padding:8px 0 34px}.nt-meta,.nt-pulih{margin-left:13px;margin-right:13px}.nt-tambah{margin-left:13px}.nt-bar .nt-judul{order:4;flex-basis:100%}}
+
+/* ===== Mode terang: kartu sorotan (biru tua) ikut terang; mode gelap tetap biru tua ===== */
+@media (prefers-color-scheme: light) {
+:root:not([data-theme="dark"]) :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) {
+  --g-btn: inherit; --g-modal: inherit; --ink: inherit; --ink-2: inherit; --ink-3: inherit; --line: inherit; --frame: inherit;
+  --sheet: inherit; --sheet-2: inherit; --bg: inherit; --g-card: inherit; --g-border: inherit;
+  --good: inherit; --warn: inherit; --bad: inherit; --good-soft: inherit; --warn-soft: inherit; --bad-soft: inherit;
+  --accent: inherit; --accent-soft: inherit; --bar: inherit; --bar-dim: inherit; --track: inherit; --idle-bg: inherit; --hover: inherit;
+  color: var(--ink) !important;
+  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #e6f2fb 0%, #f2f8fd 55%, #ffffff 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent) !important;
+  box-shadow: 0 13px 34px rgba(10,61,122,.10) !important; }
+:root:not([data-theme="dark"]) :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.mini-sum div, .tbl-wrap, .btn, .lbox, .chip, .seg, input, select) { background: rgba(255,255,255,.72) !important; color: var(--ink); border-color: var(--line) !important; }
+:root:not([data-theme="dark"]) :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.warnbox, .note, .empty) { background: var(--warn-soft) !important; border-color: color-mix(in srgb, var(--warn) 40%, transparent) !important; color: var(--ink) !important; }
+:root:not([data-theme="dark"]) .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
+:root:not([data-theme="dark"]) .rgk-hero.rgk-hero.good .rgk-big { color: var(--good); } :root:not([data-theme="dark"]) .rgk-hero.rgk-hero.warn .rgk-big { color: var(--warn); } :root:not([data-theme="dark"]) .rgk-hero.rgk-hero.bad .rgk-big { color: var(--bad); }
+:root:not([data-theme="dark"]) .rgk-hero.click::after { border-color: var(--line); color: var(--ink-2); }
+}
+:root[data-theme="light"] :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) {
+  --g-btn: inherit; --g-modal: inherit; --ink: inherit; --ink-2: inherit; --ink-3: inherit; --line: inherit; --frame: inherit;
+  --sheet: inherit; --sheet-2: inherit; --bg: inherit; --g-card: inherit; --g-border: inherit;
+  --good: inherit; --warn: inherit; --bad: inherit; --good-soft: inherit; --warn-soft: inherit; --bad-soft: inherit;
+  --accent: inherit; --accent-soft: inherit; --bar: inherit; --bar-dim: inherit; --track: inherit; --idle-bg: inherit; --hover: inherit;
+  color: var(--ink) !important;
+  background: radial-gradient(420px 260px at 88% 12%, rgba(255,214,0,.14), transparent 70%), radial-gradient(360px 260px at 6% 105%, rgba(236,120,170,.10), transparent 70%), linear-gradient(135deg, #e6f2fb 0%, #f2f8fd 55%, #ffffff 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent) !important;
+  box-shadow: 0 13px 34px rgba(10,61,122,.10) !important; }
+:root[data-theme="light"] :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.mini-sum div, .tbl-wrap, .btn, .lbox, .chip, .seg, input, select) { background: rgba(255,255,255,.72) !important; color: var(--ink); border-color: var(--line) !important; }
+:root[data-theme="light"] :is(body:not([data-vt="semua"]) :is([data-bagian="bulanan"] > .panel:first-child, #kpis > .card:nth-child(3), #gxEval > .gx-row:first-child > .panel:first-child, [data-bagian="pengembangan"] > .panel:first-child, #kriPanel), .rgk-hero.rgk-hero) :is(.warnbox, .note, .empty) { background: var(--warn-soft) !important; border-color: color-mix(in srgb, var(--warn) 40%, transparent) !important; color: var(--ink) !important; }
+:root[data-theme="light"] .rgk-hero.rgk-hero .pill { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--ink); }
+:root[data-theme="light"] .rgk-hero.rgk-hero.good .rgk-big { color: var(--good); } :root[data-theme="light"] .rgk-hero.rgk-hero.warn .rgk-big { color: var(--warn); } :root[data-theme="light"] .rgk-hero.rgk-hero.bad .rgk-big { color: var(--bad); }
+:root[data-theme="light"] .rgk-hero.click::after { border-color: var(--line); color: var(--ink-2); }
