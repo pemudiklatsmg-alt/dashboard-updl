@@ -35,6 +35,8 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
+- 26 Nov 2026: Notulensi di layar lebar (> 700 px) tampil sebagai jendela mengambang (geser, ubah ukuran, perkecil, perbesar; posisi diingat di localStorage `updl.ntJendela`); dashboard tetap bisa dipakai. Di HP tetap layar penuh. Notulen Final tetap bisa diubah Admin; penyimpanan saat status sudah Final mengisi kolom "Diubah Setelah Final" (tab Notulen) → penanda di Riwayat. Apps Script VERSI 13.
+- 26 Nov 2026: Kartu sorotan mode terang dipertegas (latar biru lebih pekat, tepi aksen 2 px, cincin cahaya) agar terlihat di proyektor.
 - 26 Nov 2026: Kartu sorotan (Capaian Kinerja Ringkasan & Kinerja, kartu pertama Pembelajaran, Tren Evaluasi L1, IDP, KRI) di mode terang memakai latar biru sangat muda + teks gelap; mode gelap tetap biru tua. Aturan di akhir style.css.
 - 26 Nov 2026: Capaian Kinerja (total skor Konman) selalu tampil 2 desimal di semua tampilan & unduhan. Persen per indikator tetap tanpa desimal.
 - 26 Nov 2026: Konman: capaian per indikator = kolom PENCAPAIAN (AD–AL), dibatasi maks. 110%. Kolom PENYESUAIAN dihapus pemilik dari sheet dan tidak dipakai lagi. Total skor = akumulasi kolom SKOR (AM–AU, dibulatkan 2 desimal) dikurangi pengurang kepatuhan.
