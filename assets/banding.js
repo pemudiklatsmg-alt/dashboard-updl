@@ -57,7 +57,7 @@
       if (i === k) continue;
       var v0 = s0[i], v1 = s1[i]; if (v0 === null && v1 === null) continue;
       var naik = v0 === null || v1 === null || v1 >= v0, ux = X(i), an = ux > W - 30 ? 'end' : ux < pl + 20 ? 'start' : 'middle';
-      var tl = function (v, w, diAtas) { var y = Math.max(pt - 1, Math.min(pt + ih + 4, Y(v) + (diAtas ? -7 : 13))); return '<text x="' + ux.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + an + '" fill="' + w + '">' + D.fmt(v, 1) + '</text>'; };
+      var tl = function (v, w, diAtas) { var y = Math.max(pt - 1, Math.min(pt + ih + 4, Y(v) + (diAtas ? -7 : 13))); return '<text x="' + ux.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + an + '" fill="' + w + '">' + D.fmt(v, 2) + '</text>'; };
       lain += '<g class="bd-hv"><rect x="' + (ux - iw / 22).toFixed(1) + '" y="0" width="' + (iw / 11).toFixed(1) + '" height="' + (pt + ih) + '" fill="transparent"/>' +
         (v1 !== null ? tl(v1, 'var(--accent)', naik) : '') + (v0 !== null ? tl(v0, 'var(--ink-2)', !naik) : '') + '</g>';
     }

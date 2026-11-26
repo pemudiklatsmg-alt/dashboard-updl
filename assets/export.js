@@ -217,7 +217,7 @@
       bulanAda: ada,
       kelompok: [
         ['Kinerja Utama', [
-          { n: 'Capaian Kinerja (skor Konman)', v: tot, t: ada ? 100 : null, sat: 'skor', f: '0.0', cat: ada ? 'Setelah pengurang kepatuhan ' + D.fmt(a.pengurang(Bn), 2) : 'Tidak ada data Konman bulan ini' },
+          { n: 'Capaian Kinerja (skor Konman)', v: tot, t: ada ? 100 : null, sat: 'skor', f: '0.00', cat: ada ? 'Setelah pengurang kepatuhan ' + D.fmt(a.pengurang(Bn), 2) : 'Tidak ada data Konman bulan ini' },
           { n: 'Total Kelas Selesai', v: r.kelas, t: r.terjadwal || null, sat: 'kelas', f: '#,##0', cat: 'Target = kelas terjadwal s.d. bulan ini · +' + r.kelasBulan + ' kelas di ' + a.namaBulan(S.bulan) },
           { n: 'Total Peserta', v: r.peserta, t: null, sat: 'orang', f: '#,##0', cat: r.pakaiRencana ? r.pakaiRencana + ' kelas memakai rencana peserta (perkiraan)' : (r.tanpaPeserta ? r.tanpaPeserta + ' kelas tanpa angka peserta' : '') },
           { n: 'Hari Orang Pelatihan (HOP)', v: H.nilai, t: kt(/Tingkat Pelaksanaan Pembelajaran/i), sat: 'hari/pegawai', f: '0.000', cat: 'Pegawai ' + a.namaBulan(S.bulan) + ': ' + (H.pegawai === null ? 'belum diisi' : D.fmt(H.pegawai, 0)) + (H.disesuaikan ? ' · ada penyesuaian' : '') }
@@ -283,7 +283,7 @@
     var f1 = h.L1 ? (h.set.targetL1 ? h.L1.nilai / h.set.targetL1 : h.L1.nilai / 5) : null;
     var tv = h.tot === null ? null : h.tot / 100;
     var U = [
-      { judul: 'Capaian Kinerja', sub: 'Skor Konman ' + p.label, busur: true, f: tv, nilai: tv === null ? '–' : D.fmt(tv * 100, 1) + '%', kaki: tv === null ? 'Belum ada data' : status(tv) },
+      { judul: 'Capaian Kinerja', sub: 'Skor Konman ' + p.label, busur: true, f: tv, nilai: tv === null ? '–' : D.fmt(tv * 100, 2) + '%', kaki: tv === null ? 'Belum ada data' : status(tv) },
       { judul: 'Total Peserta', sub: 'Rendiklat s.d. ' + A().namaBulan(p.m), nilai: D.fmt(r.peserta, 0), f: pP, warna: r.pakaiRencana ? W.warn : null, kaki: r.pakaiRencana ? r.pakaiRencana + ' kelas memakai rencana' : pctT(pP) + ' dari rencana', warnaKaki: r.pakaiRencana ? W.warn : null },
       { judul: 'Total Kelas', sub: 'Status Selesai s.d. ' + A().namaBulan(p.m), nilai: D.fmt(r.kelas, 0), f: pK, kaki: pctT(pK) + ' dari ' + D.fmt(r.terjadwal, 0) + ' terjadwal' },
       { judul: 'Hari Orang Pelatihan', sub: 'Rendiklat ÷ jumlah pegawai', nilai: H.nilai === null ? '–' : D.fmt(H.nilai, 3), f: hc, kaki: tH ? pctT(hc) + ' dari target ' + D.fmt(tH, 3) : 'Target Konman belum ada' },
@@ -319,7 +319,7 @@
     vals.forEach(function (v, i) {
       var cx = L + step * i + step / 2, sel = i === p.m - 1;
       if (v === null) { g.setLineDash([3, 3]); g.strokeStyle = '#c9cfe0'; g.strokeRect(cx - bw / 2, y(maxV * 0.3), bw, B - y(maxV * 0.3)); g.setLineDash([]); }
-      else { var top = y(Math.max(0, v)); g.fillStyle = sel ? W.accent : W.bar; g.beginPath(); g.moveTo(cx - bw / 2, B); g.lineTo(cx - bw / 2, top + 4); g.quadraticCurveTo(cx - bw / 2, top, cx - bw / 2 + 4, top); g.lineTo(cx + bw / 2 - 4, top); g.quadraticCurveTo(cx + bw / 2, top, cx + bw / 2, top + 4); g.lineTo(cx + bw / 2, B); g.fill(); teks(g, D.fmt(v, 1), cx, top - 5, 10.5, W.ink2, 600, 'center'); }
+      else { var top = y(Math.max(0, v)); g.fillStyle = sel ? W.accent : W.bar; g.beginPath(); g.moveTo(cx - bw / 2, B); g.lineTo(cx - bw / 2, top + 4); g.quadraticCurveTo(cx - bw / 2, top, cx - bw / 2 + 4, top); g.lineTo(cx + bw / 2 - 4, top); g.quadraticCurveTo(cx + bw / 2, top, cx + bw / 2, top + 4); g.lineTo(cx + bw / 2, B); g.fill(); teks(g, D.fmt(v, 2), cx, top - 5, 10.5, W.ink2, 600, 'center'); }
       teks(g, D.BLN3[i], cx, Ht - 10, 10.5, sel ? W.ink : W.ink3, sel ? 700 : 400, 'center');
     });
     g.setLineDash([6, 4]); g.strokeStyle = W.good; g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, y(100)); g.lineTo(Wd - 10, y(100)); g.stroke(); g.setLineDash([]);
@@ -393,7 +393,7 @@
       for (var i = 1; i <= m; i++) { kum.push(D.hitungRendiklat(a.kelas(), S.tahun, i, a.set())); hopv.push(a.hop(S.tahun, i)); }
       function f(fm) { var o = {}; for (var j = 3; j <= m + 2; j++) o[j] = fm; return o; }
       var rows = [
-        ['Capaian Kinerja', 'skor', D.BULAN.slice(0, m).map(function (Bn) { return a.konmanAda(Bn) ? a.totalSkor(Bn) : null; }), '0.0'],
+        ['Capaian Kinerja', 'skor', D.BULAN.slice(0, m).map(function (Bn) { return a.konmanAda(Bn) ? a.totalSkor(Bn) : null; }), '0.00'],
         ['Kelas selesai (bulan itu)', 'kelas', kum.map(function (x, j) { return x.kelas - (j ? kum[j - 1].kelas : 0); }), '#,##0'],
         ['Kelas selesai (kumulatif)', 'kelas', kum.map(function (x) { return x.kelas; }), '#,##0'],
         ['Peserta (kumulatif)', 'orang', kum.map(function (x) { return x.peserta; }), '#,##0'],

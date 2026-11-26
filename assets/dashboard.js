@@ -90,7 +90,7 @@
       '<path d="M15 82 A70 70 0 0 1 155 82" fill="none" stroke="var(--track)" stroke-width="12" stroke-linecap="round"/>' +
       (v ? '<path d="M15 82 A70 70 0 0 1 ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1) + '" fill="none" stroke="' + cv(st.c) + '" stroke-width="12" stroke-linecap="round"/>' : '') +
       '<line x1="' + t1[0].toFixed(1) + '" y1="' + t1[1].toFixed(1) + '" x2="' + t2[0].toFixed(1) + '" y2="' + t2[1].toFixed(1) + '" stroke="var(--ink)" stroke-width="2"/>' +
-      '<text x="' + cx + '" y="' + (cy - 8) + '" text-anchor="middle" style="font-family:var(--f-display)" font-weight="700" font-size="24" fill="var(--ink)">' + (v === null ? '–' : D.fmt(v * 100, 1) + '%') + '</text></svg>';
+      '<text x="' + cx + '" y="' + (cy - 8) + '" text-anchor="middle" style="font-family:var(--f-display)" font-weight="700" font-size="24" fill="var(--ink)">' + (v === null ? '–' : D.fmt(v * 100, 2) + '%') + '</text></svg>';
   }
   /* Lingkaran progres: f = 0..1 (null = tanpa data) */
   function ring(f, c, txt, label) {
@@ -157,8 +157,8 @@
     var Bp = S.bulan > 1 ? D.BULAN[S.bulan - 2] : null, totP = Bp && konmanAda(Bp) ? totalSkor(Bp) : null;
     var bulan12 = function (f) { return D.BULAN.map(function (Bx, i) { return i + 1 > S.bulan ? null : f(Bx, i + 1); }); };
     var cap12 = bulan12(function (Bx) { return konmanAda(Bx) ? totalSkor(Bx) : null; });
-    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 1, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c, click: konmanAda(Bn) ? 'capaian' : null,
-      m12: mini12(cap12, function (x) { return D.fmt(x, 1) + '%'; }, function (x) { return status(x / 100).c; }, 'Capaian kinerja per bulan') });
+    h += card({ title: 'Capaian Kinerja', hint: 'Skor Konman ' + bl + ' ' + S.tahun, delta: delta(tot, totP, 2, ' poin', 1), html: gauge(tv), foot: konmanAda(Bn) ? st.t : 'Tidak ada data Konman bulan ini', cls: st.c, click: konmanAda(Bn) ? 'capaian' : null,
+      m12: mini12(cap12, function (x) { return D.fmt(x, 2) + '%'; }, function (x) { return status(x / 100).c; }, 'Capaian kinerja per bulan') });
     var rk12 = bulan12(function (Bx, m) { return D.hitungRendiklat(kelas(), S.tahun, m, set()); });
 
     var r = D.hitungRendiklat(kelas(), S.tahun, S.bulan, set());
@@ -511,7 +511,7 @@
         var top = y(Math.max(v, 0));
         s += '<g data-m="' + m + '"><rect class="hit" x="' + (cx - step / 2) + '" y="' + T + '" width="' + step + '" height="' + ih + '"/>' +
           '<path class="b ' + status(v / 100).c + (sel ? ' sel' : '') + '" d="M' + x + ' ' + (T + ih) + 'V' + (top + 4) + 'q0 -4 4 -4h' + (bw - 8) + 'q4 0 4 4V' + (T + ih) + 'z"><title>' + D.cap(Bn) + ': ' + D.fmt(v, 2) + '</title></path>' +
-          '<text class="bl num' + (sel ? ' on' : '') + (v === Math.max.apply(null, vals.filter(function (q) { return q !== null; })) && Math.abs(m - S.bulan) > 1 ? ' pen' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 1) + '</text></g>';
+          '<text class="bl num' + (sel ? ' on' : '') + (v === Math.max.apply(null, vals.filter(function (q) { return q !== null; })) && Math.abs(m - S.bulan) > 1 ? ' pen' : '') + '" x="' + cx + '" y="' + (top - 5) + '" text-anchor="middle">' + D.fmt(v, 2) + '</text></g>';
       }
       s += '<text class="ax" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle"' + (sel ? ' font-weight="700" fill="var(--ink)"' : '') + '>' + (D.sempit() ? D.BLN3[m - 1].charAt(0) : D.BLN3[m - 1]) + '</text>';
     });
@@ -541,8 +541,8 @@
     var perlu = rows.filter(function (r) { return r.v !== null && (r.v < 1 || r.turun); });
     var kep = kepRows().map(function (r) { return { n: String(r['Aspek Kepatuhan']).trim(), v: kepVal(r, Bn) }; }).filter(function (r) { return r.v; });
     var cap12 = D.BULAN.map(function (Bx, i) { return i + 1 > S.bulan || !konmanAda(Bx) ? null : totalSkor(Bx); });
-    var grafik = window.DashGrafik ? window.DashGrafik.batang(cap12, { sel: S.bulan, h: 200, fmt: function (v) { return D.fmt(v, 1); }, label: 'Capaian kinerja per bulan' }) : '';
-    openModal('<div class="modal-h"><div><div class="desc">Capaian kinerja · ' + bl + ' ' + S.tahun + '</div><h3>' + D.fmt(tot, 1) + '% <span class="pill ' + st.c + '">' + st.t + '</span></h3></div><button class="btn" data-close>Tutup</button></div>' +
+    var grafik = window.DashGrafik ? window.DashGrafik.batang(cap12, { sel: S.bulan, h: 200, fmt: function (v) { return D.fmt(v, 2); }, label: 'Capaian kinerja per bulan' }) : '';
+    openModal('<div class="modal-h"><div><div class="desc">Capaian kinerja · ' + bl + ' ' + S.tahun + '</div><h3>' + D.fmt(tot, 2) + '% <span class="pill ' + st.c + '">' + st.t + '</span></h3></div><button class="btn" data-close>Tutup</button></div>' +
       '<div class="sub-h">Tren 12 bulan</div>' + grafik +
       (perlu.length ? '<div class="sub-h">Perlu perhatian bulan ini</div><ul class="cap-perlu">' + perlu.map(function (r) {
         return '<li class="' + r.st.c + '"><b>' + esc(labelNo(r.x)) + '. ' + esc(r.x.pendek) + '</b><span>' + D.fmt(r.v * 100, 0) + '%' + (r.v < 1 ? ' · di bawah target' : '') + (r.turun ? ' · turun dari ' + namaBulan(S.bulan - 1) : '') + '</span></li>';
@@ -550,7 +550,7 @@
       (function () { var G = {}; it.forEach(function (x) { var c = D.capaianItem(x, Bn); if (c === null || c === undefined) return; var k = (x.pic || 'Lainnya').split(/[,/&]/)[0].trim() || 'Lainnya'; (G[k] = G[k] || { n: 0, s: 0, b: 0 }); G[k].n++; G[k].s += Math.min(c, 1.1); if (c < 0.9999) G[k].b++; });
         var ks = Object.keys(G).sort(function (a, b) { return G[a].s / G[a].n - G[b].s / G[b].n; }); if (ks.length < 2) return '';
         return '<div class="sub-h">Per bidang (PIC)</div><div class="bid-g">' + ks.map(function (k) { var g = G[k], r = g.s / g.n; return '<div class="bid-i"><b>' + esc(k) + '</b><span class="num ' + status(r).c + '">' + D.fmt(r * 100, 0) + '%</span><small>' + g.n + ' indikator' + (g.b ? ' · ' + g.b + ' di bawah 100%' : '') + '</small></div>'; }).join('') + '</div>'; })() +
-      '<div class="sub-h">Cara angka ' + D.fmt(tot, 1) + '% terbentuk</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">Target</th><th class="r">Realisasi</th><th class="r">Capaian</th><th class="r">Bobot</th><th class="r">Skor</th></tr></thead><tbody>' +
+      '<div class="sub-h">Cara angka ' + D.fmt(tot, 2) + '% terbentuk</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Indikator</th><th class="r">Target</th><th class="r">Realisasi</th><th class="r">Capaian</th><th class="r">Bobot</th><th class="r">Skor</th></tr></thead><tbody>' +
       rows.map(function (r) {
         return '<tr class="klik" data-ind="' + r.x.baris + '" tabindex="0"><td><b>' + esc(labelNo(r.x)) + '</b> ' + esc(r.x.pendek) + '</td><td class="r">' + esc((r.x.target[Bn] || {}).d || '–') + '</td><td class="r">' + esc((r.x.real[Bn] || {}).d || '–') + '</td>' +
           '<td class="r ' + r.st.c + '"><b>' + (r.v === null ? '–' : D.fmt(r.v * 100, 0) + '%') + '</b></td><td class="r">' + (r.bw ? D.fmt(r.bw, 2) : '–') + '</td><td class="r"><b>' + (r.sk === null || r.sk === undefined ? '–' : D.fmt(r.sk, 2)) + '</b></td></tr>';
@@ -1665,13 +1665,13 @@
     var bawah = ind.filter(function (x) { return x.v < 0.9999; }).sort(function (a, b) { return a.v - b.v; }).slice(0, 3);
     var atas = ind.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 5);
     var baris = function (x) { var s2 = status(x.v); return '<div class="cs-i"><span>' + esc(x.it.pendek) + '</span><b class="num ' + s2.c + '">' + D.fmt(x.v * 100, 0) + '%</b></div>'; };
-    el.innerHTML = '<div class="cs-h"><div><span class="sub-h">' + bl + ' ' + S.tahun + '</span><b class="cs-big num ' + st.c + '">' + (kini ? D.fmt(kini.v, 1) : '–') + '</b></div>' +
-      '<div class="cs-st"><span class="pill ' + st.c + '">' + st.t + '</span>' + (dl !== null ? '<span class="cs-d ' + (dl >= 0 ? 'good' : 'bad') + '">' + (dl >= 0 ? '▲ +' : '▼ ') + D.fmt(dl, 1) + ' poin vs ' + namaBulan(lalu.m).slice(0, 3) + '</span>' : '') + '</div></div>' +
+    el.innerHTML = '<div class="cs-h"><div><span class="sub-h">' + bl + ' ' + S.tahun + '</span><b class="cs-big num ' + st.c + '">' + (kini ? D.fmt(kini.v, 2) : '–') + '</b></div>' +
+      '<div class="cs-st"><span class="pill ' + st.c + '">' + st.t + '</span>' + (dl !== null ? '<span class="cs-d ' + (dl >= 0 ? 'good' : 'bad') + '">' + (dl >= 0 ? '▲ +' : '▼ ') + D.fmt(dl, 2) + ' poin vs ' + namaBulan(lalu.m).slice(0, 3) + '</span>' : '') + '</div></div>' +
       '<div class="cs-g">' +
-        '<div><b class="num">' + D.fmt(rata, 1) + '</b><span>rata-rata s.d. ' + bl.slice(0, 3) + '</span></div>' +
+        '<div><b class="num">' + D.fmt(rata, 2) + '</b><span>rata-rata s.d. ' + bl.slice(0, 3) + '</span></div>' +
         '<div><b class="num">' + capai + '<small> / ' + data.length + '</small></b><span>bulan mencapai target</span></div>' +
-        '<div><b class="num">' + D.fmt(hi.v, 1) + '</b><span>tertinggi · ' + namaBulan(hi.m) + '</span></div>' +
-        '<div><b class="num">' + D.fmt(lo.v, 1) + '</b><span>terendah · ' + namaBulan(lo.m) + '</span></div></div>' +
+        '<div><b class="num">' + D.fmt(hi.v, 2) + '</b><span>tertinggi · ' + namaBulan(hi.m) + '</span></div>' +
+        '<div><b class="num">' + D.fmt(lo.v, 2) + '</b><span>terendah · ' + namaBulan(lo.m) + '</span></div></div>' +
       '<div class="cs-pg ' + (pg ? 'bad' : 'good') + '">' + (pg ? 'Pengurang kepatuhan ' + bl + ': <b>−' + D.fmt(pg, 2) + ' poin</b>' : 'Tidak ada pengurang kepatuhan ' + bl) + '</div>' +
       '<div class="cs-ind"><div class="sub-h">' + (bawah.length ? 'Indikator di bawah 100%' : 'Indikator tertinggi') + '</div><div class="cs-l">' + (bawah.length ? bawah : atas).map(baris).join('') + '</div></div>' +
       // saat presentasi ada ruang lebih: tampilkan juga indikator tertinggi
@@ -1835,11 +1835,11 @@
     var tren = D.BULAN.map(function (b, i) { return { m: i + 1, v: konmanAda(b) ? totalSkor(b) : null }; });
     var mxT = Math.max.apply(null, [110].concat(tren.map(function (x) { return x.v || 0; })));
     var kalimat = tot === null ? 'Data Kontrak Manajemen ' + bl + ' belum diisi.' :
-      (totP !== null ? (tot >= totP ? 'Naik ' : 'Turun ') + D.fmt(Math.abs(tot - totP), 1) + ' poin dari ' + namaBulan(S.bulan - 1) + '. ' : '') + (tot >= 100 ? 'Target 100% terpenuhi.' : 'Kurang ' + D.fmt(100 - tot, 1) + ' poin dari target 100%.');
+      (totP !== null ? (tot >= totP ? 'Naik ' : 'Turun ') + D.fmt(Math.abs(tot - totP), 2) + ' poin dari ' + namaBulan(S.bulan - 1) + '. ' : '') + (tot >= 100 ? 'Target 100% terpenuhi.' : 'Kurang ' + D.fmt(100 - tot, 2) + ' poin dari target 100%.');
     var hero = '<div class="rgk-hero ' + st.c + (tot === null ? '' : ' click" tabindex="0" role="button" data-act="capaian" title="Lihat rincian capaian kinerja') + '"><div class="rgk-k"><span class="rgk-lbl">Capaian kinerja · ' + bl + ' ' + S.tahun + '</span>' +
-      '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 1) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
+      '<b class="rgk-big num">' + (tot === null ? '–' : D.fmt(tot, 2) + '%') + '</b><span class="pill ' + st.c + '">' + st.t + '</span><p>' + kalimat + '</p></div>' +
       '<div class="rgk-tren" role="img" aria-label="Capaian kinerja per bulan">' + tren.map(function (x) {
-        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 1) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? '6px' : 'calc((100% - 34px) * ' + Math.max(0.06, x.v / mxT).toFixed(4) + ')') + '"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
+        return '<span class="' + (x.m === S.bulan ? 'on ' : '') + (x.v === null ? 'nol' : status(x.v / 100).c) + '" title="' + esc(namaBulan(x.m) + ': ' + (x.v === null ? 'belum ada' : D.fmt(x.v, 2) + '%')) + '">' + (x.v === null ? '' : '<small class="rgk-pv">' + D.fmt(x.v, 0) + (x.m === S.bulan ? '%' : '') + '</small>') + '<i style="height:' + (x.v === null ? '6px' : 'calc((100% - 34px) * ' + Math.max(0.06, x.v / mxT).toFixed(4) + ')') + '"></i><em>' + D.BULAN[x.m - 1].slice(0, 1) + '</em></span>';
       }).join('') + '<b class="rgk-100" style="bottom:calc((100% - 34px) * ' + (100 / mxT).toFixed(4) + ' + 18px)"></b></div></div>';
     // 2. hal yang perlu perhatian (maksimal 3)
     var L = perhatian(), L3 = S.rgkSemua ? L : L.slice(0, 3);
