@@ -35,7 +35,9 @@
     var ang = function (x) { if (x === null || x === undefined || x === '' || /^\d{4}-\d{2}-\d{2}/.test(String(x))) return null; var n = D.num(x); return n === null || isNaN(n) ? null : n; };
     var waktu = /waktu/i.test(it.satuan || '') || K.months.some(function (m) { return it.target[m] && /^\d{4}-\d{2}-\d{2}/.test(String(it.target[m].v)); });
     var persen = /%/.test(it.satuan || ''), t = [], r = [];
-    BUL.forEach(function (m) {
+    var sampai = A().S.bulan; // bulan setelah periode laporan tidak ditampilkan
+    BUL.forEach(function (m, i) {
+      if (i >= sampai) { t.push(null); r.push(null); return; }
       var ada = K.months.indexOf(m) >= 0 && D.hasData(it, m);
       if (waktu) { var c = ada ? D.capaianItem(it, m) : null; t.push(ada ? 100 : null); r.push(c === null || c === undefined ? null : Math.round(c * 1000) / 10); return; }
       var tv = it.target[m] ? ang(it.target[m].v) : null, rv = ada ? ang(it.real[m].v) : null;
