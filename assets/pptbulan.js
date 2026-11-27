@@ -84,7 +84,7 @@
       kop(s2, a.labelNo(it) + '. ' + it.nama); legenda(s2, 0.85);
       s2.addShape('ellipse', { x: 11.45, y: 0.32, w: 0.26, h: 0.26, fill: { color: st.c }, line: { color: st.c } });
       var hd = ['KPI', 'Units', 'Target Sem II ' + S.tahun, 'Target ' + bl, 'Realisasi ' + bl, 'PIC', 'Explanation', 'Action Step'].map(function (t) { return { text: t, options: { bold: true, color: 'FFFFFF', fill: { color: BIRU }, align: 'center', valign: 'middle' } }; });
-      var ket = bersih(it.ket && it.ket[Bn]) || su.ket, as = su.as;
+      var ket = bersih(it.ket && it.ket[Bn]) || su.ket, as = su.as || bersih(it.aksi);
       var kuning = function (t) { return { text: t, options: { highlight: 'FFFF00', color: '5A4A00' } }; };
       s2.addTable([hd, [it.pendek || it.nama, bersih(it.satuan), { text: bersih(it.target2) || '–', options: { align: 'center' } }, { text: bersih(it.target[Bn] && it.target[Bn].d) || '–', options: { align: 'center' } },
         { text: D.hasData(it, Bn) ? bersih(it.real[Bn].d) : '–', options: { align: 'center', bold: true, color: st.c === '00B050' ? '1F7A3A' : st.c === 'FF0000' ? 'C00000' : '222222' } }, { text: bersih(it.pic) || '–', options: { align: 'center' } },

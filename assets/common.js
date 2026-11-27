@@ -51,7 +51,7 @@
     }
     function idx(name) { for (var i = 0; i < h1.length; i++) if (String(h1[i]).trim().toUpperCase() === name) return i; return -1; }
     var cNo = 0, cNama = 1, cPendek = idx('INDIKATOR KINERJA'), cPic = idx('PIC'), cPol = idx('POLARITAS'), cFor = idx('FORMULA'),
-      cSat = idx('SATUAN'), cB1 = idx('BOBOT SMT I'), cB2 = idx('BOBOT SMT II'), cT1 = idx('TARGET SMT I'), cT2 = idx('TARGET SMT II');
+      cSat = idx('SATUAN'), cB1 = idx('BOBOT SMT I'), cB2 = idx('BOBOT SMT II'), cT1 = idx('TARGET SMT I'), cT2 = idx('TARGET SMT II'), cAs = idx('ACTION STEP');
     var months = BULAN.filter(function (B) { return col.real[B] !== undefined; });
     var items = [], parent = null;
     for (var r = 2; r < V.length; r++) {
@@ -64,6 +64,7 @@
         pendek: String(row[cPendek] || nama).replace(/^[a-z]\.\s*/, '').trim(),
         pic: row[cPic] || '', polaritas: row[cPol], formula: row[cFor] || '', satuan: row[cSat] || '',
         bobot1: row[cB1], bobot2: row[cB2], target1: disp[cT1] || row[cT1], target2: disp[cT2] || row[cT2],
+        aksi: cAs >= 0 ? String(row[cAs] || '').trim() : '', // kolom ACTION STEP (BF)
         target: {}, real: {}, skor: {}, ket: {}, capai: {}, children: []
       };
       it.pengurang = /max/i.test(String(row[cB1] || '') + String(row[cB2] || ''));

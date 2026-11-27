@@ -35,6 +35,7 @@ wajib membacanya dulu, dan memperbaruinya setiap ada keputusan atau permintaan b
 9. Bila pemilik bilang "deploy sendiri, laptop saya standby": deploy Apps Script lewat browser lalu push.
 
 ## Keputusan penting (terbaru di atas)
+- 27 Nov 2026: Kolom "Action Step" (BF) di tab Konman 2026 dibaca per indikator (`it.aksi`) dan otomatis mengisi kolom Action Step di PPT Trajectory serta paragraf Action step di Laporan bulanan. Suntingan manual di laporan tetap didahulukan untuk PPT.
 - 26 Nov 2026: Baris judul tabel memakai token `--th-bg` (terang #f1f3f7 netral, gelap #1d253b), padat agar tidak tumpang tindih saat digulir. Pemilik tidak suka biru muda ala Excel. Pencarian Kalender Pembelajaran = tombol ikon kaca pembesar, kolom terbuka saat diklik. Label metode: In Class Training (ICT), In House Training (IHT), Digital Learning (DL), Self Learning (SL), Blended Learning (BL), Hybrid Learning (HL). Pinjam/Sewa bukan bagian rekap pembelajaran (hanya info pinjam fasilitas).
 - 26 Nov 2026: Notulensi di layar lebar (> 700 px) tampil sebagai jendela mengambang (geser, ubah ukuran, perkecil, perbesar; posisi diingat di localStorage `updl.ntJendela`); dashboard tetap bisa dipakai. Di HP tetap layar penuh. Notulen Final tetap bisa diubah Admin; penyimpanan saat status sudah Final mengisi kolom "Diubah Setelah Final" (tab Notulen) → penanda di Riwayat. Apps Script VERSI 13.
 - 26 Nov 2026: Kartu sorotan mode terang dipertegas (latar biru lebih pekat, tepi aksen 2 px, cincin cahaya) agar terlihat di proyektor.
